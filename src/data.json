@@ -1,0 +1,89 @@
+{
+  "introInsights": [
+    {
+      "title": "Total Teams",
+      "value": "15",
+      "icon": "users",
+      "info": "+0.56% Since last week"
+    },
+    {
+      "title": "Active Players",
+      "value": "87",
+      "icon": "user",
+      "info": "+0.56% Since last week"
+    },
+    {
+      "title": "AI Predictions",
+      "value": "93%",
+      "icon": "cpu",
+      "subInfo": "Approching treshold"
+    },
+    {
+      "title": "Recovery status",
+      "value": "93%",
+      "icon": "heart",
+      "subInfo": "Optimal rest achieved"
+    }
+  ],
+  "upcomingMatches": [
+    {
+      "match": "Arsenal VS Chelsea",
+      "time": "20.00"
+    },
+    {
+      "match": "Arsenal VS Chelsea",
+      "time": "20.00"
+    },
+    {
+      "match": "Arsenal VS Chelsea",
+      "time": "20.00"
+    }
+  ],
+  "aiInsights": [
+    {
+      "icon": "trending-up",
+      "title": "Performance Trend",
+      "desc": "Players efficiency increased"
+    },
+    {
+      "icon": "bar-chart-2",
+      "title": "Statistical Analysis",
+      "desc": "Team possession shows positive correlation"
+    },
+    {
+      "icon": "users",
+      "title": "Team Dynamics",
+      "desc": "Lineup prediction for next match"
+    }
+  ],
+  "quickAlerts": [
+    {
+      "teamLogo": "team1.png",
+      "message": "Coach Williams team has a 70% injury risk this month",
+      "type": "danger",
+      "time": "8 min ago",
+      "actions": ["Review", "Resolve"]
+    },
+    {
+      "teamLogo": "team1.png",
+      "message": "Coach Williams team has a 70% injury risk this month",
+      "type": "danger",
+      "time": "8 min ago",
+      "actions": ["Review", "Resolve"]
+    },
+    {
+      "teamLogo": "team2.png",
+      "message": "Team Z's win rate increased by 20% over the last quarter.",
+      "type": "success",
+      "time": "8 min ago",
+      "actions": ["View", "Resolve"]
+    },
+    {
+      "teamLogo": "team2.png",
+      "message": "Coach B's tactical changes improved player growth by 30%",
+      "type": "success",
+      "time": "8 min ago",
+      "actions": ["View", "Resolve"]
+    }
+  ]
+}
