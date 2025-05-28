@@ -4,7 +4,7 @@ import React from "react";
 export function TopCard({ title, value, icon, info, subInfo }) {
   return (
     <div className="p-[1px] rounded-[8px] bg-[linear-gradient(270deg,#ffbb34_0%,#202f49] flex-1 min-w-[150px] h-[131px]">
-      <div className="bg-[#0F111F] rounded-[8px] h-full w-full p-4 shadow-md text-white flex flex-col justify-between">
+      <div className="bg-gray-900 rounded-[8px] h-full w-full p-4 shadow-md text-white flex flex-col justify-between">
         <div className="flex justify-between items-center mb-2">
           <span className="text-sm text-gray-200">{title}</span>
           {icon && <span>{icon}</span>}
@@ -19,7 +19,7 @@ export function TopCard({ title, value, icon, info, subInfo }) {
 
 export function InsightCard({ title, value , info, subInfo }) {
   return (
-    <div className="bg-[#0F111F] rounded-[8px] p-4 shadow-md w-full min-w-[220px] h-auto text-white">
+    <div className="bg-gray-900 rounded-[8px] p-4 shadow-md w-full min-w-[220px] h-auto text-white">
       <div className="flex justify-between items-center mb-2">
         <span className="text-sm text-gray-200">{title}</span>
       </div>
@@ -42,7 +42,7 @@ import { AlertTriangle, ArrowUpRight } from "lucide-react";
 
 export function AlertCard({ teamLogo, message, type, time, actions }) {
   return (
-    <div className="bg-[#0F111F] border border-[#232323] rounded-[12px] p-4 mb-3 flex flex-col gap-2 relative">
+    <div className="bg-gray-900 border border-[#232323] rounded-[12px] p-4 mb-3 flex flex-col gap-2 relative">
       <div className="flex items-center gap-3">
         <img src={`/assets/${teamLogo}`} alt="team logo" className="w-8 h-8 rounded-full" />
         <span className="text-sm text-white flex-1">{message}</span>

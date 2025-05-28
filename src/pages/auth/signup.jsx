@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Eye, EyeOff, ShoppingCart, Loader2 } from 'lucide-react';
-import { API_BASE_URL } from './auth';
+import { API_ENDPOINTS } from '../../apiConfig';
 
+const signupURL = API_ENDPOINTS.SIGNUP;
 
 const SignupForm = ({ onToggle }) => {
   const [showPassword, setShowPassword] = useState(false);
@@ -30,7 +31,7 @@ const SignupForm = ({ onToggle }) => {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/register/`, {
+      const response = await fetch(signupURL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

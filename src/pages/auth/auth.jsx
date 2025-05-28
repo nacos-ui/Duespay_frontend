@@ -3,8 +3,6 @@ import { ShoppingCart } from 'lucide-react';
 import LoginForm from './login';
 import SignupForm from './signup';
 
-export const API_BASE_URL = 'http://localhost:8000';
-
 const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true);
 

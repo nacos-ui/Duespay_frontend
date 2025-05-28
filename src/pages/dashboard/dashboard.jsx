@@ -30,7 +30,7 @@ export default function Dashboard() {
         <div className="flex gap-4 w-full">
             <div className="bg-transparent flex flex-col gap-4 rounded-[12px] p-0 mt-4 w-3/5 min-w-[220px] h-auto text-white">
                 <div className="flex flex-row justify-between items-center mb-2 gap-4">
-                    <div className="flex flex-col bg-[#0F111F] rounded-[8px] gap-4 p-4 w-1/2 min-w-[220px] h-auto text-white">
+                    <div className="flex flex-col bg-gray-900 rounded-[8px] gap-4 p-4 w-1/2 min-w-[220px] h-auto text-white">
                         <span className="text-sm text-gray-200">Upcoming Matches</span>
                         {data.upcomingMatches.map((match, idx) => (
                             <UpcomingMatchesCard
@@ -40,7 +40,7 @@ export default function Dashboard() {
                             />
                         ))}
                     </div>
-                    <div className="flex flex-col bg-[#0F111F] rounded-[8px] gap-4 p-4 w-1/2 min-w-[220px] h-auto text-white">
+                    <div className="flex flex-col bg-gray-900 rounded-[8px] gap-4 p-4 w-1/2 min-w-[220px] h-auto text-white">
                         <span className="text-sm text-gray-200">AI Insights</span>
                         {data.upcomingMatches.map((match, idx) => (
                             <UpcomingMatchesCard
@@ -55,7 +55,7 @@ export default function Dashboard() {
                   hello
                 </div>
             </div>
-            <div className="bg-[#0F111F] rounded-[8px] p-4 shadow-md w-2/5 min-w-[220px] h-auto text-white">
+            <div className="bg-gray-900 rounded-[8px] p-4 shadow-md w-2/5 min-w-[220px] h-auto text-white">
               <div className="flex justify-between items-center mb-4">
                 <span className="text-white font-semibold">Quick alerts</span>
                 <button className="text-xs text-[#FFBB34]">Mark all as read</button>
