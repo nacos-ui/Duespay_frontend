@@ -3,7 +3,6 @@ import Navbar from './navbar';
 import { useState, useEffect } from 'react';
 
 export default function MainLayout({ children }) {
-  // Initialize sidebar state based on screen size
   const [sidebarOpen, setSidebarOpen] = useState(() => {
     if (typeof window !== 'undefined') {
       return window.innerWidth >= 768;

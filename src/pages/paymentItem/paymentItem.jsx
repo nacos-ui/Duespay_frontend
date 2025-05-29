@@ -5,8 +5,6 @@ import PaymentItemSkeleton from "./components/PaymentItemSkeleton";
 import MainLayout from "../../layouts/mainLayout";
 import { API_ENDPOINTS } from "../../apiConfig";
 
-// Remove mockPaymentItems
-
 export default function PaymentItems() {
   const [search, setSearch] = useState("");
   const [paymentItems, setPaymentItems] = useState([]);
@@ -16,7 +14,6 @@ export default function PaymentItems() {
     const fetchPaymentItems = async () => {
       setIsLoading(true);
       try {
-        // Get token from localStorage (adjust if you store it elsewhere)
         const token = localStorage.getItem("access_token");
         const res = await fetch(API_ENDPOINTS.PAYMENT_ITEMS, {
           headers: {
@@ -28,7 +25,7 @@ export default function PaymentItems() {
         const data = await res.json();
         setPaymentItems(data); 
       } catch (err) {
-        // Optionally handle error
+        // error handling here
         setPaymentItems([]);
       } finally {
         setIsLoading(false);
@@ -37,7 +34,7 @@ export default function PaymentItems() {
     fetchPaymentItems();
   }, []);
 
-  // Filter logic (optional)
+  // search filter
   const filteredItems = paymentItems.filter(item =>
     item.title.toLowerCase().includes(search.toLowerCase())
   );
