@@ -20,7 +20,6 @@ const DuesPayPaymentFlow = () => {
     matricNumber: '',
     faculty: '',
     department: '',
-    hall: ''
   });
 
   const [associationData, setAssociationData] = useState(null);
@@ -29,6 +28,7 @@ const DuesPayPaymentFlow = () => {
   const [proofFile, setProofFile] = useState(null);
   const [isVerified, setIsVerified] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isVerifying, setIsVerifying] = useState(false); // <-- add this
 
   // Fetch association and payment items based on shortName
   useEffect(() => {
@@ -39,7 +39,6 @@ const DuesPayPaymentFlow = () => {
         if (!res.ok) throw new Error('Failed to fetch association');
         const data = await res.json();
         setAssociationData(data);
-        console.log(data);
         setPaymentItems(data.payment_items || []);
         // Preselect compulsory items
         setSelectedItems(
@@ -90,13 +89,53 @@ const DuesPayPaymentFlow = () => {
     }, 0);
   };
 
-  const nextStep = () => {
-    if (currentStep < 4) {
-      setCurrentStep(currentStep + 1);
-      if (currentStep === 3) {
-        // Simulate verification process
-        setTimeout(() => setIsVerified(true), 2000);
+  // --- Proof verification and transaction submission logic ---
+  const verifyProof = async (file) => {
+    const formData = new FormData();
+    formData.append('proof', file);
+
+    const res = await fetch(API_ENDPOINTS.VERIFY_PROOF, {
+      method: 'POST',
+      body: formData,
+    });
+    return res.json();
+  };
+
+  const submitTransaction = async () => {
+    const formData = new FormData();
+    formData.append('association_short_name', associationData.association_short_name);
+    formData.append('amount_paid', getTotalAmount());
+    formData.append('proof_of_payment', proofFile);
+    formData.append('payer', JSON.stringify(payerData));
+    formData.append('payment_item_ids', JSON.stringify(selectedItems));
+
+    const res = await fetch(API_ENDPOINTS.CREATE_TRANSACTION, {
+      method: 'POST',
+      body: formData,
+    });
+    return res.json();
+  };
+
+  const nextStep = async () => {
+    if (currentStep === 3) {
+      setIsVerifying(true); // Show roller
+      // 1. Verify proof before submitting transaction
+      const verification = await verifyProof(proofFile);
+      setIsVerifying(false); // Hide roller
+      if (!verification.verified) {
+        alert(verification.error || "Verification failed. Please re-upload.");
+        return;
       }
+      // 2. If verified, submit transaction
+      const result = await submitTransaction();
+      if (result.success) {
+        setIsVerified(true);
+        setCurrentStep(currentStep + 1);
+      } else {
+        alert(result.error || "Transaction failed.");
+      }
+    } else if (currentStep < 4) {
+      setCurrentStep(currentStep + 1);
     }
   };
 
@@ -167,6 +206,21 @@ const DuesPayPaymentFlow = () => {
     );
   }
 
+  if (isVerifying) {
+    // Roller animation
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-900 text-white">
+        <div className="mb-4">
+          <svg className="animate-spin h-12 w-12 text-purple-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+          </svg>
+        </div>
+        <div>Verifying proof of payment...</div>
+      </div>
+    );
+  }
+
   if (!associationData) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-900 text-red-400">
@@ -202,9 +256,9 @@ const DuesPayPaymentFlow = () => {
             {currentStep < 4 && (
               <button
                 onClick={nextStep}
-                disabled={!canProceed()}
+                disabled={!canProceed() || isVerifying}
                 className={`px-8 py-3 rounded-xl font-medium transition-all ml-auto ${
-                  canProceed()
+                  canProceed() && !isVerifying
                     ? 'bg-gradient-to-r from-purple-600 to-purple-500 text-white hover:shadow-lg hover:shadow-purple-500/25'
                     : 'bg-slate-700 text-slate-500 cursor-not-allowed border border-slate-600'
                 }`}

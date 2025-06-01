@@ -10,7 +10,6 @@ const RegistrationStep = ({ payerData, handleInputChange }) => {
     { key: 'phoneNumber', label: 'Phone Number', type: 'tel', placeholder: 'Enter your phone number' },
     { key: 'faculty', label: 'Faculty', placeholder: 'Enter your faculty' },
     { key: 'department', label: 'Department', placeholder: 'Enter your department' },
-    { key: 'hall', label: 'Hall (Optional)', placeholder: 'Enter your hall' }
   ];
 
   return (
