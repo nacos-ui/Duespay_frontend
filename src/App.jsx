@@ -4,12 +4,14 @@ import Dashboard from './pages/dashboard/dashboard';
 import Auth from './pages/auth/auth';
 import ProtectedRoute from './ProtectedRoute';
 import PaymentItems from './pages/paymentItem/paymentItem';
+import DuesPayPaymentFlow from './pages/reg_payment/reg_payment';
 
 function App() {
   return (
     <Router>
       <Routes>
         <Route path="/auth" element={<Auth />} />
+        <Route path="/:shortName" element={<DuesPayPaymentFlow />} />
         <Route path="/dashboard" element={
           <ProtectedRoute><Dashboard /></ProtectedRoute>
           } />

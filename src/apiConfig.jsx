@@ -3,6 +3,7 @@ export const API_ENDPOINTS = {
   LOGIN: `${API_BASE_URL}/auth/login/`,
   SIGNUP: `${API_BASE_URL}/auth/register/`,
   PAYMENT_ITEMS: `${API_BASE_URL}/payment-items/`,
+  GET_ASSOCIATION: (shortName) => `${API_BASE_URL}/get-association/${shortName}/`,
   PAYMENT_ITEM_DETAILS: (id) => `${API_BASE_URL}/payment-items/${id}/`,
   USER_PROFILE: `${API_BASE_URL}/user/profile/`,
   UPDATE_PROFILE: `${API_BASE_URL}/user/update/`,
