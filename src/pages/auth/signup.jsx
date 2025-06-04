@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Eye, EyeOff, ShoppingCart, Loader2 } from 'lucide-react';
 import { API_ENDPOINTS } from '../../apiConfig';
+import SubmitButton from '../../appComponents/SubmitButton';
 
 const signupURL = API_ENDPOINTS.SIGNUP;
 
@@ -15,6 +16,7 @@ const SignupForm = ({ onToggle }) => {
     first_name: '',
     last_name: '',
     email: '',
+    phone_number: '',
     password: '',
     confirmPassword: ''
   });
@@ -39,6 +41,7 @@ const SignupForm = ({ onToggle }) => {
         body: JSON.stringify({
           username: formData.username,
           email: formData.email,
+          phone_number: formData.phone_number,
           first_name: formData.first_name,
           last_name: formData.last_name,
           password: formData.password
@@ -161,6 +164,20 @@ const SignupForm = ({ onToggle }) => {
 
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-2">
+            Phone Number
+          </label>
+          <input
+            type="text"
+            value={formData.phone_number}
+            onChange={(e) => setFormData({...formData, phone_number: e.target.value})}
+            placeholder="Enter your phone number (e.g., +2349034049655)"
+            className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-colors"
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-2">
             Password
           </label>
           <div className="relative">
@@ -205,21 +222,14 @@ const SignupForm = ({ onToggle }) => {
           </div>
         </div>
 
-        <button
-          type="submit"
+        <SubmitButton
+          loading={loading}
+          loadingText="Creating Account..."
           onClick={handleSubmit}
-          disabled={loading}
-          className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-purple-800 disabled:cursor-not-allowed text-white font-medium py-3 px-4 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-900 flex items-center justify-center"
+          type="submit"
         >
-          {loading ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              Creating Account...
-            </>
-          ) : (
-            'Create Account'
-          )}
-        </button>
+          Create Account
+        </SubmitButton>
       </div>
 
       <div className="text-center">

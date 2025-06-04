@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Eye, EyeOff, ShoppingCart, Loader2 } from 'lucide-react';
 import { API_ENDPOINTS } from '../../apiConfig';
+import StatusMessage from '../../appComponents/StatusMessage';
+import SubmitButton from '../../appComponents/SubmitButton';
 
 const loginURL = API_ENDPOINTS.LOGIN;
 
@@ -39,9 +41,13 @@ const LoginForm = ({ onToggle }) => {
         localStorage.setItem('refresh_token', data.refresh);
         
         console.log('Login successful:', data);
-        setSuccess('Login successful! Redirecting to dashboard...');
+        setSuccess('Login successful!');
         setTimeout(() => {
-          window.location.href = '/dashboard';
+          if (data.is_first_login) {
+            window.location.href = '/create-association';
+          } else {
+            window.location.href = '/dashboard'
+          }
         }, 1500); 
       } else {
         setError(data.message || data.detail || 'Login failed. Please check your credentials.');
@@ -67,16 +73,8 @@ const LoginForm = ({ onToggle }) => {
       </div>
 
       <div className="space-y-4">
-        {error && (
-          <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-lg text-sm">
-            {error}
-          </div>
-        )}
-        {success && (
-          <div className="bg-green-500/10 border border-green-500/20 text-green-400 px-4 py-3 rounded-lg text-sm">
-            {success}
-          </div>
-        )}
+        {error && <StatusMessage type="error">{error}</StatusMessage>}
+        {success && <StatusMessage type="success">{success}</StatusMessage>}
         
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -128,22 +126,14 @@ const LoginForm = ({ onToggle }) => {
             Forgot Password?
           </button>
         </div>
-
-        <button
-          type="submit"
+        <SubmitButton
+          loading={loading}
+          loadingText="Signing In..."
           onClick={handleSubmit}
-          disabled={loading}
-          className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-purple-800 disabled:cursor-not-allowed text-white font-medium py-3 px-4 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-900 flex items-center justify-center"
+          type="submit"
         >
-          {loading ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              Signing In...
-            </>
-          ) : (
-            'Sign In'
-          )}
-        </button>
+          Sign In
+        </SubmitButton>
       </div>
 
       <div className="text-center">
