@@ -2,7 +2,7 @@ import { Bell, Settings, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { useLocation } from "react-router-dom";
 
 const navItems = [
-  { label: 'Dashboard', to: '/dashboard' },
+  { label: 'Dashboard Overview', to: '/dashboard/overview' },
   { label: 'Payment Items Management', to: '/dashboard/payment-items' },
   { label: 'Transactions', to: '/dashboard/transactions' },
   { label: 'Students', to: '/dashboard/students' },

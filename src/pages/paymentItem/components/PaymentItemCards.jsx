@@ -6,6 +6,7 @@ export default function PaymentItemCard({
   status,
   is_active,
   created_at,
+  onEdit, // <-- add this
 }) {
   const formattedDate = new Date(created_at).toLocaleTimeString("en-US", {
     year: "numeric",
@@ -31,7 +32,7 @@ export default function PaymentItemCard({
       </div>
       <div className="text-xs text-gray-400 mb-4">Created on {formattedDate}</div>
       <div className="flex gap-3 justify-end">
-        <button className="text-blue-400 hover:text-blue-600">
+        <button className="text-blue-400 hover:text-blue-600" onClick={onEdit}>
           <Edit size={16} />
         </button>
         <button className="text-red-400 hover:text-red-600">

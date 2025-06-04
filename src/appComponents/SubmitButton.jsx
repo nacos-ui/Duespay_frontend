@@ -1,3 +1,5 @@
+import { Loader2 } from "lucide-react";
+
 const SubmitButton = ({
     children,
     loading = false,

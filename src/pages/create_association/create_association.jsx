@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Eye, EyeOff, Upload, ShoppingCart, Loader2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Eye, EyeOff, Upload, ShoppingCart } from 'lucide-react';
 import StatusMessage from '../../appComponents/StatusMessage';
 import SubmitButton from '../../appComponents/SubmitButton';
 
@@ -122,8 +122,6 @@ const FileUpload = ({
   );
 };
 
-
-
 // Main Association Form Component
 const AssociationForm = () => {
   const [formData, setFormData] = useState({
@@ -132,6 +130,7 @@ const AssociationForm = () => {
     Association_type: '',
     logo: null
   });
+  const [associationId, setAssociationId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
@@ -142,6 +141,55 @@ const AssociationForm = () => {
     { value: 'faculty', label: 'Faculty' },
     { value: 'other', label: 'Other' }
   ];
+
+  // Fetch association on mount
+  useEffect(() => {
+    const fetchAssociation = async () => {
+      try {
+        const token = localStorage.getItem("access_token");
+        const response = await fetch('http://localhost:8000/association/', {
+          headers: {
+            "Authorization": `Bearer ${token}`,
+          },
+        });
+        if (response.ok) {
+          const data = await response.json();
+          // If you expect a list, use the first association
+          if (Array.isArray(data) && data.length > 0) {
+            setAssociationId(data[0].id);
+            setFormData({
+              association_name: data[0].association_name || '',
+              association_short_name: data[0].association_short_name || '',
+              Association_type: data[0].Association_type || '',
+              logo: null
+            });
+          } else if (data.id) {
+            setAssociationId(data.id);
+            setFormData({
+              association_name: data.association_name || '',
+              association_short_name: data.association_short_name || '',
+              Association_type: data.Association_type || '',
+              logo: null
+            });
+          }
+        }
+      } catch (err) {
+        // Optionally handle error
+      }
+    };
+    fetchAssociation();
+  }, []);
+
+  // Auto-clear messages
+  useEffect(() => {
+    if (success || error) {
+      const timer = setTimeout(() => {
+        setSuccess('');
+        setError('');
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [success, error]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -176,29 +224,29 @@ const AssociationForm = () => {
         submitData.append('logo', formData.logo);
       }
 
-      // Make POST request to backend
       const token = localStorage.getItem("access_token");
-      const response = await fetch('http://localhost:8000/association/1/', {
+      // Use the fetched associationId
+      const response = await fetch(`http://localhost:8000/association/${associationId}/`, {
         method: 'PUT',
         body: submitData,
         headers: {
-            "Authorization": `Bearer ${token}`,
+          "Authorization": `Bearer ${token}`,
         },
       });
 
       if (response.ok) {
-        const result = await response.json();
-        setSuccess('Association created successfully!');
+        setSuccess('Association updated successfully!');
         setError('');
-        // Optionally reset form
-        window.location.href = '/dashboard'
+        setTimeout(() => {
+          window.location.href = '/dashboard';
+        }, 1200);
       } else {
         const err = await response.json();
-        setError(err.detail || 'Failed to create association');
+        setError(err.detail || 'Failed to update association');
         setSuccess('');
       }
     } catch (error) {
-      setError('Error creating association. Please try again.');
+      setError('Error updating association. Please try again.');
       setSuccess('');
     } finally {
       setLoading(false);
@@ -256,8 +304,8 @@ const AssociationForm = () => {
             onChange={handleFileChange}
           />
 
-          <SubmitButton loading={loading} loadingText="Creating Association...">
-            Create Association
+          <SubmitButton loading={loading} loadingText="Updating Association...">
+            Update Association
           </SubmitButton>
         </form>
 

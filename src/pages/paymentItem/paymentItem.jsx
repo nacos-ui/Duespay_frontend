@@ -4,35 +4,117 @@ import PaymentItemCard from "./components/PaymentItemCards";
 import PaymentItemSkeleton from "./components/PaymentItemSkeleton";
 import MainLayout from "../../layouts/mainLayout";
 import { API_ENDPOINTS } from "../../apiConfig";
+import StatusMessage from "../../appComponents/StatusMessage";
+import PaymentItemForm from "./components/PaymentItemForm";
 
 export default function PaymentItems() {
   const [search, setSearch] = useState("");
   const [paymentItems, setPaymentItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [editItem, setEditItem] = useState(null);
+  const [formLoading, setFormLoading] = useState(false);
+  const [success, setSuccess] = useState("");
+  const [error, setError] = useState("");
+
+  // Fetch payment items
+  const fetchPaymentItems = async () => {
+    setIsLoading(true);
+    try {
+      const token = localStorage.getItem("access_token");
+      const res = await fetch(API_ENDPOINTS.PAYMENT_ITEMS, {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+      });
+      if (!res.ok) throw new Error("Failed to fetch payment items");
+      const data = await res.json();
+      setPaymentItems(data);
+    } catch (err) {
+      setPaymentItems([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchPaymentItems = async () => {
-      setIsLoading(true);
-      try {
-        const token = localStorage.getItem("access_token");
-        const res = await fetch(API_ENDPOINTS.PAYMENT_ITEMS, {
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`,
-          },
-        });
-        if (!res.ok) throw new Error("Failed to fetch payment items");
-        const data = await res.json();
-        setPaymentItems(data); 
-      } catch (err) {
-        // error handling here
-        setPaymentItems([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
     fetchPaymentItems();
   }, []);
+
+  // Success/error message auto-clear
+  useEffect(() => {
+    if (success || error) {
+      const timer = setTimeout(() => {
+        setSuccess("");
+        setError("");
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [success, error]);
+
+  // Add Payment Item
+  const handleAddPaymentItem = async (form, setFormError) => {
+    setFormLoading(true);
+    setFormError("");
+    setError("");
+    setSuccess("");
+    try {
+      const token = localStorage.getItem("access_token");
+      const res = await fetch(API_ENDPOINTS.PAYMENT_ITEMS, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify(form),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        setFormError(err.detail || "Failed to create payment item");
+        return;
+      }
+      setShowForm(false);
+      setSuccess("Payment item created successfully!");
+      fetchPaymentItems();
+    } catch {
+      setFormError("Failed to create payment item");
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
+  // Edit Payment Item
+  const handleEditPaymentItem = async (form, setFormError) => {
+    setFormLoading(true);
+    setFormError("");
+    setError("");
+    setSuccess("");
+    try {
+      const token = localStorage.getItem("access_token");
+      const res = await fetch(`${API_ENDPOINTS.PAYMENT_ITEMS}${editItem.id}/`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify(form),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        setFormError(err.detail || "Failed to update payment item");
+        return;
+      }
+      setEditItem(null);
+      setShowForm(false);
+      setSuccess("Payment item updated successfully!");
+      fetchPaymentItems();
+    } catch {
+      setFormError("Failed to update payment item");
+    } finally {
+      setFormLoading(false);
+    }
+  };
 
   // search filter
   const filteredItems = paymentItems.filter(item =>
@@ -47,10 +129,21 @@ export default function PaymentItems() {
             <h1 className="text-2xl font-bold text-white">Payment Items</h1>
             <p className="text-gray-400 text-sm">Manage your organization&apos;s payment options</p>
           </div>
-          <button className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-2xl transition">
+          <button
+            className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-2xl transition"
+            onClick={() => {
+              setShowForm(true);
+              setEditItem(null);
+              setSuccess("");
+              setError("");
+            }}
+          >
             <Plus className="w-5 h-5" /> Add Payment Item
           </button>
         </div>
+
+        {error && <StatusMessage type="error">{error}</StatusMessage>}
+        {success && <StatusMessage type="success">{success}</StatusMessage>}
 
         <div className="flex flex-wrap gap-4 items-center mb-4">
           <input
@@ -88,10 +181,33 @@ export default function PaymentItems() {
           {isLoading
             ? Array.from({ length: 6 }).map((_, idx) => <PaymentItemSkeleton key={idx} />)
             : filteredItems.map((item, idx) => (
-                <PaymentItemCard key={item.id || idx} {...item} />
+                <PaymentItemCard
+                  key={item.id || idx}
+                  {...item}
+                  onEdit={() => {
+                    setEditItem(item);
+                    setShowForm(true);
+                    setSuccess("");
+                    setError("");
+                  }}
+                />
               ))
           }
         </div>
+
+        {(showForm || editItem) && (
+          <PaymentItemForm
+            initial={editItem}
+            onClose={() => {
+              setShowForm(false);
+              setEditItem(null);
+            }}
+            onSubmit={editItem ? handleEditPaymentItem : handleAddPaymentItem}
+            loading={formLoading}
+            success={success}
+            error={error}
+          />
+        )}
       </div>
     </MainLayout>
   );

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, ShoppingCart, Loader2 } from 'lucide-react';
 import { API_ENDPOINTS } from '../../apiConfig';
 import StatusMessage from '../../appComponents/StatusMessage';
@@ -7,6 +8,7 @@ import SubmitButton from '../../appComponents/SubmitButton';
 const loginURL = API_ENDPOINTS.LOGIN;
 
 const LoginForm = ({ onToggle }) => {
+  const navigate = useNavigate()
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -20,13 +22,10 @@ const LoginForm = ({ onToggle }) => {
     e.preventDefault();
     setLoading(true);
     setError('');
-    
     try {
       const response = await fetch(loginURL, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           username: formData.username,
           password: formData.password
@@ -36,25 +35,21 @@ const LoginForm = ({ onToggle }) => {
       const data = await response.json();
 
       if (response.ok) {
-        // Store tokens
         localStorage.setItem('access_token', data.access);
         localStorage.setItem('refresh_token', data.refresh);
-        
-        console.log('Login successful:', data);
         setSuccess('Login successful!');
         setTimeout(() => {
           if (data.is_first_login) {
-            window.location.href = '/create-association';
+            navigate('/create-association');
           } else {
-            window.location.href = '/dashboard'
+            navigate('/dashboard');
           }
-        }, 1500); 
+        }, 1500);
       } else {
         setError(data.message || data.detail || 'Login failed. Please check your credentials.');
       }
     } catch (err) {
       setError('Unable to connect to server. Please try again.');
-      console.error('Login error:', err);
     } finally {
       setLoading(false);
     }

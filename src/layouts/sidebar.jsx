@@ -8,7 +8,7 @@ export default function Sidebar({ onClose }) {
   const location = useLocation();
 
   const navItems = [
-    { label: 'Dashboard', icon: <LayoutDashboard className="w-5 h-5" />, to: '/dashboard' },
+    { label: 'Overview', icon: <LayoutDashboard className="w-5 h-5" />, to: '/dashboard/overview' },
     { label: 'Payment Items', icon: <Receipt className="w-5 h-5" />, to: '/dashboard/payment-items' },
     { label: 'Transactions', icon: <ArrowLeftRight className="w-5 h-5" />, to: '/dashboard/transactions' },
     { label: 'Students', icon: <User className="w-5 h-5" />, to: '/dashboard/students' },
@@ -32,8 +32,8 @@ export default function Sidebar({ onClose }) {
         </button>
       )}
       <div>
-        <div className="flex flex-col items-left justify-between pt-10">
-          <h2 className="text-[#8C8C8C] font-sans font-semibold text-[16px] leading-6 mx-.5 mb-4">Overview</h2>
+        <div className="flex flex-col items-left justify-between pt-16">
+          {/* <h2 className="text-[#8C8C8C] font-sans font-semibold text-[16px] leading-6 mx-.5 mb-4">Overview</h2> */}
           <nav className="space-y-3">
             {navItems.map((item) => (
               <Link
