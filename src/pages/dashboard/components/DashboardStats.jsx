@@ -1,27 +1,26 @@
 import { CheckCircle, Clock, DollarSign } from "lucide-react";
 
-export default function DashboardStats() {
-  // Dummy data, replace with real data as needed
+export default function DashboardStats({ meta, loading }) {
   const stats = [
     {
       label: "Total Collections",
-      value: "₦24,560,000",
+      value: loading ? "..." : `₦${meta?.total_collections?.toLocaleString() || "0"}`,
       icon: <DollarSign className="text-purple-400" />,
-      info: "↑ 12% vs last month",
+      info: loading ? "" : meta?.percent_collections || "",
       infoColor: "text-green-400"
     },
     {
       label: "Completed Payments",
-      value: "1,245",
+      value: loading ? "..." : meta?.completed_payments ?? "0",
       icon: <CheckCircle className="text-purple-400" />,
-      info: "↑ 8% vs last month",
+      info: loading ? "" : meta?.percent_completed || "",
       infoColor: "text-green-400"
     },
     {
       label: "Pending Payments",
-      value: "23",
+      value: loading ? "..." : meta?.pending_payments ?? "0",
       icon: <Clock className="text-purple-400" />,
-      info: "↓ 2% vs last month",
+      info: loading ? "" : meta?.percent_pending || "",
       infoColor: "text-red-400"
     }
   ];

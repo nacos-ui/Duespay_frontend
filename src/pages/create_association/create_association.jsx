@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Upload, ShoppingCart } from 'lucide-react';
 import StatusMessage from '../../appComponents/StatusMessage';
 import SubmitButton from '../../appComponents/SubmitButton';
@@ -234,19 +235,20 @@ const AssociationForm = () => {
         },
       });
 
+      const navigate = useNavigate();
       if (response.ok) {
         setSuccess('Association updated successfully!');
         setError('');
         setTimeout(() => {
-          window.location.href = '/dashboard';
+          navigate('/dashboard/overview');
         }, 1200);
       } else {
         const err = await response.json();
-        setError(err.detail || 'Failed to update association');
+        setError(err.detail || 'Failed to Create association');
         setSuccess('');
       }
     } catch (error) {
-      setError('Error updating association. Please try again.');
+      setError('Error Creating association. Please try again.');
       setSuccess('');
     } finally {
       setLoading(false);
@@ -305,7 +307,7 @@ const AssociationForm = () => {
           />
 
           <SubmitButton loading={loading} loadingText="Updating Association...">
-            Update Association
+            Create Association
           </SubmitButton>
         </form>
 

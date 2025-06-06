@@ -30,7 +30,8 @@ export default function PaymentItems() {
       });
       if (!res.ok) throw new Error("Failed to fetch payment items");
       const data = await res.json();
-      setPaymentItems(data);
+      // FIX: Use data.results if your API returns { results: [...] }
+      setPaymentItems(Array.isArray(data) ? data : data.results || []);
     } catch (err) {
       setPaymentItems([]);
     } finally {

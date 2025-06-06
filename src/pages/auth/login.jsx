@@ -42,7 +42,7 @@ const LoginForm = ({ onToggle }) => {
           if (data.is_first_login) {
             navigate('/create-association');
           } else {
-            navigate('/dashboard');
+            navigate('/dashboard/overview');
           }
         }, 1500);
       } else {

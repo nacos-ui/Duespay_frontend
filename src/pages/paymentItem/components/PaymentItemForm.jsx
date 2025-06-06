@@ -61,7 +61,7 @@ const PaymentItemForm = ({ initial, onClose, onSubmit, loading, success, error }
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 bg-[#0f111fbe] z-50 flex items-center justify-center backdrop-blur-lg">
       <div className="bg-[#181B2A] border border-[#23263A] rounded-2xl shadow-2xl w-full max-w-md p-8 relative">
         <button
           className="absolute right-4 top-4 text-gray-400 hover:text-gray-200"

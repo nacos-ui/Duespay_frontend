@@ -224,7 +224,7 @@ const DuesPayPaymentFlow = () => {
   if (!associationData) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-900 text-red-400">
-        Association not found. Please check the URL or try again later.
+        Page not found. Please check the URL or try again later.
       </div>
     );
   }
