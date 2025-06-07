@@ -10,6 +10,7 @@ import TransactionsPage from './pages/Transactions/TransactionsPage';
 import PayersPage from './pages/Payers/PayersPage';
 import SettingsPage from './pages/Settings/SettingsPage';
 
+
 function App() {
   return (
     <Router>
