@@ -1,15 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Edit } from "lucide-react";
 
-/**
- * Expects `data` to be the full API response object:
- * {
- *   count: number,
- *   next: null,
- *   previous: null,
- *   results: [ { bank_name, account_name, account_number, id? } ]
- * }
- */
 export default function BankInfoCard({ data, loading, onUpdated }) {
   // Extract the first result or null
   const bank = data?.results?.[0] || null;

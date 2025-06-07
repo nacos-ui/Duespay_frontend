@@ -8,7 +8,7 @@ import DuesPayPaymentFlow from './pages/reg_payment/reg_payment';
 import AssociationForm from './pages/create_association/create_association';
 import TransactionsPage from './pages/Transactions/TransactionsPage';
 import PayersPage from './pages/Payers/PayersPage';
-import SettingsPage from './pages/Settings/SettingsPage';
+import SettingsPage from './pages/settingsPage/SettingsPage';
 
 
 function App() {

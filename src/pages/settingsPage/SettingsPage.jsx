@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import MainLayout from "../../layouts/mainLayout";
 import BankInfoCard from "./components/BankInfoCard";
 import AdminProfileCard from "./components/AdminProfileCard";
-import AssociationInfoCard from "./components/AssociationInfoCard";
+import AssociationInfoCard from "./components/AssociationInfoCard"
 
 export default function SettingsPage() {
   const [bankInfo, setBankInfo] = useState(null);
