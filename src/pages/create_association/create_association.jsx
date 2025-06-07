@@ -135,6 +135,7 @@ const AssociationForm = () => {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   const associationTypes = [
     { value: 'hall', label: 'Hall' },
@@ -155,22 +156,15 @@ const AssociationForm = () => {
         });
         if (response.ok) {
           const data = await response.json();
-          // If you expect a list, use the first association
-          if (Array.isArray(data) && data.length > 0) {
-            setAssociationId(data[0].id);
+          // Use the first association from results array
+          if (Array.isArray(data.results) && data.results.length > 0) {
+            const assoc = data.results[0];
+            setAssociationId(assoc.id);
             setFormData({
-              association_name: data[0].association_name || '',
-              association_short_name: data[0].association_short_name || '',
-              Association_type: data[0].Association_type || '',
-              logo: null
-            });
-          } else if (data.id) {
-            setAssociationId(data.id);
-            setFormData({
-              association_name: data.association_name || '',
-              association_short_name: data.association_short_name || '',
-              Association_type: data.Association_type || '',
-              logo: null
+              association_name: assoc.association_name || '',
+              association_short_name: assoc.association_short_name || '',
+              Association_type: assoc.Association_type || '',
+              logo: null // don't prefill file input
             });
           }
         }
@@ -226,16 +220,21 @@ const AssociationForm = () => {
       }
 
       const token = localStorage.getItem("access_token");
-      // Use the fetched associationId
-      const response = await fetch(`http://localhost:8000/association/${associationId}/`, {
-        method: 'PUT',
+      let url = "http://localhost:8000/association/";
+      let method = "POST";
+      if (associationId !== null) {
+        url = `http://localhost:8000/association/${associationId}/`;
+        method = "PUT";
+      }
+
+      const response = await fetch(url, {
+        method,
         body: submitData,
         headers: {
           "Authorization": `Bearer ${token}`,
         },
       });
 
-      const navigate = useNavigate();
       if (response.ok) {
         setSuccess('Association updated successfully!');
         setError('');
@@ -307,7 +306,7 @@ const AssociationForm = () => {
           />
 
           <SubmitButton loading={loading} loadingText="Updating Association...">
-            Create Association
+            {associationId ? "Update Association" : "Create Association"}
           </SubmitButton>
         </form>
 

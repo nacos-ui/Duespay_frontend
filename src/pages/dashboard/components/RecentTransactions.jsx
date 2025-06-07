@@ -6,7 +6,7 @@ export default function RecentTransactions({ transactions = [], loading }) {
         <table className="w-full text-left">
           <thead>
             <tr className="text-gray-400 text-sm">
-              <th className="py-2">Reference</th>
+              <th className="py-2">Payer/Reference</th>
               <th className="py-2">Items</th>
               <th className="py-2">Amount</th>
               <th className="py-2">Status</th>
@@ -23,10 +23,10 @@ export default function RecentTransactions({ transactions = [], loading }) {
                 <td colSpan={5} className="text-center text-gray-400 py-6">No transactions found.</td>
               </tr>
             ) : (
-              transactions.slice(0, 7).map((tx, idx) => (
+              transactions.slice(0, 10).map((tx, idx) => (
                 <tr key={tx.id || idx} className="border-t border-gray-800">
                   <td className="py-2">
-                    <div className="font-medium text-white">{tx.reference_id}</div>
+                    <div className="font-medium text-white"><span className="">{tx.payer_name}</span><br /><span className="text-gray-400 font-light text-sm">{tx.reference_id}</span></div>
                   </td>
                   <td className="py-2 text-white">
                     {tx.payment_item_titles?.join(", ")}
@@ -38,7 +38,7 @@ export default function RecentTransactions({ transactions = [], loading }) {
                         ? "bg-green-800 text-green-300"
                         : "bg-yellow-800 text-yellow-300"
                     }`}>
-                      {tx.is_verified ? "Completed" : "Pending"}
+                      {tx.is_verified ? "Verified" : "Unverified"}
                     </span>
                   </td>
                   <td className="py-2 text-gray-300">

@@ -7,6 +7,8 @@ import PaymentItems from './pages/paymentItem/paymentItem';
 import DuesPayPaymentFlow from './pages/reg_payment/reg_payment';
 import AssociationForm from './pages/create_association/create_association';
 import TransactionsPage from './pages/Transactions/TransactionsPage';
+import PayersPage from './pages/Payers/PayersPage';
+import SettingsPage from './pages/Settings/SettingsPage';
 
 function App() {
   return (
@@ -26,6 +28,12 @@ function App() {
           } />
         <Route path="/create-association" element={
           <ProtectedRoute><AssociationForm /></ProtectedRoute>
+          } />
+        <Route path="/dashboard/students" element={
+          <ProtectedRoute><PayersPage /></ProtectedRoute>
+          } />
+        <Route path="/settings" element={
+          <ProtectedRoute><SettingsPage /></ProtectedRoute>
           } />
       </Routes>
     </Router>

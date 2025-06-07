@@ -9,6 +9,8 @@ import PaymentItemForm from "./components/PaymentItemForm";
 
 export default function PaymentItems() {
   const [search, setSearch] = useState("");
+  const [status, setStatus] = useState(""); // "true", "false", or ""
+  const [type, setType] = useState(""); // "compulsory", "optional", or ""
   const [paymentItems, setPaymentItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -17,12 +19,17 @@ export default function PaymentItems() {
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
 
-  // Fetch payment items
+  // Fetch payment items with filters
   const fetchPaymentItems = async () => {
     setIsLoading(true);
     try {
       const token = localStorage.getItem("access_token");
-      const res = await fetch(API_ENDPOINTS.PAYMENT_ITEMS, {
+      const params = new URLSearchParams();
+      if (search) params.append("search", search);
+      if (status) params.append("status", status);
+      if (type) params.append("type", type);
+
+      const res = await fetch(`${API_ENDPOINTS.PAYMENT_ITEMS}?${params.toString()}`, {
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`,
@@ -30,8 +37,8 @@ export default function PaymentItems() {
       });
       if (!res.ok) throw new Error("Failed to fetch payment items");
       const data = await res.json();
-      // FIX: Use data.results if your API returns { results: [...] }
-      setPaymentItems(Array.isArray(data) ? data : data.results || []);
+      // Always use data.results if present, else fallback
+      setPaymentItems(Array.isArray(data.results) ? data.results : (Array.isArray(data) ? data : []));
     } catch (err) {
       setPaymentItems([]);
     } finally {
@@ -41,7 +48,8 @@ export default function PaymentItems() {
 
   useEffect(() => {
     fetchPaymentItems();
-  }, []);
+    // eslint-disable-next-line
+  }, [search, status, type, success, error]);
 
   // Success/error message auto-clear
   useEffect(() => {
@@ -117,11 +125,6 @@ export default function PaymentItems() {
     }
   };
 
-  // search filter
-  const filteredItems = paymentItems.filter(item =>
-    item.title.toLowerCase().includes(search.toLowerCase())
-  );
-
   return (
     <MainLayout>
       <div className="p-8 mt-20 bg-transparent min-h-screen">
@@ -146,6 +149,7 @@ export default function PaymentItems() {
         {error && <StatusMessage type="error">{error}</StatusMessage>}
         {success && <StatusMessage type="success">{success}</StatusMessage>}
 
+        {/* Filters */}
         <div className="flex flex-wrap gap-4 items-center mb-4">
           <input
             type="text"
@@ -154,19 +158,24 @@ export default function PaymentItems() {
             onChange={e => setSearch(e.target.value)}
             className="bg-[#23263A] border border-[#23263A] text-white px-4 py-2 rounded w-64 focus:outline-none"
           />
-          <select className="bg-[#23263A] border border-[#23263A] text-white px-4 py-2 rounded">
-            <option>All Status</option>
-            <option>Active</option>
-            <option>Inactive</option>
+          <select
+            value={status}
+            onChange={e => setStatus(e.target.value)}
+            className="bg-[#23263A] border border-[#23263A] text-white px-4 py-2 rounded"
+          >
+            <option value="">All Status</option>
+            <option value="true">Active</option>
+            <option value="false">Inactive</option>
           </select>
-          <select className="bg-[#23263A] border border-[#23263A] text-white px-4 py-2 rounded">
-            <option>All Types</option>
-            <option>Compulsory</option>
-            <option>Optional</option>
+          <select
+            value={type}
+            onChange={e => setType(e.target.value)}
+            className="bg-[#23263A] border border-[#23263A] text-white px-4 py-2 rounded"
+          >
+            <option value="">All Types</option>
+            <option value="compulsory">Compulsory</option>
+            <option value="optional">Optional</option>
           </select>
-          <button className="flex items-center gap-2 bg-[#23263A] text-white px-4 py-2 rounded">
-            <Filter className="w-4 h-4" /> More Filters
-          </button>
           <button className="flex items-center gap-2 bg-[#23263A] text-white px-4 py-2 rounded">
             <Upload className="w-4 h-4" /> Export
           </button>
@@ -181,18 +190,26 @@ export default function PaymentItems() {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           {isLoading
             ? Array.from({ length: 6 }).map((_, idx) => <PaymentItemSkeleton key={idx} />)
-            : filteredItems.map((item, idx) => (
-                <PaymentItemCard
-                  key={item.id || idx}
-                  {...item}
-                  onEdit={() => {
-                    setEditItem(item);
-                    setShowForm(true);
-                    setSuccess("");
-                    setError("");
-                  }}
-                />
-              ))
+            : paymentItems.length === 0 ? (
+                <div className="col-span-full text-center text-gray-400 py-12">
+                  {typeof paymentItems === "object" && paymentItems.message
+                    ? paymentItems.message
+                    : "No payment items found."}
+                </div>
+              ) : (
+                paymentItems.map((item, idx) => (
+                  <PaymentItemCard
+                    key={item.id || idx}
+                    {...item}
+                    onEdit={() => {
+                      setEditItem(item);
+                      setShowForm(true);
+                      setSuccess("");
+                      setError("");
+                    }}
+                  />
+                ))
+              )
           }
         </div>
 

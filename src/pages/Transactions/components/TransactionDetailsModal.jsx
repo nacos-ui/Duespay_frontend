@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { X } from "lucide-react";
 
 export default function TransactionDetailsModal({ transaction, onClose, onStatusChange }) {
   const [verifying, setVerifying] = useState(false);
@@ -23,7 +24,7 @@ export default function TransactionDetailsModal({ transaction, onClose, onStatus
       });
       if (!res.ok) throw new Error("Failed to update status");
       if (onStatusChange) onStatusChange();
-      if (onClose) onClose(); // <-- Close modal after status change
+      if (onClose) onClose(); 
     } catch (err) {
       setError("Could not update verification status.");
     } finally {
@@ -38,7 +39,7 @@ export default function TransactionDetailsModal({ transaction, onClose, onStatus
           className="absolute top-4 right-4 text-gray-400 hover:text-white"
           onClick={onClose}
         >
-          ×
+          <X />
         </button>
         <h2 className="text-xl font-bold text-white mb-4">Transaction Details</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

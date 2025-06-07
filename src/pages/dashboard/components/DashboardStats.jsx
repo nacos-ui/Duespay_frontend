@@ -10,14 +10,14 @@ export default function DashboardStats({ meta, loading }) {
       infoColor: "text-green-400"
     },
     {
-      label: "Completed Payments",
+      label: "Verified Payments",
       value: loading ? "..." : meta?.completed_payments ?? "0",
       icon: <CheckCircle className="text-purple-400" />,
       info: loading ? "" : meta?.percent_completed || "",
       infoColor: "text-green-400"
     },
     {
-      label: "Pending Payments",
+      label: "Unverified Payments",
       value: loading ? "..." : meta?.pending_payments ?? "0",
       icon: <Clock className="text-purple-400" />,
       info: loading ? "" : meta?.percent_pending || "",

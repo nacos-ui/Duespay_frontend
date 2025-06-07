@@ -83,9 +83,6 @@ export default function TransactionsPage() {
             <option value="optional">Optional</option>
           </select>
           <button className="flex items-center gap-2 bg-[#23263A] text-white px-4 py-2 rounded">
-            More Filters
-          </button>
-          <button className="flex items-center gap-2 bg-[#23263A] text-white px-4 py-2 rounded">
             Export
           </button>
         </div>
@@ -98,7 +95,7 @@ export default function TransactionsPage() {
           count={count}
           page={page}
           setPage={setPage}
-          pageSize={10}
+          pageSize={7}
         />
         {selected && (
           <TransactionDetailsModal

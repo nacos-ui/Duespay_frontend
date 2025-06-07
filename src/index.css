@@ -2,6 +2,22 @@
 
 /* bg color #0F111F */
 
-s {
+/* s {
     background-color: #0f111fbe;
+} */
+
+/* scoll bar styles */
+
+::-webkit-scrollbar {
+    width: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #0f111f;
+}
+::-webkit-scrollbar-thumb {
+    background: #1f2937;
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #374151;
 }
