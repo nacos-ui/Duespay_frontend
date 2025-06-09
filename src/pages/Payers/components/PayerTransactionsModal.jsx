@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
+import { API_ENDPOINTS } from "../../../apiConfig";
 
 export default function PayerTransactionsModal({ matricNumber, onClose, onViewTransaction }) {
   const [transactions, setTransactions] = useState([]);
@@ -10,7 +11,7 @@ export default function PayerTransactionsModal({ matricNumber, onClose, onViewTr
       setLoading(true);
       try {
         const token = localStorage.getItem("access_token");
-        const res = await fetch(`http://localhost:8000/transactions/?search=${matricNumber}`, {
+        const res = await fetch(`${API_ENDPOINTS.GET_TRANSACTIONS}?search=${matricNumber}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         const data = await res.json();

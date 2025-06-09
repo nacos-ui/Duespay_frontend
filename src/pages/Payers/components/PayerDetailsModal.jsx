@@ -1,6 +1,6 @@
 import { X } from "lucide-react";
 
-export default function PayerDetailsModal({ payer, onClose }) {
+export default function PayerDetailsModal({ payer, onClose, onViewTransactions }) { 
   if (!payer) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0f111fbe] backdrop-blur-lg">
@@ -40,7 +40,13 @@ export default function PayerDetailsModal({ payer, onClose }) {
         </div>
         <div className="flex justify-end mt-6">
           <button
-            className="px-6 py-2 rounded bg-purple-600 text-white font-semibold hover:bg-purple-700"
+            className="px-6 py-2 mr-1 cursor-pointer rounded bg-blue-400 text-white font-semibold hover:bg-blue-500"
+            onClick={() => onViewTransactions(payer)}
+          >
+            View Transactions
+          </button>
+          <button
+            className="px-6 py-2 rounded bg-purple-600 cursor-pointer text-white font-semibold hover:bg-purple-700"
             onClick={onClose}
           >
             Close

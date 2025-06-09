@@ -3,6 +3,7 @@ import MainLayout from "../../layouts/mainLayout";
 import BankInfoCard from "./components/BankInfoCard";
 import AdminProfileCard from "./components/AdminProfileCard";
 import AssociationInfoCard from "./components/AssociationInfoCard"
+import { API_ENDPOINTS } from "../../apiConfig";
 
 export default function SettingsPage() {
   const [bankInfo, setBankInfo] = useState(null);
@@ -15,9 +16,9 @@ export default function SettingsPage() {
     const token = localStorage.getItem("access_token");
     setLoading(true);
     Promise.all([
-      fetch("http://localhost:8000/bank-account/", { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()),
-      fetch("http://localhost:8000/adminuser/", { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()),
-      fetch("http://localhost:8000/association/", { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()),
+      fetch(API_ENDPOINTS.GET_CREATE_BANK_ACCOUNT, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()),
+      fetch(API_ENDPOINTS.GET_ADMIN_USER, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()),
+      fetch(API_ENDPOINTS.GET_ASSOCIATION, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()),
     ]).then(([bank, admin, assoc]) => {
       setBankInfo(bank);
       setAdmin(admin);

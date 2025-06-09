@@ -3,6 +3,7 @@ import MainLayout from "../../layouts/mainLayout";
 import TransactionsTable from "./components/TransactionsTable";
 import TransactionDetailsModal from "./components/TransactionDetailsModal";
 import Pagination from "./components/Pagination";
+import { API_ENDPOINTS } from "../../apiConfig";
 
 export default function TransactionsPage() {
   const [transactions, setTransactions] = useState([]);
@@ -27,7 +28,7 @@ export default function TransactionsPage() {
       if (type) params.append("type", type);
       params.append("page", page);
 
-      const res = await fetch(`http://localhost:8000/transactions/?${params.toString()}`, {
+      const res = await fetch(`${API_ENDPOINTS.GET_TRANSACTIONS}?${params.toString()}`, {
         headers: {
           Authorization: `Bearer ${token}`
         }

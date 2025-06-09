@@ -35,7 +35,7 @@ const DuesPayPaymentFlow = () => {
     const fetchAssociation = async () => {
       setIsLoading(true);
       try {
-        const res = await fetch(API_ENDPOINTS.GET_ASSOCIATION(shortName));
+        const res = await fetch(API_ENDPOINTS.GET_PAYMENT_ASSOCIATION(shortName));
         if (!res.ok) throw new Error('Failed to fetch association');
         const data = await res.json();
         setAssociationData(data);

@@ -1,4 +1,4 @@
-export default function PayersTable({ payers, loading, onViewDetails, onViewTransactions }) {
+export default function PayersTable({ payers, loading, onViewDetails }) {
   return (
     <div className="bg-gray-900 rounded-xl p-6 shadow">
       <h2 className="text-lg font-semibold text-white mb-4">Payers List</h2>
@@ -10,8 +10,8 @@ export default function PayersTable({ payers, loading, onViewDetails, onViewTran
               <th className="py-2">MATRIC NUMBER</th>
               <th className="py-2">EMAIL</th>
               <th className="py-2">PHONE NUMBER</th>
-              <th className="py-2">FACULTY</th>
-              <th className="py-2">DEPARTMENT</th>
+              {/* <th className="py-2">FACULTY</th>
+              <th className="py-2">DEPARTMENT</th> */}
               <th className="py-2">ACTION</th>
             </tr>
           </thead>
@@ -31,21 +31,16 @@ export default function PayersTable({ payers, loading, onViewDetails, onViewTran
                   <td className="py-4 text-white">{payer.matric_number}</td>
                   <td className="py-4 text-white">{payer.email}</td>
                   <td className="py-4 text-white">{payer.phone_number}</td>
-                  <td className="py-4 text-white">{payer.faculty}</td>
-                  <td className="py-4 text-white">{payer.department}</td>
-                  <td className="py-4 flex flex-col gap-2">
+                  {/* <td className="py-4 text-white">{payer.faculty}</td>
+                  <td className="py-4 text-white">{payer.department}</td> */}
+                  <td className="py-4">
                     <button
-                      className="text-purple-600 hover:underline font-semibold"
+                      className="text-purple-600 hover:underline cursor-pointer font-semibold"
                       onClick={() => onViewDetails(payer)}
                     >
                       View Details
                     </button>
-                    <button
-                      className="text-blue-400 hover:underline font-semibold"
-                      onClick={() => onViewTransactions(payer)}
-                    >
-                      View Transactions
-                    </button>
+                    
                   </td>
                 </tr>
               ))

@@ -41,7 +41,11 @@ const AuthPage = () => {
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
             <div className="text-center text-white space-y-6">
               <div className="bg-white/10 backdrop-blur-sm p-6 rounded-2xl border border-white/20">
-                <ShoppingCart className="h-16 w-16 mx-auto mb-4 text-white" />
+                <img
+                  src="/Duespay_logo.png"
+                  alt="DuesPay Logo"
+                  className="h-16 w-16 mx-auto mb-4 rounded-xl bg-transparent object-cover"
+                />
                 <h1 className="text-3xl font-bold mb-2">DuesPay</h1>
                 <p className="text-lg text-white/80">Streamline your university payment collections</p>
               </div>

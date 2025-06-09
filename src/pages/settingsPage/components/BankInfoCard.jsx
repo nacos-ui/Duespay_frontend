@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Edit } from "lucide-react";
+import { API_ENDPOINTS } from "../../../apiConfig";
 
 export default function BankInfoCard({ data, loading, onUpdated }) {
   // Extract the first result or null
@@ -17,8 +18,8 @@ export default function BankInfoCard({ data, loading, onUpdated }) {
     const token = localStorage.getItem("access_token");
     const method = bank && bank.id ? "PUT" : "POST";
     const url = bank && bank.id
-      ? `http://localhost:8000/bank-account/${bank.id}/`
-      : "http://localhost:8000/bank-account/";
+      ? API_ENDPOINTS.UPDATE_DETAIL_BANK_ACCOUNT(bank.id)
+      : API_ENDPOINTS.GET_CREATE_BANK_ACCOUNT;
     const res = await fetch(url, {
       method,
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },

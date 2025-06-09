@@ -31,14 +31,15 @@ export default function Navbar({ onToggleSidebar, sidebarOpen }) {
             <PanelLeftOpen className="w-6 h-6 text-white" />
           )}
         </button>
-        <div className="flex items-center gap-2">
-          <div className="bg-purple-600 p-2 rounded-lg">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <rect x="2" y="7" width="20" height="10" rx="2" fill="currentColor" className="text-purple-500" />
-              <circle cx="17" cy="12" r="1.5" fill="white" />
-            </svg>
+        <div className="flex items-center gap-0.5">
+          <div className="rounded-lg">
+            <img
+              src="/Duespay_logo.png"
+              alt="DuesPay Logo"
+              className="h-7 w-7 rounded-lg object-cover bg-white"
+            />
           </div>
-          <span className="text-white font-bold text-lg" style={{ color: "#B983FF" }}>DuesPay</span>
+          <span className="text-white font-bold text-lg" style={{ color: "#B983FF" }}>uesPay</span>
         </div>
 
         {/* Center: Title (hide on small screens) */}

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Upload, ShoppingCart } from 'lucide-react';
 import StatusMessage from '../../appComponents/StatusMessage';
 import SubmitButton from '../../appComponents/SubmitButton';
+import { API_ENDPOINTS } from '../../apiConfig';
 
 // Form Input Component
 const FormInput = ({
@@ -149,7 +150,7 @@ const AssociationForm = () => {
     const fetchAssociation = async () => {
       try {
         const token = localStorage.getItem("access_token");
-        const response = await fetch('http://localhost:8000/association/', {
+        const response = await fetch(API_ENDPOINTS.CREATE_ASSOCIATION, {
           headers: {
             "Authorization": `Bearer ${token}`,
           },
@@ -220,10 +221,10 @@ const AssociationForm = () => {
       }
 
       const token = localStorage.getItem("access_token");
-      let url = "http://localhost:8000/association/";
+      let url = API_ENDPOINTS.CREATE_ASSOCIATION;
       let method = "POST";
       if (associationId !== null) {
-        url = `http://localhost:8000/association/${associationId}/`;
+        url = API_ENDPOINTS.UPDATE_ASSOCIATION(associationId);
         method = "PUT";
       }
 

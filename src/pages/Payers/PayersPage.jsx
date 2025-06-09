@@ -5,6 +5,7 @@ import PayerDetailsModal from "./components/PayerDetailsModal";
 import PayerTransactionsModal from "./components/PayerTransactionsModal";
 import TransactionDetailsModal from "../Transactions/components/TransactionDetailsModal";
 import Pagination from "../Transactions/components/Pagination";
+import { API_ENDPOINTS } from "../../apiConfig";  
 
 export default function PayersPage() {
   const [payers, setPayers] = useState([]);
@@ -35,7 +36,7 @@ export default function PayersPage() {
       if (department) params.append("department", department);
       params.append("page", page);
 
-      const res = await fetch(`http://localhost:8000/payers/?${params.toString()}`, {
+      const res = await fetch(`${API_ENDPOINTS.CREATE_PAYER}?${params.toString()}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
@@ -92,10 +93,6 @@ export default function PayersPage() {
             setSelectedPayer(payer);
             setShowPayerDetails(true);
           }}
-          onViewTransactions={payer => {
-            setSelectedMatric(payer.matric_number);
-            setShowPayerTransactions(true);
-          }}
         />
         <Pagination
           count={count}
@@ -107,6 +104,10 @@ export default function PayersPage() {
           <PayerDetailsModal
             payer={selectedPayer}
             onClose={() => setShowPayerDetails(false)}
+            onViewTransactions={payer => {
+              setSelectedMatric(payer.matric_number);
+              setShowPayerTransactions(true);
+            }}
           />
         )}
         {showPayerTransactions && selectedMatric && (

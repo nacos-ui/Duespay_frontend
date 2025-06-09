@@ -58,9 +58,13 @@ const LoginForm = ({ onToggle }) => {
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <div className="flex items-center justify-center mb-4">
-          <div className="bg-purple-600 p-2 rounded-lg">
-            <ShoppingCart className="h-6 w-6 text-white" />
+        <div className="flex items-center justify-center mb-2">
+          <div className="bg-none rounded-lg">
+            <img
+              src="/Duespay_logo.png"
+              alt="DuesPay Logo"
+              className="h-16 w-16 mx-auto mb-4 rounded-xl bg-transparent object-cover"
+            />
           </div>
         </div>
         <h2 className="text-2xl font-bold text-white mb-2">Welcome Back</h2>

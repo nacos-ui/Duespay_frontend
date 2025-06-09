@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Edit } from "lucide-react";
+import { API_BASE_URL, API_ENDPOINTS } from "../../../apiConfig";
 
 export default function AssociationInfoCard({ data, loading, onUpdated }) {
   const assoc = data?.results?.[0] || null;
@@ -36,8 +37,8 @@ export default function AssociationInfoCard({ data, loading, onUpdated }) {
     const token = localStorage.getItem("access_token");
     const method = assoc && assoc.id ? "PUT" : "POST";
     const url = assoc && assoc.id
-      ? `http://localhost:8000/association/${assoc.id}/`
-      : "http://localhost:8000/association/";
+      ? API_ENDPOINTS.UPDATE_ASSOCIATION(assoc.id)
+      : API_ENDPOINTS.CREATE_ASSOCIATION;
 
     let body, headers;
     if (logoFile) {

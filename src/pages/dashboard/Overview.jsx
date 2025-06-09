@@ -4,6 +4,7 @@ import DashboardStats from "./components/DashboardStats";
 import RecentTransactions from "./components/RecentTransactions";
 import PaymentCompletionChart from "./components/PaymentCompletionChart";
 import TopDepartments from "./components/TopDepartments";
+import { API_ENDPOINTS } from "../../apiConfig";
 
 export default function Overview() {
   const [transactions, setTransactions] = useState([]);
@@ -14,7 +15,7 @@ export default function Overview() {
     const fetchTransactions = async () => {
       try {
         const token = localStorage.getItem("access_token");
-        const res = await fetch("http://localhost:8000/transactions/", {
+        const res = await fetch(API_ENDPOINTS.CREATE_TRANSACTION, {
           headers: {
             Authorization: `Bearer ${token}`
           }

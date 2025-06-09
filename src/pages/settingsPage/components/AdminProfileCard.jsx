@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Edit } from "lucide-react";
+import { API_ENDPOINTS } from "../../../apiConfig";
 
 export default function AdminProfileCard({ data, loading, onUpdated }) {
   const [edit, setEdit] = useState(false);
@@ -11,7 +12,7 @@ export default function AdminProfileCard({ data, loading, onUpdated }) {
   const handleSave = async () => {
     setSaving(true);
     const token = localStorage.getItem("access_token");
-    const res = await fetch("http://localhost:8000/adminuser/", {
+    const res = await fetch(API_ENDPOINTS.GET_ADMIN_USER, {
       method: "PUT",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify(form),
