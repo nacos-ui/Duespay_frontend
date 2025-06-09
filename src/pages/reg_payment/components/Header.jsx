@@ -18,7 +18,7 @@ const Header = ({ associationData, steps, currentStep }) => {
       </div>
 
       {/* Progress Steps */}
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between overflow-x-scroll items-center hide-scrollbar">
         {steps.map((step, index) => {
           const Icon = step.icon;
           const isActive = currentStep >= step.number;

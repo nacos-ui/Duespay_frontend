@@ -230,8 +230,8 @@ const DuesPayPaymentFlow = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
-      <div className="bg-slate-800/95 backdrop-blur-xl rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden border border-slate-700">
+    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-1 sm:p-8 md:p-16">
+      <div className="bg-slate-800/95 backdrop-blur-xl sm:rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden border border-slate-700">
         <Header
           associationData={associationData}
           steps={steps}

@@ -256,12 +256,16 @@ const AssociationForm = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gray-900 flex items-center justify-center p-1 sm:p-4 pt-16">
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-purple-600 rounded-2xl mb-4">
-            <ShoppingCart className="w-8 h-8 text-white" />
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-1.5">
+            <img
+              src="/Duespay_logo.png"
+              alt="DuesPay Logo"
+              className="h-16 w-16 mx-auto mb-4 rounded-xl bg-transparent object-cover"
+            />
           </div>
           <h1 className="text-3xl font-bold text-white mb-2">Create Association</h1>
           <p className="text-gray-300">Set up your association details for DuesPay</p>
@@ -272,7 +276,7 @@ const AssociationForm = () => {
         {success && <StatusMessage type="success">{success}</StatusMessage>}
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="bg-gray-800 rounded-2xl p-8 shadow-2xl space-y-6">
+        <form onSubmit={handleSubmit} className="bg-gray-800 rounded-[10px] sm:rounded-2xl p-8 shadow-2xl space-y-6">
           <FormInput
             label="Association Name"
             name="association_name"
@@ -306,8 +310,8 @@ const AssociationForm = () => {
             onChange={handleFileChange}
           />
 
-          <SubmitButton loading={loading} loadingText="Updating Association...">
-            {associationId ? "Update Association" : "Create Association"}
+          <SubmitButton loading={loading} loadingText="Creating Association...">
+            {associationId ? "Create Association" : "Create Association"}
           </SubmitButton>
         </form>
 

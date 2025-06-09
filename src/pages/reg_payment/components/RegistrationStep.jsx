@@ -7,7 +7,7 @@ const RegistrationStep = ({ payerData, handleInputChange }) => {
     { key: 'lastName', label: 'Last Name', placeholder: 'Enter your last name', required: true },
     { key: 'matricNumber', label: 'Matric Number', placeholder: 'e.g., 234567', required: true },
     { key: 'email', label: 'Email', type: 'email', placeholder: 'Enter your email', required: true },
-    { key: 'phoneNumber', label: 'Phone Number', type: 'tel', placeholder: 'Enter your phone number' },
+    { key: 'phoneNumber', label: 'Phone Number', type: 'tel', placeholder: 'Enter your phone number', required: true },
     { key: 'faculty', label: 'Faculty', placeholder: 'Enter your faculty' },
     { key: 'department', label: 'Department', placeholder: 'Enter your department' },
   ];

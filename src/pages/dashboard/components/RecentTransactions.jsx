@@ -2,15 +2,15 @@ export default function RecentTransactions({ transactions = [], loading }) {
   return (
     <div className="bg-gray-900 rounded-xl p-6 shadow">
       <h2 className="text-lg font-semibold text-white mb-4">Recent Transactions</h2>
-      <div className="overflow-x-auto">
-        <table className="w-full text-left">
+      <div className="hide-scrollbar overflow-x-auto w-full">
+        <table className="w-full min-w-[700px] text-left">
           <thead>
             <tr className="text-gray-400 text-sm">
-              <th className="py-2">Payer/Reference</th>
-              <th className="py-2">Items</th>
-              <th className="py-2">Amount</th>
-              <th className="py-2">Status</th>
-              <th className="py-2">Date</th>
+              <th className="py-2 min-w-[12rem]">Payer/Reference</th>
+              <th className="py-2 min-w-[10rem]">Items</th>
+              <th className="py-2 min-w-[8rem]">Amount</th>
+              <th className="py-2 min-w-[8rem]">Status</th>
+              <th className="py-2 min-w-[10rem]">Date</th>
             </tr>
           </thead>
           <tbody>
@@ -26,7 +26,11 @@ export default function RecentTransactions({ transactions = [], loading }) {
               transactions.slice(0, 10).map((tx, idx) => (
                 <tr key={tx.id || idx} className="border-t border-gray-800">
                   <td className="py-2">
-                    <div className="font-medium text-white"><span className="">{tx.payer_name}</span><br /><span className="text-gray-400 font-light text-sm">{tx.reference_id}</span></div>
+                    <div className="font-medium text-white">
+                      <span>{tx.payer_name}</span>
+                      <br />
+                      <span className="text-gray-400 font-light text-sm">{tx.reference_id}</span>
+                    </div>
                   </td>
                   <td className="py-2 text-white">
                     {tx.payment_item_titles?.join(", ")}

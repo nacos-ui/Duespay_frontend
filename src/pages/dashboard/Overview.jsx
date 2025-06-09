@@ -21,7 +21,6 @@ export default function Overview() {
           }
         });
         const data = await res.json();
-        console.log("Fetched transactions:", data);
         setTransactions(data.results || []);
         setMeta(data.meta || {});
       } catch (err) {
@@ -36,17 +35,19 @@ export default function Overview() {
 
   return (
     <MainLayout>
-      <div className="bg-[#0F111F] min-h-screen pt-16 px-4">
+      <div className="bg-[#0F111F] min-h-screen pt-16 sm:px-4">
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-white mb-1">Welcome back, Admin!</h1>
           <p className="text-gray-400">Monitor and manage university payment collections</p>
         </div>
+        {/* Stats */}
         <DashboardStats meta={meta} loading={loading} />
-        <div className="flex flex-col md:flex-row gap-6 mt-8">
-          <div className="flex-1 flex flex-col gap-6">
+        {/* Responsive grid for table and chart */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
+          <div className="lg:col-span-2 flex flex-col h-full">
             <RecentTransactions transactions={transactions} loading={loading} />
           </div>
-          <div className="w-full md:w-1/3 flex flex-col gap-6">
+          <div className="flex flex-col h-full">
             <PaymentCompletionChart transactions={transactions} loading={loading} />
             {/* <TopDepartments /> */}
           </div>
