@@ -51,7 +51,7 @@ export default function TransactionsPage() {
 
   return (
     <MainLayout>
-      <div className="bg-[#0F111F] min-h-screen pt-16 p-6">
+      <div className="bg-[#0F111F] min-h-screen pt-16 sm:p-6 sm:pt-16">
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-white mb-1">Transactions</h1>
           <p className="text-gray-400">A list of all transactions and payment proofs.</p>

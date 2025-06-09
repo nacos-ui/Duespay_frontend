@@ -127,14 +127,14 @@ export default function PaymentItems() {
 
   return (
     <MainLayout>
-      <div className="p-8 mt-20 bg-transparent min-h-screen">
-        <div className="flex items-center justify-between mb-2">
+      <div className="sm:p-8 mt-20 bg-transparent min-h-screen">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-2">
           <div>
             <h1 className="text-2xl font-bold text-white">Payment Items</h1>
             <p className="text-gray-400 text-sm">Manage your organization&apos;s payment options</p>
           </div>
           <button
-            className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-2xl transition"
+            className="mt-3 sm:mt-0 flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-2xl transition"
             onClick={() => {
               setShowForm(true);
               setEditItem(null);
@@ -187,7 +187,7 @@ export default function PaymentItems() {
           <span className="ml-auto text-gray-400 text-xs">{paymentItems.length} items</span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {isLoading
             ? Array.from({ length: 6 }).map((_, idx) => <PaymentItemSkeleton key={idx} />)
             : paymentItems.length === 0 ? (
@@ -212,7 +212,6 @@ export default function PaymentItems() {
               )
           }
         </div>
-
         {(showForm || editItem) && (
           <PaymentItemForm
             initial={editItem}

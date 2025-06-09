@@ -14,7 +14,7 @@ export default function PaymentItemCard({
     day: "2-digit",
   });
   return (
-    <div className="bg-gray-900 rounded-lg p-5 shadow-md relative">
+    <div className="bg-gray-900 rounded-lg p-5 shadow-md min-w-[200px] relative">
       <input type="checkbox" className="absolute top-4 right-4 accent-purple-600" />
       <div className="mb-2 flex items-center justify-between">
         <h2 className="text-lg font-semibold text-white">{title}</h2>
