@@ -1,5 +1,6 @@
 import { Bell, Settings, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 const navItems = [
   { label: 'Dashboard Overview', to: '/dashboard/overview' },
@@ -39,7 +40,7 @@ export default function Navbar({ onToggleSidebar, sidebarOpen }) {
               className="h-7 w-7 rounded-lg object-cover bg-white"
             />
           </div>
-          <span className="text-white font-bold text-lg" style={{ color: "#B983FF" }}>uesPay</span>
+          <span className="text-white font-bold text-lg" style={{ color: "#ffffff" }}>uesPay</span>
         </div>
 
         {/* Center: Title (hide on small screens) */}
@@ -50,9 +51,11 @@ export default function Navbar({ onToggleSidebar, sidebarOpen }) {
         {/* Right: Icons and Avatar */}
         <div className="flex items-center gap-4 ml-auto">
           <Bell className="w-5 h-5 text-gray-300 hover:text-white cursor-pointer" />
-          <Settings className="w-5 h-5 text-gray-300 hover:text-white cursor-pointer" />
+          <Link to="/settings">
+            <Settings className="w-5 h-5 text-gray-300 hover:text-white cursor-pointer" />
+          </Link>
           <div className="bg-purple-600 w-8 h-8 rounded-full flex items-center justify-center font-bold text-white cursor-pointer">
-            A
+            P
           </div>
         </div>
       </div>

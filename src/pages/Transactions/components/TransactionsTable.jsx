@@ -2,8 +2,8 @@ export default function TransactionsTable({ transactions, loading, onViewDetails
   return (
     <div className="bg-gray-900 rounded-xl p-6 shadow">
       <h2 className="text-lg font-semibold text-white mb-4">Transactions List</h2>
-      <div className="overflow-x-auto w-full">
-        <table className="w-full min-w-[900px] hide-scrollbar text-left">
+      <div className="overflow-x-auto hide-scrollbar w-full">
+        <table className="w-full min-w-[900px] text-left">
           <thead>
             <tr className="text-gray-400 text-sm">
               <th className="py-2 min-w-[10rem]">NAME</th>

@@ -2,17 +2,17 @@ export default function PayersTable({ payers, loading, onViewDetails }) {
   return (
     <div className="bg-gray-900 rounded-xl p-6 shadow">
       <h2 className="text-lg font-semibold text-white mb-4">Payers List</h2>
-      <div className="overflow-x-auto">
-        <table className="w-full text-left">
+      <div className="overflow-x-auto hide-scrollbar w-full">
+        <table className="w-full min-w-[900px] text-left">
           <thead>
             <tr className="text-gray-400 text-sm">
-              <th className="py-2">NAME</th>
-              <th className="py-2">MATRIC NUMBER</th>
-              <th className="py-2">EMAIL</th>
-              <th className="py-2">PHONE NUMBER</th>
+              <th className="py-2 w-[10rem]">NAME</th>
+              <th className="py-2 w-[10rem]">MATRIC NUMBER</th>
+              <th className="py-2 w-[15rem]">EMAIL</th>
+              <th className="py-2 w-[10rem]">PHONE NUMBER</th>
               {/* <th className="py-2">FACULTY</th>
               <th className="py-2">DEPARTMENT</th> */}
-              <th className="py-2">ACTION</th>
+              <th className="py-2 w-[10rem]">ACTION</th>
             </tr>
           </thead>
           <tbody>

@@ -237,7 +237,7 @@ const AssociationForm = () => {
       });
 
       if (response.ok) {
-        setSuccess('Association updated successfully!');
+        setSuccess('Association Created successfully!');
         setError('');
         setTimeout(() => {
           navigate('/dashboard/overview');

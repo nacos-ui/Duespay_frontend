@@ -30,10 +30,10 @@ export default function SettingsPage() {
 
   return (
     <MainLayout>
-      <div className="pt-16 p-6 min-h-screen bg-[#0F111F]">
+      <div className="pt-16 sm:pt-16 sm:p-6 min-h-screen bg-[#0F111F]">
         <h1 className="text-2xl font-bold text-white mb-1">Settings</h1>
         <p className="text-gray-400 mb-8">Manage your account settings and preferences</p>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-8">
           <BankInfoCard
             data={bankInfo}
             loading={loading}

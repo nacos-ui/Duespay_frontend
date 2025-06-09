@@ -57,7 +57,7 @@ export default function PayersPage() {
 
   return (
     <MainLayout>
-      <div className="bg-[#0F111F] min-h-screen pt-16 p-6">
+      <div className="bg-[#0F111F] min-h-screen sm:pt-16 pt-16 sm:p-6">
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-white mb-1">Payers List</h1>
           <p className="text-gray-400">A list of all students who have submitted payment proofs.</p>

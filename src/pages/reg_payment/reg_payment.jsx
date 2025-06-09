@@ -28,9 +28,12 @@ const DuesPayPaymentFlow = () => {
   const [proofFile, setProofFile] = useState(null);
   const [isVerified, setIsVerified] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [isVerifying, setIsVerifying] = useState(false); // <-- add this
+  const [isVerifying, setIsVerifying] = useState(false);
 
-  // Fetch association and payment items based on shortName
+  // New: Registration error and loading state
+  const [regError, setRegError] = useState("");
+  const [regLoading, setRegLoading] = useState(false);
+
   useEffect(() => {
     const fetchAssociation = async () => {
       setIsLoading(true);
@@ -40,7 +43,6 @@ const DuesPayPaymentFlow = () => {
         const data = await res.json();
         setAssociationData(data);
         setPaymentItems(data.payment_items || []);
-        // Preselect compulsory items
         setSelectedItems(
           (data.payment_items || [])
             .filter(item => item.status === 'compulsory')
@@ -70,7 +72,7 @@ const DuesPayPaymentFlow = () => {
 
   const handleItemSelection = (itemId) => {
     const item = paymentItems.find(i => i.id === itemId);
-    if (item && item.status === 'compulsory') return; // Prevent unchecking compulsory
+    if (item && item.status === 'compulsory') return;
     setSelectedItems(prev =>
       prev.includes(itemId)
         ? prev.filter(id => id !== itemId)
@@ -116,17 +118,55 @@ const DuesPayPaymentFlow = () => {
     return res.json();
   };
 
+  // --- Payer check logic for registration step ---
+  const checkPayer = async () => {
+    setRegError("");
+    setRegLoading(true);
+    try {
+      const res = await fetch("http://localhost:8000/payer-check/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          association_short_name: associationData.association_short_name,
+          matric_number: payerData.matricNumber,
+          email: payerData.email,
+          phone_number: payerData.phoneNumber,
+          first_name: payerData.firstName,
+          last_name: payerData.lastName,
+          faculty: payerData.faculty,
+          department: payerData.department,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        setRegError(data.error || "Registration error. Please check your details.");
+        setRegLoading(false);
+        return false;
+      }
+      setRegError("");
+      setRegLoading(false);
+      return true;
+    } catch (err) {
+      setRegError("Network error. Please try again.");
+      setRegLoading(false);
+      return false;
+    }
+  };
+
   const nextStep = async () => {
+    if (currentStep === 1) {
+      if (!(await checkPayer())) return;
+      setCurrentStep(currentStep + 1);
+      return;
+    }
     if (currentStep === 3) {
-      setIsVerifying(true); // Show roller
-      // 1. Verify proof before submitting transaction
+      setIsVerifying(true);
       const verification = await verifyProof(proofFile);
-      setIsVerifying(false); // Hide roller
+      setIsVerifying(false);
       if (!verification.verified) {
         alert(verification.error || "Verification failed. Please re-upload.");
         return;
       }
-      // 2. If verified, submit transaction
       const result = await submitTransaction();
       if (result.success) {
         setIsVerified(true);
@@ -148,7 +188,7 @@ const DuesPayPaymentFlow = () => {
   const canProceed = () => {
     switch (currentStep) {
       case 1:
-        return payerData.firstName && payerData.lastName && payerData.email && payerData.matricNumber;
+        return payerData.firstName && payerData.lastName && payerData.email && payerData.matricNumber && payerData.phoneNumber;
       case 2:
         return selectedItems.length > 0;
       case 3:
@@ -165,6 +205,8 @@ const DuesPayPaymentFlow = () => {
           <RegistrationStep
             payerData={payerData}
             handleInputChange={handleInputChange}
+            error={regError}
+            loading={regLoading}
           />
         );
       case 2:
@@ -207,7 +249,6 @@ const DuesPayPaymentFlow = () => {
   }
 
   if (isVerifying) {
-    // Roller animation
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-slate-900 text-white">
         <div className="mb-4">
@@ -256,14 +297,14 @@ const DuesPayPaymentFlow = () => {
             {currentStep < 4 && (
               <button
                 onClick={nextStep}
-                disabled={!canProceed() || isVerifying}
+                disabled={!canProceed() || isVerifying || regLoading}
                 className={`px-8 py-3 rounded-xl font-medium transition-all ml-auto ${
-                  canProceed() && !isVerifying
+                  canProceed() && !isVerifying && !regLoading
                     ? 'bg-gradient-to-r from-purple-600 to-purple-500 text-white hover:shadow-lg hover:shadow-purple-500/25'
                     : 'bg-slate-700 text-slate-500 cursor-not-allowed border border-slate-600'
                 }`}
               >
-                {currentStep === 3 ? 'Submit Payment' : 'Continue'}
+                {regLoading ? 'Checking...' : currentStep === 3 ? 'Submit Payment' : 'Continue'}
               </button>
             )}
 

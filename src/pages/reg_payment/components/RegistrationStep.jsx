@@ -1,7 +1,7 @@
 import React from 'react';
 import FormInput from './FormInput';
 
-const RegistrationStep = ({ payerData, handleInputChange }) => {
+const RegistrationStep = ({ payerData, handleInputChange, error, loading }) => {
   const formFields = [
     { key: 'firstName', label: 'First Name', placeholder: 'Enter your first name', required: true },
     { key: 'lastName', label: 'Last Name', placeholder: 'Enter your last name', required: true },
@@ -18,6 +18,10 @@ const RegistrationStep = ({ payerData, handleInputChange }) => {
         <h2 className="text-3xl font-bold text-white mb-2">Payer Registration</h2>
         <p className="text-slate-300">Please fill in your details to continue</p>
       </div>
+
+      {/* Error and loading feedback */}
+      {error && <div className="text-red-400 text-sm mb-2 text-center">{error}</div>}
+      {loading && <div className="text-slate-400 text-sm mb-2 text-center">Checking details...</div>}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {formFields.map((field) => (

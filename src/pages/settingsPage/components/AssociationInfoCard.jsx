@@ -84,7 +84,7 @@ export default function AssociationInfoCard({ data, loading, onUpdated }) {
       : null;
 
   return (
-    <div className="bg-gray-900 rounded-xl p-6 min-h-[260px] relative">
+    <div className="bg-gray-900 rounded-xl p-6 min-h-[260px] min-w-[350px] relative">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-bold text-white flex items-center gap-2">
           <span className="text-purple-400"><i className="fa fa-building" /></span>
