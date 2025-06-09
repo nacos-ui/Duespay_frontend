@@ -15,7 +15,7 @@ export default function Overview() {
     const fetchTransactions = async () => {
       try {
         const token = localStorage.getItem("access_token");
-        const res = await fetch(API_ENDPOINTS.CREATE_TRANSACTION, {
+        const res = await fetch(API_ENDPOINTS.GET_TRANSACTIONS, {
           headers: {
             Authorization: `Bearer ${token}`
           }
