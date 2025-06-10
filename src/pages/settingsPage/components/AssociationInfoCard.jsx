@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Edit } from "lucide-react";
-import { API_BASE_URL, API_ENDPOINTS } from "../../../apiConfig";
+import { API_ENDPOINTS } from "../../../apiConfig";
 
 export default function AssociationInfoCard({ data, loading, onUpdated }) {
   const assoc = data?.results?.[0] || null;
@@ -35,25 +35,28 @@ export default function AssociationInfoCard({ data, loading, onUpdated }) {
   const handleSave = async () => {
     setSaving(true);
     const token = localStorage.getItem("access_token");
-    const method = assoc && assoc.id ? "PUT" : "POST";
+    const method = assoc && assoc.id ? "PATCH" : "POST";
     const url = assoc && assoc.id
       ? API_ENDPOINTS.UPDATE_ASSOCIATION(assoc.id)
       : API_ENDPOINTS.CREATE_ASSOCIATION;
 
     let body, headers;
+
+    // Use FormData if uploading a file
     if (logoFile) {
       body = new FormData();
       body.append("association_name", form.association_name);
       body.append("association_short_name", form.association_short_name);
       body.append("Association_type", form.Association_type);
-      body.append("logo", logoFile);
-      headers = { Authorization: `Bearer ${token}` }; // Let browser set Content-Type
+      body.append("logo", logoFile); // This must be a File object!
+      headers = { Authorization: `Bearer ${token}` }; // Don't set Content-Type!
     } else {
+      // No new file, send JSON (PATCH/POST)
       body = JSON.stringify({
         association_name: form.association_name,
         association_short_name: form.association_short_name,
         Association_type: form.Association_type,
-        logo: form.logo, // If you want to keep the old logo
+        // Don't send logo if not a file!
       });
       headers = {
         "Content-Type": "application/json",

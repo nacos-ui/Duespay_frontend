@@ -84,16 +84,6 @@ export default function AdminProfileCard({ data, loading, onUpdated }) {
               onChange={e => setForm(f => ({ ...f, phone_number: e.target.value }))}
             />
           </div>
-          <div>
-            <label className="text-gray-400 text-sm">Password</label>
-            <input
-              type="password"
-              className="w-full bg-[#23263A] text-white rounded px-3 py-2 mt-1"
-              value={form.password || ""}
-              onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
-              placeholder="Leave blank to keep current password"
-            />
-          </div>
           <div className="flex gap-2 mt-3">
             <button
               className="bg-purple-600 text-white px-4 py-2 rounded"
@@ -128,10 +118,6 @@ export default function AdminProfileCard({ data, loading, onUpdated }) {
           <div>
             <span className="text-gray-400 text-sm">Phone:</span>
             <span className="ml-2 text-white">{data?.phone_number || "—"}</span>
-          </div>
-          <div>
-            <span className="text-gray-400 text-sm">Password:</span>
-            <span className="ml-2 text-white">••••••••</span>
           </div>
         </div>
       )}
