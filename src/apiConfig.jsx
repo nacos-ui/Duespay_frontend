@@ -19,6 +19,7 @@ export const API_ENDPOINTS = {
   UPDATE_ADMIN_USER: (id) => `${API_BASE_URL}/adminuser/${id}/`,
   GET_ASSOCIATION: `${API_BASE_URL}/association/`,
   PAYMENT_ITEM_DETAILS: (id) => `${API_BASE_URL}/payment-items/${id}/`,
+  PAYER_CHECK: `${API_BASE_URL}/payer-check/`,
 
   USER_PROFILE: `${API_BASE_URL}/user/profile/`,
   UPDATE_PROFILE: `${API_BASE_URL}/user/update/`,

@@ -123,7 +123,7 @@ const DuesPayPaymentFlow = () => {
     setRegError("");
     setRegLoading(true);
     try {
-      const res = await fetch("http://localhost:8000/payer-check/", {
+      const res = await fetch(API_ENDPOINTS.PAYER_CHECK, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
