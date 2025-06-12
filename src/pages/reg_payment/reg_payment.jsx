@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { User, CreditCard, Upload, CheckCircle } from 'lucide-react';
 import Header from './components/Header';
@@ -153,8 +153,14 @@ const DuesPayPaymentFlow = () => {
     }
   };
 
+  const registrationStepRef = useRef();
   const nextStep = async () => {
     if (currentStep === 1) {
+      const validationError = registrationStepRef.current?.validate?.();
+      if (validationError) {
+        setRegError(validationError);
+        return;
+      }
       if (!(await checkPayer())) return;
       setCurrentStep(currentStep + 1);
       return;
@@ -207,6 +213,7 @@ const DuesPayPaymentFlow = () => {
             handleInputChange={handleInputChange}
             error={regError}
             loading={regLoading}
+            associationData={associationData}
           />
         );
       case 2:

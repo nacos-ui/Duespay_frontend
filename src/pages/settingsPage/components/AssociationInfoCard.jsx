@@ -146,7 +146,7 @@ export default function AssociationInfoCard({ data, loading, onUpdated }) {
               <option value="hall">Hall</option>
               <option value="department">Department</option>
               <option value="faculty">Faculty</option>
-              <option value="club">Club</option>
+              <option value="other">Other</option>
             </select>
           </div>
           <div className="flex gap-2 mt-3">

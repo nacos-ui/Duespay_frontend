@@ -27,7 +27,7 @@ export default function PayerTransactionsModal({ matricNumber, onClose, onViewTr
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0f111fbe] backdrop-blur-lg">
-      <div className="bg-gray-900 rounded-xl p-8 w-full max-w-3xl shadow-2xl relative">
+      <div className="bg-gray-900 rounded-xl p-8 w-[95%] max-w-3xl shadow-2xl relative">
         <button
           className="absolute top-4 right-4 text-gray-400 hover:text-white"
           onClick={onClose}
@@ -35,16 +35,16 @@ export default function PayerTransactionsModal({ matricNumber, onClose, onViewTr
           <X />
         </button>
         <h2 className="text-xl font-bold text-white mb-4">Transactions for {matricNumber}</h2>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
+        <div className="overflow-x-auto hide-scrollbar">
+          <table className="w-full min-w-[900px] text-left">
             <thead>
               <tr className="text-gray-400 text-sm">
-                <th className="py-2">REFERENCE ID</th>
-                <th className="py-2">PAYMENT ITEM</th>
-                <th className="py-2">AMOUNT</th>
-                <th className="py-2">DATE</th>
-                <th className="py-2">STATUS</th>
-                <th className="py-2">ACTION</th>
+                <th className="py-2 min-w-[8rem]">REFERENCE ID</th>
+                <th className="py-2 min-w-[12rem]">PAYMENT ITEM</th>
+                <th className="py-2 min-w-[8rem]">AMOUNT</th>
+                <th className="py-2 min-w-[8rem]">DATE</th>
+                <th className="py-2 min-w-[8rem]">STATUS</th>
+                <th className="py-2 min-w-[8rem]">ACTION</th>
               </tr>
             </thead>
             <tbody>
