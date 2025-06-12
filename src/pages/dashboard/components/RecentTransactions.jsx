@@ -7,7 +7,7 @@ export default function RecentTransactions({ transactions = [], loading }) {
           <thead>
             <tr className="text-gray-400 text-sm">
               <th className="py-2 min-w-[12rem]">Payer/Reference</th>
-              <th className="py-2 min-w-[10rem]">Items</th>
+              <th className="py-2 min-w-[12rem]">Items</th>
               <th className="py-2 min-w-[8rem]">Amount</th>
               <th className="py-2 min-w-[8rem]">Status</th>
               <th className="py-2 min-w-[10rem]">Date</th>
@@ -32,7 +32,7 @@ export default function RecentTransactions({ transactions = [], loading }) {
                       <span className="text-gray-400 font-light text-sm">{tx.reference_id}</span>
                     </div>
                   </td>
-                  <td className="py-2 text-white">
+                  <td className="py-2 pr-3 text-white">
                     {tx.payment_item_titles?.join(", ")}
                   </td>
                   <td className="py-2 text-white">₦{Number(tx.amount_paid).toLocaleString()}</td>

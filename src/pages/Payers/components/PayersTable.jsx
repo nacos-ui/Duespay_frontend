@@ -27,9 +27,9 @@ export default function PayersTable({ payers, loading, onViewDetails }) {
             ) : (
               payers.map((payer, idx) => (
                 <tr key={payer.id || idx} className="border-t border-gray-800">
-                  <td className="py-4 text-white font-medium">{payer.first_name} {payer.last_name}</td>
+                  <td className="py-4 pr-2 text-white font-medium">{payer.first_name} {payer.last_name}</td>
                   <td className="py-4 text-white">{payer.matric_number}</td>
-                  <td className="py-4 text-white">{payer.email}</td>
+                  <td className="py-4 pr-2 text-white">{payer.email}</td>
                   <td className="py-4 text-white">{payer.phone_number}</td>
                   {/* <td className="py-4 text-white">{payer.faculty}</td>
                   <td className="py-4 text-white">{payer.department}</td> */}

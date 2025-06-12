@@ -29,7 +29,7 @@ export default function TransactionsTable({ transactions, loading, onViewDetails
                 <tr key={tx.id || idx} className="border-t border-gray-800">
                   <td className="py-4 text-white font-medium min-w-[10rem]">{tx.payer_name || `${tx.payer_first_name} ${tx.payer_last_name}`}</td>
                   <td className="py-4 text-white min-w-[10rem]">{tx.reference_id}</td>
-                  <td className="py-4 text-white min-w-[12rem]">{tx.payment_item_titles?.join(", ")}</td>
+                  <td className="py-4 pr-3 text-white min-w-[12rem]">{tx.payment_item_titles?.join(", ")}</td>
                   <td className="py-4 text-white min-w-[8rem]">₦{Number(tx.amount_paid).toLocaleString()}</td>
                   <td className="py-4 min-w-[8rem]">
                     <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
