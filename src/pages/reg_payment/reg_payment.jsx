@@ -6,6 +6,7 @@ import RegistrationStep from './components/RegistrationStep';
 import PaymentSelectionStep from './components/PaymentSelectionStep';
 import UploadReceiptStep from './components/UploadReceiptStep';
 import ConfirmationStep from './components/ConfirmationStep';
+import ErrorModal from '../../appComponents/ErrorModal';
 import { API_ENDPOINTS } from '../../apiConfig';
 
 const DuesPayPaymentFlow = () => {
@@ -30,9 +31,15 @@ const DuesPayPaymentFlow = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isVerifying, setIsVerifying] = useState(false);
 
-  // New: Registration error and loading state
+  // Registration error and loading state
   const [regError, setRegError] = useState("");
   const [regLoading, setRegLoading] = useState(false);
+
+  // Transaction summary state
+  const [transaction, setTransaction] = useState(null);
+
+  // Error modal state
+  const [modalError, setModalError] = useState({ open: false, title: "", message: "" });
 
   useEffect(() => {
     const fetchAssociation = async () => {
@@ -52,6 +59,11 @@ const DuesPayPaymentFlow = () => {
         setAssociationData(null);
         setPaymentItems([]);
         setSelectedItems([]);
+        setModalError({
+          open: true,
+          title: "Error",
+          message: "Oops! This item is unavailable. Check back later."
+        });
       } finally {
         setIsLoading(false);
       }
@@ -92,29 +104,21 @@ const DuesPayPaymentFlow = () => {
   };
 
   // --- Proof verification and transaction submission logic ---
-  const verifyProof = async (file) => {
+  const verifyAndCreate = async () => {
     const formData = new FormData();
-    formData.append('proof', file);
-
-    const res = await fetch(API_ENDPOINTS.VERIFY_PROOF, {
-      method: 'POST',
-      body: formData,
-    });
-    return res.json();
-  };
-
-  const submitTransaction = async () => {
-    const formData = new FormData();
+    formData.append('proof_file', proofFile);
     formData.append('association_short_name', associationData.association_short_name);
     formData.append('amount_paid', getTotalAmount());
-    formData.append('proof_of_payment', proofFile);
     formData.append('payer', JSON.stringify(payerData));
-    formData.append('payment_item_ids', JSON.stringify(selectedItems));
+    selectedItems.forEach(id => {
+      formData.append('payment_item_ids', id);
+    });
 
-    const res = await fetch(API_ENDPOINTS.CREATE_TRANSACTION, {
+    const res = await fetch(API_ENDPOINTS.VERIFY_AND_CREATE_TRANSACTION, {
       method: 'POST',
       body: formData,
     });
+    console.log("Response from verifyAndCreate:", res);
     return res.json();
   };
 
@@ -140,6 +144,11 @@ const DuesPayPaymentFlow = () => {
       const data = await res.json();
       if (!res.ok || !data.success) {
         setRegError(data.error || "Registration error. Please check your details.");
+        setModalError({
+          open: true,
+          title: "Registration Error",
+          message: data.error || "Registration error. Please check your details."
+        });
         setRegLoading(false);
         return false;
       }
@@ -148,6 +157,11 @@ const DuesPayPaymentFlow = () => {
       return true;
     } catch (err) {
       setRegError("Network error. Please try again.");
+      setModalError({
+        open: true,
+        title: "Network Error",
+        message: "Network error. Please try again."
+      });
       setRegLoading(false);
       return false;
     }
@@ -159,6 +173,11 @@ const DuesPayPaymentFlow = () => {
       const validationError = registrationStepRef.current?.validate?.();
       if (validationError) {
         setRegError(validationError);
+        setModalError({
+          open: true,
+          title: "Validation Error",
+          message: validationError
+        });
         return;
       }
       if (!(await checkPayer())) return;
@@ -167,18 +186,27 @@ const DuesPayPaymentFlow = () => {
     }
     if (currentStep === 3) {
       setIsVerifying(true);
-      const verification = await verifyProof(proofFile);
+      const result = await verifyAndCreate();
       setIsVerifying(false);
-      if (!verification.verified) {
-        alert(verification.error || "Verification failed. Please re-upload.");
-        return;
-      }
-      const result = await submitTransaction();
       if (result.success) {
         setIsVerified(true);
+        setTransaction({
+          reference_id: result.reference_id,
+          transaction_id: result.transaction_id,
+          payer_name: `${payerData.firstName} ${payerData.lastName}`,
+          items_paid: result.items_paid || [],
+          total_amount: (result.items_paid || []).reduce(
+            (sum, item) => sum + parseFloat(item.amount || 0),
+            0
+          ),
+        });
         setCurrentStep(currentStep + 1);
       } else {
-        alert(result.error || "Transaction failed.");
+        setModalError({
+          open: true,
+          title: "Verification Error",
+          message: result.error || "Verification or transaction failed."
+        });
       }
     } else if (currentStep < 4) {
       setCurrentStep(currentStep + 1);
@@ -209,6 +237,7 @@ const DuesPayPaymentFlow = () => {
       case 1:
         return (
           <RegistrationStep
+            ref={registrationStepRef}
             payerData={payerData}
             handleInputChange={handleInputChange}
             error={regError}
@@ -239,7 +268,7 @@ const DuesPayPaymentFlow = () => {
         return (
           <ConfirmationStep
             isVerified={isVerified}
-            getTotalAmount={getTotalAmount}
+            transaction={transaction}
           />
         );
       default:
@@ -271,62 +300,78 @@ const DuesPayPaymentFlow = () => {
 
   if (!associationData) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-900 text-red-400">
-        Page not found. Please check the URL or try again later.
-      </div>
+      <>
+        <ErrorModal
+          open={modalError.open}
+          onClose={() => setModalError({ ...modalError, open: false })}
+          title={modalError.title}
+          message={modalError.message}
+        />
+        <div className="min-h-screen flex items-center justify-center bg-slate-900 text-red-400">
+          Page not found. Please check the URL or try again later.
+        </div>
+      </>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-1 sm:p-8 md:p-16">
-      <div className="bg-slate-800/95 backdrop-blur-xl sm:rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden border border-slate-700">
-        <Header
-          associationData={associationData}
-          steps={steps}
-          currentStep={currentStep}
-        />
+    <>
+      <ErrorModal
+        open={modalError.open}
+        onClose={() => setModalError({ ...modalError, open: false })}
+        title={modalError.title}
+        message={modalError.message}
+      />
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-1 sm:p-8 md:p-16">
+        <div className="bg-slate-800/95 backdrop-blur-xl sm:rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden border border-slate-700">
+          <Header
+            associationData={associationData}
+            steps={steps}
+            currentStep={currentStep}
+          />
 
-        {/* Step Content */}
-        <div className="p-8 bg-slate-800 text-white">
-          {renderCurrentStep()}
+          {/* Step Content */}
+          <div className="p-8 bg-slate-800 text-white">
+            {renderCurrentStep()}
 
-          {/* Navigation Buttons */}
-          <div className="flex justify-between mt-8 pt-6 border-t border-slate-700">
-            {currentStep > 1 && currentStep < 4 && (
-              <button
-                onClick={prevStep}
-                className="px-6 py-3 bg-slate-700 text-slate-300 rounded-xl hover:bg-slate-600 transition-colors font-medium border border-slate-600"
-              >
-                Previous
-              </button>
-            )}
+            {/* Navigation Buttons */}
+            <div className="flex justify-between mt-8 pt-6 border-t border-slate-700">
+              {currentStep > 1 && currentStep < 4 && (
+                <button
+                  onClick={prevStep}
+                  className="px-6 py-3 bg-slate-700 text-slate-300 rounded-xl hover:bg-slate-600 transition-colors font-medium border border-slate-600"
+                >
+                  Previous
+                </button>
+              )}
 
-            {currentStep < 4 && (
-              <button
-                onClick={nextStep}
-                disabled={!canProceed() || isVerifying || regLoading}
-                className={`px-8 py-3 rounded-xl font-medium transition-all ml-auto ${
-                  canProceed() && !isVerifying && !regLoading
-                    ? 'bg-gradient-to-r from-purple-600 to-purple-500 text-white hover:shadow-lg hover:shadow-purple-500/25'
-                    : 'bg-slate-700 text-slate-500 cursor-not-allowed border border-slate-600'
-                }`}
-              >
-                {regLoading ? 'Checking...' : currentStep === 3 ? 'Submit Payment' : 'Continue'}
-              </button>
-            )}
+              {currentStep < 4 && (
+                <button
+                  onClick={nextStep}
+                  disabled={!canProceed() || isVerifying || regLoading}
+                  className={`px-8 py-3 rounded-xl font-medium transition-all ml-auto ${
+                    canProceed() && !isVerifying && !regLoading
+                      ? 'bg-gradient-to-r from-purple-600 to-purple-500 text-white hover:shadow-lg hover:shadow-purple-500/25'
+                      : 'bg-slate-700 text-slate-500 cursor-not-allowed border border-slate-600'
+                  }`}
+                >
+                  {regLoading ? 'Checking...' : currentStep === 3 ? 'Submit Payment' : 'Continue'}
+                </button>
+              )}
 
-            {currentStep === 4 && isVerified && (
-              <button
-                onClick={() => window.location.reload()}
-                className="px-8 py-3 bg-gradient-to-r from-purple-600 to-purple-500 text-white rounded-xl hover:shadow-lg hover:shadow-purple-500/25 transition-all font-medium mx-auto"
-              >
-                Make Another Payment
-              </button>
-            )}
+              {currentStep === 4 && isVerified && (
+                <button
+                  onClick={() => window.location.reload()}
+                  className="px-8 py-3 bg-gradient-to-r from-purple-600 to-purple-500 text-white rounded-xl hover:shadow-lg hover:shadow-purple-500/25 transition-all font-medium mx-auto"
+                >
+                  Make Another Payment
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

@@ -1,5 +1,5 @@
-// src/App.jsx
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 import Overview from './pages/dashboard/Overview';
 import Auth from './pages/auth/auth';
 import ProtectedRoute from './ProtectedRoute';
@@ -10,32 +10,32 @@ import TransactionsPage from './pages/Transactions/TransactionsPage';
 import PayersPage from './pages/Payers/PayersPage';
 import SettingsPage from './pages/settingsPage/SettingsPage';
 
-
 function App() {
   return (
     <Router>
+      <Toaster position="top-right" />
       <Routes>
         <Route path='/' element={<Navigate to="/dashboard/overview" replace/>} />
         <Route path="/auth" element={<Auth />} />
         <Route path="/:shortName" element={<DuesPayPaymentFlow />} />
         <Route path="/dashboard/overview" element={
           <ProtectedRoute><Overview /></ProtectedRoute>
-          } />
+        } />
         <Route path="/dashboard/payment-items" element={
           <ProtectedRoute><PaymentItems /></ProtectedRoute>
-          } />
+        } />
         <Route path="/dashboard/transactions" element={
           <ProtectedRoute><TransactionsPage /></ProtectedRoute>
-          } />
+        } />
         <Route path="/create-association" element={
           <ProtectedRoute><AssociationForm /></ProtectedRoute>
-          } />
+        } />
         <Route path="/dashboard/students" element={
           <ProtectedRoute><PayersPage /></ProtectedRoute>
-          } />
+        } />
         <Route path="/settings" element={
           <ProtectedRoute><SettingsPage /></ProtectedRoute>
-          } />
+        } />
       </Routes>
     </Router>
   );
