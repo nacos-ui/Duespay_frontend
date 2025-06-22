@@ -107,13 +107,13 @@ export default function TransactionDetailsModal({ transaction, onClose, onStatus
             <div className="mt-2 bg-gray-800 rounded-lg p-2 flex items-center justify-center min-h-[180px]">
               {transaction.proof_of_payment?.match(/\.(jpg|jpeg|png|gif)$/i) ? (
                 <img
-                  src={transaction.proof_of_payment}
+                  src={transaction.proof_of_payment_url}
                   alt="Proof of Payment"
                   className="max-h-40 rounded"
                 />
               ) : (
                 <a
-                  href={transaction.proof_of_payment}
+                  href={transaction.proof_of_payment_url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-purple-600 underline"
@@ -125,7 +125,7 @@ export default function TransactionDetailsModal({ transaction, onClose, onStatus
             {transaction.proof_of_payment && transaction.proof_of_payment.match(/\.(jpg|jpeg|png|gif)$/i) && (
               <div className="text-center mt-2">
                 <a
-                  href={transaction.proof_of_payment}
+                  href={transaction.proof_of_payment_url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-purple-600 underline"

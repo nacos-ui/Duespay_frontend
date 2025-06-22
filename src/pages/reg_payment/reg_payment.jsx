@@ -22,7 +22,7 @@ const DuesPayPaymentFlow = () => {
     faculty: '',
     department: '',
   });
-
+    
   const [associationData, setAssociationData] = useState(null);
   const [paymentItems, setPaymentItems] = useState([]);
   const [selectedItems, setSelectedItems] = useState([]);
@@ -301,12 +301,12 @@ const DuesPayPaymentFlow = () => {
   if (!associationData) {
     return (
       <>
-        <ErrorModal
+        {/* <ErrorModal
           open={modalError.open}
           onClose={() => setModalError({ ...modalError, open: false })}
           title={modalError.title}
           message={modalError.message}
-        />
+        /> */}
         <div className="min-h-screen flex items-center justify-center bg-slate-900 text-red-400">
           Page not found. Please check the URL or try again later.
         </div>

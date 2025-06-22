@@ -11,7 +11,7 @@ export default function AssociationInfoCard({ data, loading, onUpdated }) {
         association_name: assoc.association_name || "",
         association_short_name: assoc.association_short_name || "",
         Association_type: assoc.Association_type || "",
-        logo: assoc.logo || "",
+        logo: "", // for upload only
       }
     : {};
 
@@ -28,7 +28,7 @@ export default function AssociationInfoCard({ data, loading, onUpdated }) {
   const handleLogoChange = (e) => {
     if (e.target.files && e.target.files[0]) {
       setLogoFile(e.target.files[0]);
-      setForm(f => ({ ...f, logo: URL.createObjectURL(e.target.files[0]) }));
+      setForm(f => ({ ...f, logo: e.target.files[0] }));
     }
   };
 
@@ -42,21 +42,18 @@ export default function AssociationInfoCard({ data, loading, onUpdated }) {
 
     let body, headers;
 
-    // Use FormData if uploading a file
     if (logoFile) {
       body = new FormData();
       body.append("association_name", form.association_name);
       body.append("association_short_name", form.association_short_name);
       body.append("Association_type", form.Association_type);
-      body.append("logo", logoFile); // This must be a File object!
-      headers = { Authorization: `Bearer ${token}` }; // Don't set Content-Type!
+      body.append("logo", logoFile); // for upload
+      headers = { Authorization: `Bearer ${token}` };
     } else {
-      // No new file, send JSON (PATCH/POST)
       body = JSON.stringify({
         association_name: form.association_name,
         association_short_name: form.association_short_name,
         Association_type: form.Association_type,
-        // Don't send logo if not a file!
       });
       headers = {
         "Content-Type": "application/json",
@@ -79,12 +76,10 @@ export default function AssociationInfoCard({ data, loading, onUpdated }) {
     <div className="bg-gray-900 rounded-xl p-6 min-h-[260px] animate-pulse" />
   );
 
-  // Helper to get logo URL (handle file or string)
+  // Use logoFile for preview if uploading, else use logo_url from backend
   const logoUrl = logoFile
     ? URL.createObjectURL(logoFile)
-    : assoc?.logo && assoc.logo !== "string"
-      ? assoc.logo
-      : null;
+    : assoc?.logo_url || null;
 
   return (
     <div className="bg-gray-900 rounded-xl p-6 min-h-[260px] min-w-auto relative">

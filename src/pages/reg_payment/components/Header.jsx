@@ -6,7 +6,7 @@ const Header = ({ associationData, steps, currentStep }) => {
       <div className="flex items-center gap-4 mb-6">
         <div className="text-4xl">
             <img
-                src={associationData.logo}
+                src={associationData.logo_url}
                 alt={associationData.associaton_name + " logo"}
                 className="w-16 h-16 rounded-full object-cover border-2 border-white shadow"
             />
