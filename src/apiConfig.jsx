@@ -1,5 +1,6 @@
 // export const API_BASE_URL = "http://localhost:8000";
-export const API_BASE_URL = "https://duespay.onrender.com"; // Use your actual API base URL
+// export const API_BASE_URL = "https://duespay.onrender.com"; 
+export const API_BASE_URL = "https://duespay.pythonanywhere.com"; 
 export const API_ENDPOINTS = {
   LOGIN: `${API_BASE_URL}/auth/login/`,
   SIGNUP: `${API_BASE_URL}/auth/register/`,
