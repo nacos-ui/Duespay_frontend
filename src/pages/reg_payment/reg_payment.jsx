@@ -7,6 +7,7 @@ import PaymentSelectionStep from './components/PaymentSelectionStep';
 import UploadReceiptStep from './components/UploadReceiptStep';
 import ConfirmationStep from './components/ConfirmationStep';
 import ErrorModal from '../../appComponents/ErrorModal';
+import { fetchWithErrorModal } from '../../appComponents/fetchWithErrorModal';
 import { API_ENDPOINTS } from '../../apiConfig';
 
 const DuesPayPaymentFlow = () => {
@@ -114,12 +115,19 @@ const DuesPayPaymentFlow = () => {
       formData.append('payment_item_ids', id);
     });
 
-    const res = await fetch(API_ENDPOINTS.VERIFY_AND_CREATE_TRANSACTION, {
-      method: 'POST',
-      body: formData,
-    });
-    console.log("Response from verifyAndCreate:", res);
-    return res.json();
+    try {
+      const res = await fetchWithErrorModal(
+        fetch(API_ENDPOINTS.VERIFY_AND_CREATE_TRANSACTION, {
+          method: 'POST',
+          body: formData,
+        }),
+        setModalError
+      );
+      return await res.json();
+    } catch (err) {
+      // ErrorModal is already shown by fetchWithErrorModal
+      return null;
+    }
   };
 
   // --- Payer check logic for registration step ---
@@ -186,27 +194,41 @@ const DuesPayPaymentFlow = () => {
     }
     if (currentStep === 3) {
       setIsVerifying(true);
-      const result = await verifyAndCreate();
-      setIsVerifying(false);
-      if (result.success) {
-        setIsVerified(true);
-        setTransaction({
-          reference_id: result.reference_id,
-          transaction_id: result.transaction_id,
-          payer_name: `${payerData.firstName} ${payerData.lastName}`,
-          items_paid: result.items_paid || [],
-          total_amount: (result.items_paid || []).reduce(
-            (sum, item) => sum + parseFloat(item.amount || 0),
-            0
-          ),
-        });
-        setCurrentStep(currentStep + 1);
-      } else {
+      let result = null;
+      try {
+        result = await verifyAndCreate();
+        if (result && result.success) {
+          setIsVerified(true);
+          setTransaction({
+            reference_id: result.reference_id,
+            transaction_id: result.transaction_id,
+            payer_name: `${payerData.firstName} ${payerData.lastName}`,
+            items_paid: result.items_paid || [],
+            total_amount: (result.items_paid || []).reduce(
+              (sum, item) => sum + parseFloat(item.amount || 0),
+              0
+            ),
+          });
+          setCurrentStep(currentStep + 1);
+        } else if (result === null) {
+          // ErrorModal already shown, just stop loader
+          // Optionally, you can set a custom error here if you want
+        } else {
+          setModalError({
+            open: true,
+            title: "Verification Error",
+            message: (result && result.error) || "Verification or transaction failed."
+          });
+        }
+      } catch (err) {
+        // This should not be reached if verifyAndCreate always returns null on error
         setModalError({
           open: true,
-          title: "Verification Error",
-          message: result.error || "Verification or transaction failed."
+          title: "Unknown Error",
+          message: err.message || "An unknown error occurred."
         });
+      } finally {
+        setIsVerifying(false);
       }
     } else if (currentStep < 4) {
       setCurrentStep(currentStep + 1);

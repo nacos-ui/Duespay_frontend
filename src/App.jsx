@@ -9,6 +9,7 @@ import AssociationForm from './pages/create_association/create_association';
 import TransactionsPage from './pages/Transactions/TransactionsPage';
 import PayersPage from './pages/Payers/PayersPage';
 import SettingsPage from './pages/settingsPage/SettingsPage';
+import ErrorBoundaryWithModal from './appComponents/ErrorBoundaryWithModal';
 
 function App() {
   return (
@@ -17,24 +18,40 @@ function App() {
       <Routes>
         <Route path='/' element={<Navigate to="/dashboard/overview" replace/>} />
         <Route path="/auth" element={<Auth />} />
-        <Route path="/:shortName" element={<DuesPayPaymentFlow />} />
+        <Route path="/:shortName" element={
+          <ErrorBoundaryWithModal>
+            <DuesPayPaymentFlow />
+          </ErrorBoundaryWithModal>
+        } />
         <Route path="/dashboard/overview" element={
-          <ProtectedRoute><Overview /></ProtectedRoute>
+          <ProtectedRoute>
+            <Overview />
+          </ProtectedRoute>
         } />
         <Route path="/dashboard/payment-items" element={
-          <ProtectedRoute><PaymentItems /></ProtectedRoute>
+          <ProtectedRoute>
+            <PaymentItems />
+          </ProtectedRoute>
         } />
         <Route path="/dashboard/transactions" element={
-          <ProtectedRoute><TransactionsPage /></ProtectedRoute>
+          <ProtectedRoute>
+            <TransactionsPage />
+          </ProtectedRoute>
         } />
         <Route path="/create-association" element={
-          <ProtectedRoute><AssociationForm /></ProtectedRoute>
+          <ProtectedRoute>
+            <AssociationForm />
+          </ProtectedRoute>
         } />
         <Route path="/dashboard/students" element={
-          <ProtectedRoute><PayersPage /></ProtectedRoute>
+          <ProtectedRoute>
+            <PayersPage />
+          </ProtectedRoute>
         } />
         <Route path="/settings" element={
-          <ProtectedRoute><SettingsPage /></ProtectedRoute>
+          <ProtectedRoute>
+            <SettingsPage />
+          </ProtectedRoute>
         } />
       </Routes>
     </Router>
