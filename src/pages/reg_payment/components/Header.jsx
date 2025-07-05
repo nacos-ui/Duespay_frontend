@@ -5,11 +5,11 @@ const Header = ({ associationData, steps, currentStep }) => {
     <div className="bg-gradient-to-r from-purple-600 to-purple-500 text-white p-6">
       <div className="flex items-center gap-4 mb-6">
         <div className="text-4xl">
-            <img
-                src={associationData.logo_url}
-                alt={associationData.associaton_name + " logo"}
-                className="w-16 h-16 rounded-full object-cover border-2 border-white shadow"
-            />
+          <img
+              src={associationData.logo_url}
+              alt={associationData.association_name + " logo"}
+              className="w-16 h-16 min-w-16 min-h-16 flex-shrink-0 rounded-full object-cover border-2 border-white shadow"
+          />
         </div>
         <div>
           <h1 className="text-2xl font-bold">{associationData.association_name}</h1>

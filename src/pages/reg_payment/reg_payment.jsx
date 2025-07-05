@@ -353,7 +353,7 @@ const DuesPayPaymentFlow = () => {
           />
 
           {/* Step Content */}
-          <div className="p-8 bg-slate-800 text-white">
+          <div className="sm:p-8 p-4 bg-slate-800 text-white">
             {renderCurrentStep()}
 
             {/* Navigation Buttons */}
@@ -377,7 +377,7 @@ const DuesPayPaymentFlow = () => {
                       : 'bg-slate-700 text-slate-500 cursor-not-allowed border border-slate-600'
                   }`}
                 >
-                  {regLoading ? 'Checking...' : currentStep === 3 ? 'Submit Payment' : 'Continue'}
+                  {regLoading ? 'Checking...' : currentStep === 3 ? 'Submit' : 'Continue'}
                 </button>
               )}
 

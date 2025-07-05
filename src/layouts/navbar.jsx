@@ -1,6 +1,8 @@
 import { Bell, Settings, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import { Link } from "react-router-dom";
+import { useTheme } from "../appComponents/ThemeContext";
+import { Sun, Moon } from "lucide-react";
 
 const navItems = [
   { label: 'Dashboard Overview', to: '/dashboard/overview' },
@@ -11,6 +13,7 @@ const navItems = [
 
 export default function Navbar({ onToggleSidebar, sidebarOpen }) {
   const location = useLocation();
+  const { theme, toggleTheme } = useTheme();
 
   // Find the current route's label for the center title
   const currentNav = navItems.find(item => location.pathname === item.to);
@@ -50,6 +53,13 @@ export default function Navbar({ onToggleSidebar, sidebarOpen }) {
 
         {/* Right: Icons and Avatar */}
         <div className="flex items-center gap-4 ml-auto">
+          <button
+            onClick={toggleTheme}
+            className="bg-slate-800 text-white p-2 rounded-full shadow hover:bg-slate-700 transition"
+            aria-label="Toggle theme"
+          >
+            {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
+          </button>
           <Bell className="w-5 h-5 text-gray-300 hover:text-white cursor-pointer" />
           <Link to="/settings">
             <Settings className="w-5 h-5 text-gray-300 hover:text-white cursor-pointer" />

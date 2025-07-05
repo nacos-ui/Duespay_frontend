@@ -1,4 +1,4 @@
-import { Navigate } from 'react-router-dom';
+import { Navigate, Outlet } from 'react-router-dom';
 
 // Helper to check if JWT is expired
 function isTokenExpired(token) {
@@ -14,10 +14,10 @@ function isTokenExpired(token) {
   }
 }
 
-function ProtectedRoute({ children }) {
+function ProtectedRoute() {
   const token = localStorage.getItem('access_token');
   const expired = isTokenExpired(token);
-  return token && !expired ? children : <Navigate to="/auth" replace />;
+  return expired ? <Navigate to="/auth" /> : <Outlet />;
 }
 
 export default ProtectedRoute;
