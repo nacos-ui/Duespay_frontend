@@ -5,11 +5,14 @@ import RecentTransactions from "./components/RecentTransactions";
 import PaymentCompletionChart from "./components/PaymentCompletionChart";
 import TopDepartments from "./components/TopDepartments";
 import { API_ENDPOINTS } from "../../apiConfig";
+import { usePageTitle } from "../../hooks/usePageTitle";
 
 export default function Overview() {
   const [transactions, setTransactions] = useState([]);
   const [meta, setMeta] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  usePageTitle("Dashboard - DuesPay");
 
   useEffect(() => {
     const fetchTransactions = async () => {

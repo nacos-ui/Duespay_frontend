@@ -4,6 +4,7 @@ import BankInfoCard from "./components/BankInfoCard";
 import AdminProfileCard from "./components/AdminProfileCard";
 import AssociationInfoCard from "./components/AssociationInfoCard"
 import { API_ENDPOINTS } from "../../apiConfig";
+import { usePageTitle } from "../../hooks/usePageTitle";
 
 export default function SettingsPage() {
   const [bankInfo, setBankInfo] = useState(null);
@@ -11,6 +12,7 @@ export default function SettingsPage() {
   const [association, setAssociation] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  usePageTitle("Settings - DuesPay");
   // Fetch all settings data
   useEffect(() => {
     const token = localStorage.getItem("access_token");

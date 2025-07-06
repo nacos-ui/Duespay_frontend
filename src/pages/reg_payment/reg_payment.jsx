@@ -9,6 +9,7 @@ import ConfirmationStep from './components/ConfirmationStep';
 import ErrorModal from '../../appComponents/ErrorModal';
 import { fetchWithErrorModal } from '../../appComponents/fetchWithErrorModal';
 import { API_ENDPOINTS } from '../../apiConfig';
+import { usePageTitle } from "../../hooks/usePageTitle";
 
 const DuesPayPaymentFlow = () => {
   const { shortName } = useParams();
@@ -72,6 +73,7 @@ const DuesPayPaymentFlow = () => {
     if (shortName) fetchAssociation();
   }, [shortName]);
 
+  usePageTitle("Payment Flow - DuesPay");
   const steps = [
     { number: 1, title: "Registration", icon: User },
     { number: 2, title: "Payment Selection", icon: CreditCard },

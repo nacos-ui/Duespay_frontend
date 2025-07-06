@@ -6,6 +6,7 @@ import MainLayout from "../../layouts/mainLayout";
 import { API_ENDPOINTS } from "../../apiConfig";
 import StatusMessage from "../../appComponents/StatusMessage";
 import PaymentItemForm from "./components/PaymentItemForm";
+import { usePageTitle } from "../../hooks/usePageTitle";
 
 export default function PaymentItems() {
   const [search, setSearch] = useState("");
@@ -19,6 +20,7 @@ export default function PaymentItems() {
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
 
+  usePageTitle("Payment Items - DuesPay");
   // Fetch payment items with filters
   const fetchPaymentItems = async () => {
     setIsLoading(true);

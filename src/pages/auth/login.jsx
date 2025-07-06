@@ -4,6 +4,7 @@ import { Eye, EyeOff } from 'lucide-react';
 import { API_ENDPOINTS } from '../../apiConfig';
 import StatusMessage from '../../appComponents/StatusMessage';
 import SubmitButton from '../../appComponents/SubmitButton';
+import { usePageTitle } from '../../hooks/usePageTitle';
 
 const loginURL = API_ENDPOINTS.LOGIN;
 
@@ -13,6 +14,8 @@ const LoginForm = ({ onToggle }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+
+  usePageTitle("Login - DuesPay");
   const [formData, setFormData] = useState({
     username: '',
     password: ''

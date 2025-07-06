@@ -4,6 +4,7 @@ import { Eye, EyeOff, Upload, ShoppingCart } from 'lucide-react';
 import StatusMessage from '../../appComponents/StatusMessage';
 import SubmitButton from '../../appComponents/SubmitButton';
 import { API_ENDPOINTS } from '../../apiConfig';
+import { usePageTitle } from '../../hooks/usePageTitle';
 
 // Form Input Component
 const FormInput = ({
@@ -132,6 +133,7 @@ const AssociationForm = () => {
     Association_type: '',
     logo: null
   });
+  usePageTitle('Create Association - DuesPay')
   const [associationId, setAssociationId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState('');

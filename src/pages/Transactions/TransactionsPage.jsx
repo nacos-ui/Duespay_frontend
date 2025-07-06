@@ -4,6 +4,7 @@ import TransactionsTable from "./components/TransactionsTable";
 import TransactionDetailsModal from "./components/TransactionDetailsModal";
 import Pagination from "./components/Pagination";
 import { API_ENDPOINTS } from "../../apiConfig";
+import { usePageTitle } from "../../hooks/usePageTitle";
 
 export default function TransactionsPage() {
   const [transactions, setTransactions] = useState([]);
@@ -11,6 +12,8 @@ export default function TransactionsPage() {
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  usePageTitle("Transactions - DuesPay");
 
   // Filters
   const [search, setSearch] = useState("");

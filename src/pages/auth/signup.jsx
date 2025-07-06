@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Eye, EyeOff, ShoppingCart, Loader2 } from 'lucide-react';
 import { API_ENDPOINTS } from '../../apiConfig';
 import SubmitButton from '../../appComponents/SubmitButton';
+import { usePageTitle } from '../../hooks/usePageTitle';
 
 const signupURL = API_ENDPOINTS.SIGNUP;
 
@@ -11,6 +12,8 @@ const SignupForm = ({ onToggle }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+
+  usePageTitle("Sign Up - DuesPay");
   const [formData, setFormData] = useState({
     username: '',
     first_name: '',

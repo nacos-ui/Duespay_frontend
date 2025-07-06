@@ -6,11 +6,15 @@ import PayerTransactionsModal from "./components/PayerTransactionsModal";
 import TransactionDetailsModal from "../Transactions/components/TransactionDetailsModal";
 import Pagination from "../Transactions/components/Pagination";
 import { API_ENDPOINTS } from "../../apiConfig";  
+import { usePageTitle } from "../../hooks/usePageTitle";
 
 export default function PayersPage() {
   const [payers, setPayers] = useState([]);
   const [count, setCount] = useState(0);
   const [page, setPage] = useState(1);
+
+  usePageTitle("Payers - DuesPay");
+
   const [loading, setLoading] = useState(true);
 
   // Filters
