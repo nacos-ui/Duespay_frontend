@@ -38,10 +38,10 @@ export default function Overview() {
 
   return (
     <MainLayout>
-      <div className="bg-[#0F111F] min-h-screen pt-16 sm:px-4">
+      <div className="bg-white dark:bg-[#0F111F] min-h-screen pt-16 sm:px-4">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-white mb-1">Welcome back, Admin!</h1>
-          <p className="text-gray-400">Monitor and manage university payment collections</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">Welcome back, Admin!</h1>
+          <p className="text-gray-600 dark:text-gray-400">Monitor and manage university payment collections</p>
         </div>
         {/* Stats */}
         <DashboardStats meta={meta} loading={loading} />

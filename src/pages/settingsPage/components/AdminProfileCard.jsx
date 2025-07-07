@@ -1,26 +1,93 @@
 import { useState, useEffect } from "react";
-import { Edit } from "lucide-react";
+import { Edit, Eye, EyeOff } from "lucide-react";
 import { API_ENDPOINTS } from "../../../apiConfig";
+import StatusMessage from "../../../appComponents/StatusMessage";
 
 export default function AdminProfileCard({ data, loading, onUpdated }) {
   const [edit, setEdit] = useState(false);
   const [form, setForm] = useState(data || {});
   const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState({ type: '', text: '' });
+  const [showPasswords, setShowPasswords] = useState({
+    new: false,
+    confirm: false
+  });
+  const [passwordData, setPasswordData] = useState({
+    new_password: "",
+    confirm_password: ""
+  });
 
   useEffect(() => setForm(data || {}), [data]);
 
+  // Auto-clear message after 5 seconds
+  useEffect(() => {
+    if (message.text) {
+      const timer = setTimeout(() => {
+        setMessage({ type: '', text: '' });
+      }, 5000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [message.text]);
+
   const handleSave = async () => {
     setSaving(true);
+    setMessage({ type: '', text: '' });
     const token = localStorage.getItem("access_token");
-    const res = await fetch(API_ENDPOINTS.GET_ADMIN_USER, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify(form),
-    });
-    const updated = await res.json();
-    setSaving(false);
-    setEdit(false);
-    onUpdated(updated);
+    
+    // Prepare data to send
+    const updateData = { ...form };
+    
+    // Check password fields
+    if (passwordData.new_password || passwordData.confirm_password) {
+      if (!passwordData.new_password) {
+        setMessage({ type: 'error', text: 'Please enter a new password.' });
+        setSaving(false);
+        return;
+      }
+      if (!passwordData.confirm_password) {
+        setMessage({ type: 'error', text: 'Please confirm your new password.' });
+        setSaving(false);
+        return;
+      }
+      if (passwordData.new_password !== passwordData.confirm_password) {
+        setMessage({ type: 'error', text: "Passwords don't match!" });
+        setSaving(false);
+        return;
+      }
+      updateData.password = passwordData.new_password;
+    }
+
+    try {
+      const res = await fetch(API_ENDPOINTS.GET_ADMIN_USER, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify(updateData),
+      });
+      
+      if (res.ok) {
+        const updated = await res.json();
+        setMessage({ type: 'success', text: 'Profile updated successfully!' });
+        setSaving(false);
+        setEdit(false);
+        setPasswordData({ new_password: "", confirm_password: "" });
+        onUpdated(updated);
+      } else {
+        const error = await res.json();
+        setMessage({ type: 'error', text: error.message || 'Update failed' });
+        setSaving(false);
+      }
+    } catch (error) {
+      setMessage({ type: 'error', text: 'Network error occurred' });
+      setSaving(false);
+    }
+  };
+
+  const togglePasswordVisibility = (field) => {
+    setShowPasswords(prev => ({
+      ...prev,
+      [field]: !prev[field]
+    }));
   };
 
   if (loading && !data) return (
@@ -42,6 +109,12 @@ export default function AdminProfileCard({ data, loading, onUpdated }) {
       </div>
       {edit ? (
         <div className="space-y-3">
+          {message.text && (
+            <StatusMessage type={message.type}>
+              {message.text}
+            </StatusMessage>
+          )}
+          
           <div>
             <label className="text-gray-400 text-sm">Username</label>
             <input
@@ -84,6 +157,48 @@ export default function AdminProfileCard({ data, loading, onUpdated }) {
               onChange={e => setForm(f => ({ ...f, phone_number: e.target.value }))}
             />
           </div>
+          
+          {/* Password Change Section */}
+          <div>
+            <label className="text-gray-400 text-sm">New Password</label>
+            <div className="relative">
+              <input
+                type={showPasswords.new ? "text" : "password"}
+                className="w-full bg-[#23263A] text-white rounded px-3 py-2 pr-10 mt-1"
+                value={passwordData.new_password}
+                onChange={e => setPasswordData(p => ({ ...p, new_password: e.target.value }))}
+                placeholder="Enter new password (optional)"
+              />
+              <button
+                type="button"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                onClick={() => togglePasswordVisibility('new')}
+              >
+                {showPasswords.new ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label className="text-gray-400 text-sm">Confirm New Password</label>
+            <div className="relative">
+              <input
+                type={showPasswords.confirm ? "text" : "password"}
+                className="w-full bg-[#23263A] text-white rounded px-3 py-2 pr-10 mt-1"
+                value={passwordData.confirm_password}
+                onChange={e => setPasswordData(p => ({ ...p, confirm_password: e.target.value }))}
+                placeholder="Confirm new password"
+              />
+              <button
+                type="button"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                onClick={() => togglePasswordVisibility('confirm')}
+              >
+                {showPasswords.confirm ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
+          </div>
+
           <div className="flex gap-2 mt-3">
             <button
               className="bg-purple-600 text-white px-4 py-2 rounded"
@@ -94,7 +209,11 @@ export default function AdminProfileCard({ data, loading, onUpdated }) {
             </button>
             <button
               className="bg-gray-700 text-white px-4 py-2 rounded"
-              onClick={() => setEdit(false)}
+              onClick={() => {
+                setEdit(false);
+                setPasswordData({ new_password: "", confirm_password: "" });
+                setMessage({ type: '', text: '' });
+              }}
               disabled={saving}
             >
               Cancel

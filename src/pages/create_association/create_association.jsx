@@ -80,22 +80,78 @@ const FormSelect = ({
   );
 };
 
-// File Upload Component
+// Color Picker Component with Preview
+const ColorPicker = ({
+  label,
+  value,
+  onChange,
+  name
+}) => {
+  return (
+    <div className="mb-6">
+      <label className="block text-gray-300 text-sm font-medium mb-2">
+        {label}
+      </label>
+      <div className="flex items-center gap-3">
+        <div className="relative flex-1">
+          <input
+            type="color"
+            name={name}
+            value={value}
+            onChange={onChange}
+            className="w-full h-12 bg-gray-800 border border-gray-600 rounded-lg cursor-pointer focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <div 
+            className="w-12 h-12 rounded-lg border border-gray-600 shadow-lg"
+            style={{ backgroundColor: value }}
+          ></div>
+          <input
+            type="text"
+            value={value}
+            onChange={(e) => onChange({ target: { name, value: e.target.value } })}
+            className="w-24 px-3 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+            placeholder="#000000"
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// File Upload Component with Preview
 const FileUpload = ({
   label,
   onChange,
   accept = "image/*",
-  name
+  name,
+  file
 }) => {
   const [fileName, setFileName] = useState('');
+  const [preview, setPreview] = useState(null);
 
   const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setFileName(file.name);
+    const selectedFile = e.target.files[0];
+    if (selectedFile) {
+      setFileName(selectedFile.name);
+      
+      // Create preview URL
+      const previewUrl = URL.createObjectURL(selectedFile);
+      setPreview(previewUrl);
+      
       onChange(e);
     }
   };
+
+  // Clean up preview URL when component unmounts or file changes
+  useEffect(() => {
+    return () => {
+      if (preview) {
+        URL.revokeObjectURL(preview);
+      }
+    };
+  }, [preview]);
 
   const inputId = `${name}-upload`;
 
@@ -104,6 +160,18 @@ const FileUpload = ({
       <label className="block text-gray-300 text-sm font-medium mb-2">
         {label}
       </label>
+      
+      {/* Preview */}
+      {preview && (
+        <div className="mb-3 flex justify-center">
+          <img
+            src={preview}
+            alt="Logo preview"
+            className="w-20 h-20 object-cover rounded-lg border border-gray-600"
+          />
+        </div>
+      )}
+      
       <div className="relative">
         <input
           type="file"
@@ -131,7 +199,8 @@ const AssociationForm = () => {
     association_name: '',
     association_short_name: '',
     Association_type: '',
-    logo: null
+    logo: null,
+    theme_color: '#9810fa'
   });
   usePageTitle('Create Association - DuesPay')
   const [associationId, setAssociationId] = useState(null);
@@ -167,7 +236,8 @@ const AssociationForm = () => {
               association_name: assoc.association_name || '',
               association_short_name: assoc.association_short_name || '',
               Association_type: assoc.Association_type || '',
-              logo: null // don't prefill file input
+              logo: null, // don't prefill file input
+              theme_color: assoc.theme_color || '#9810fa'
             });
           }
         }
@@ -217,6 +287,7 @@ const AssociationForm = () => {
       submitData.append('association_name', formData.association_name);
       submitData.append('association_short_name', formData.association_short_name);
       submitData.append('Association_type', formData.Association_type);
+      submitData.append('theme_color', formData.theme_color);
 
       if (formData.logo) {
         submitData.append('logo', formData.logo);
@@ -306,10 +377,18 @@ const AssociationForm = () => {
             required
           />
 
+          <ColorPicker
+            label="Theme Color"
+            name="theme_color"
+            value={formData.theme_color}
+            onChange={handleInputChange}
+          />
+
           <FileUpload
             label="Logo"
             name="logo"
             onChange={handleFileChange}
+            file={formData.logo}
           />
 
           <SubmitButton loading={loading} loadingText="Creating Association...">

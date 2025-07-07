@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShoppingCart, Sun, Moon } from 'lucide-react';
+import { Sun, Moon } from 'lucide-react';
 import LoginForm from './login';
 import SignupForm from './signup';
 import { useTheme } from '../../appComponents/ThemeContext';
@@ -15,13 +15,13 @@ const AuthPage = () => {
   return (
     <div className="min-h-screen flex bg-white dark:bg-gray-900 transition-colors duration-300">
       {/* Theme Toggle Button */}
-      <button
+      {/* <button
         onClick={toggleTheme}
         className="fixed top-4 right-4 z-50 bg-gray-200 dark:bg-slate-800 text-gray-700 dark:text-white p-2 rounded-full shadow hover:bg-gray-300 dark:hover:bg-slate-700 transition"
         aria-label="Toggle theme"
       >
         {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
-      </button>
+      </button> */}
 
       {/* Side Image - Hidden on mobile */}
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">

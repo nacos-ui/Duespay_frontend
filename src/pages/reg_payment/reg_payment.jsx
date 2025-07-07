@@ -10,6 +10,22 @@ import ErrorModal from '../../appComponents/ErrorModal';
 import { fetchWithErrorModal } from '../../appComponents/fetchWithErrorModal';
 import { API_ENDPOINTS } from '../../apiConfig';
 import { usePageTitle } from "../../hooks/usePageTitle";
+import { isColorDark } from "./utils/colorUtils";
+
+// Generate dynamic CSS custom properties
+const generateThemeStyles = (themeColor) => {
+  if (!themeColor) return {};
+  
+  const isDark = isColorDark(themeColor);
+  
+  return {
+    '--theme-color': themeColor,
+    '--theme-text': isDark ? '#ffffff' : '#000000',
+    '--theme-text-secondary': isDark ? '#e5e7eb' : '#374151',
+    '--theme-border': themeColor,
+    '--theme-hover': `${themeColor}dd`, // Add slight transparency for hover
+  };
+};
 
 const DuesPayPaymentFlow = () => {
   const { shortName } = useParams();
@@ -42,6 +58,10 @@ const DuesPayPaymentFlow = () => {
 
   // Error modal state
   const [modalError, setModalError] = useState({ open: false, title: "", message: "" });
+
+  // Get theme color from association data
+  const themeColor = associationData?.theme_color || '#9810fa';
+  const isDarkTheme = isColorDark(themeColor);
 
   useEffect(() => {
     const fetchAssociation = async () => {
@@ -267,6 +287,7 @@ const DuesPayPaymentFlow = () => {
             error={regError}
             loading={regLoading}
             associationData={associationData}
+            themeColor={themeColor}
           />
         );
       case 2:
@@ -277,6 +298,7 @@ const DuesPayPaymentFlow = () => {
             handleItemSelection={handleItemSelection}
             associationData={associationData}
             getTotalAmount={getTotalAmount}
+            themeColor={themeColor}
           />
         );
       case 3:
@@ -286,6 +308,7 @@ const DuesPayPaymentFlow = () => {
             proofFile={proofFile}
             handleFileUpload={handleFileUpload}
             getTotalAmount={getTotalAmount}
+            themeColor={themeColor}
           />
         );
       case 4:
@@ -293,6 +316,7 @@ const DuesPayPaymentFlow = () => {
           <ConfirmationStep
             isVerified={isVerified}
             transaction={transaction}
+            themeColor={themeColor}
           />
         );
       default:
@@ -302,7 +326,7 @@ const DuesPayPaymentFlow = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-900 text-white">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-white">
         Loading...
       </div>
     );
@@ -310,9 +334,15 @@ const DuesPayPaymentFlow = () => {
 
   if (isVerifying) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-900 text-white">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-white">
         <div className="mb-4">
-          <svg className="animate-spin h-12 w-12 text-purple-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <svg 
+            className="animate-spin h-12 w-12" 
+            style={{ color: themeColor }}
+            xmlns="http://www.w3.org/2000/svg" 
+            fill="none" 
+            viewBox="0 0 24 24"
+          >
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
           </svg>
@@ -331,12 +361,15 @@ const DuesPayPaymentFlow = () => {
           title={modalError.title}
           message={modalError.message}
         /> */}
-        <div className="min-h-screen flex items-center justify-center bg-slate-900 text-red-400">
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-slate-900 text-red-500 dark:text-red-400">
           Page not found. Please check the URL or try again later.
         </div>
       </>
     );
   }
+
+  // Generate dynamic theme styles
+  const dynamicStyles = generateThemeStyles(themeColor);
 
   return (
     <>
@@ -346,24 +379,29 @@ const DuesPayPaymentFlow = () => {
         title={modalError.title}
         message={modalError.message}
       />
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-1 sm:p-8 md:p-16">
-        <div className="bg-slate-800/95 backdrop-blur-xl sm:rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden border border-slate-700">
+
+      <div 
+        className="min-h-screen bg-gray-50 dark:bg-slate-900 flex items-center justify-center p-1 sm:p-8 md:p-16"
+        style={dynamicStyles}
+      >
+        <div className="bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl sm:rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden border border-gray-200 dark:border-slate-700">
           <Header
             associationData={associationData}
             steps={steps}
             currentStep={currentStep}
+            themeColor={themeColor}
           />
 
           {/* Step Content */}
-          <div className="sm:p-8 p-4 bg-slate-800 text-white">
+          <div className="sm:p-8 p-4 bg-white dark:bg-slate-800 text-gray-900 dark:text-white">
             {renderCurrentStep()}
 
             {/* Navigation Buttons */}
-            <div className="flex justify-between mt-8 pt-6 border-t border-slate-700">
+            <div className="flex justify-between mt-8 pt-6 border-t border-gray-200 dark:border-slate-700">
               {currentStep > 1 && currentStep < 4 && (
                 <button
                   onClick={prevStep}
-                  className="px-6 py-3 bg-slate-700 text-slate-300 rounded-xl hover:bg-slate-600 transition-colors font-medium border border-slate-600"
+                  className="px-6 py-3 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-slate-300 rounded-xl hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors font-medium border border-gray-300 dark:border-slate-600"
                 >
                   Previous
                 </button>
@@ -375,9 +413,18 @@ const DuesPayPaymentFlow = () => {
                   disabled={!canProceed() || isVerifying || regLoading}
                   className={`px-8 py-3 rounded-xl font-medium transition-all ml-auto ${
                     canProceed() && !isVerifying && !regLoading
-                      ? 'bg-gradient-to-r from-purple-600 to-purple-500 text-white hover:shadow-lg hover:shadow-purple-500/25'
-                      : 'bg-slate-700 text-slate-500 cursor-not-allowed border border-slate-600'
+                      ? 'text-white hover:shadow-lg transition-all'
+                      : 'bg-gray-200 dark:bg-slate-700 text-gray-500 dark:text-slate-500 cursor-not-allowed border border-gray-300 dark:border-slate-600'
                   }`}
+                  style={
+                    canProceed() && !isVerifying && !regLoading
+                      ? {
+                          backgroundColor: themeColor,
+                          color: isDarkTheme ? '#ffffff' : '#000000',
+                          boxShadow: `0 10px 25px ${themeColor}25`,
+                        }
+                      : {}
+                  }
                 >
                   {regLoading ? 'Checking...' : currentStep === 3 ? 'Submit' : 'Continue'}
                 </button>
@@ -386,7 +433,12 @@ const DuesPayPaymentFlow = () => {
               {currentStep === 4 && isVerified && (
                 <button
                   onClick={() => window.location.reload()}
-                  className="px-8 py-3 bg-gradient-to-r from-purple-600 to-purple-500 text-white rounded-xl hover:shadow-lg hover:shadow-purple-500/25 transition-all font-medium mx-auto"
+                  className="px-8 py-3 text-white rounded-xl hover:shadow-lg transition-all font-medium mx-auto"
+                  style={{
+                    backgroundColor: themeColor,
+                    color: isDarkTheme ? '#ffffff' : '#000000',
+                    boxShadow: `0 10px 25px ${themeColor}25`,
+                  }}
                 >
                   Make Another Payment
                 </button>

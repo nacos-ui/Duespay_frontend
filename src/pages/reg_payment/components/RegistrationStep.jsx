@@ -9,7 +9,8 @@ const RegistrationStep = ({
   handleInputChange,
   error,
   loading,
-  associationData
+  associationData,
+  themeColor
 }) => {
   const [validationError, setValidationError] = useState("");
 
@@ -64,13 +65,13 @@ const RegistrationStep = ({
   return (
     <div className="space-y-6">
       <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-white mb-2">Payer Registration</h2>
-        <p className="text-slate-300">Please fill in your details to continue</p>
+        <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Payer Registration</h2>
+        <p className="text-gray-600 dark:text-slate-300">Please fill in your details to continue</p>
       </div>
 
-      {error && <div className="text-red-400 text-sm mb-2 text-center">{error}</div>}
-      {loading && <div className="text-slate-400 text-sm mb-2 text-center">Checking details...</div>}
-      {validationError && <div className="text-red-400 text-sm mb-2 text-center">{validationError}</div>}
+      {error && <div className="text-red-500 dark:text-red-400 text-sm mb-2 text-center">{error}</div>}
+      {loading && <div className="text-gray-500 dark:text-slate-400 text-sm mb-2 text-center">Checking details...</div>}
+      {validationError && <div className="text-red-500 dark:text-red-400 text-sm mb-2 text-center">{validationError}</div>}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {fields.map((field) => (
@@ -84,6 +85,7 @@ const RegistrationStep = ({
             onChange={value => handleFieldChange(field.key, value)}
             placeholder={field.placeholder}
             required={field.required}
+            themeColor={themeColor}
           />
         ))}
       </div>

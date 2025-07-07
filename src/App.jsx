@@ -13,27 +13,53 @@ import { ThemeProvider } from './appComponents/ThemeContext';
 
 function App() {
   return (
-    <ThemeProvider>
-      <Router>
-        <Routes>
-          <Route path='/' element={<Navigate to="/dashboard/overview" replace />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/:shortName" element={
-            <ErrorBoundaryWithModal>
-              <DuesPayPaymentFlow />
-            </ErrorBoundaryWithModal>
+    <Router>
+      <Routes>
+        <Route path='/' element={<Navigate to="/dashboard/overview" replace />} />
+        <Route path="/auth" element={
+          <ThemeProvider>
+            <Auth />
+          </ThemeProvider>
+        } />
+        <Route path="/:shortName" element={
+          <ErrorBoundaryWithModal>
+            <DuesPayPaymentFlow />
+          </ErrorBoundaryWithModal>
+        } />
+        <Route element={<ProtectedRoute />}>
+          <Route path="/dashboard/overview" element={
+            <ThemeProvider>
+              <Overview />
+            </ThemeProvider>
           } />
-          <Route element={<ProtectedRoute />}>
-            <Route path="/dashboard/overview" element={<Overview />} />
-            <Route path="/dashboard/payment-items" element={<PaymentItems />} />
-            <Route path="/dashboard/transactions" element={<TransactionsPage />} />
-            <Route path="/create-association" element={<AssociationForm />} />
-            <Route path="/dashboard/students" element={<PayersPage />} />
-            <Route path="/settings" element={<SettingsPage />} />
-          </Route>
-        </Routes>
-      </Router>
-    </ThemeProvider>
+          <Route path="/dashboard/payment-items" element={
+            <ThemeProvider>
+              <PaymentItems />
+            </ThemeProvider>
+          } />
+          <Route path="/dashboard/transactions" element={
+            <ThemeProvider>
+              <TransactionsPage />
+            </ThemeProvider>
+          } />
+          <Route path="/create-association" element={
+            <ThemeProvider>
+              <AssociationForm />
+            </ThemeProvider>
+          } />
+          <Route path="/dashboard/students" element={
+            <ThemeProvider>
+              <PayersPage />
+            </ThemeProvider>
+          } />
+          <Route path="/settings" element={
+            <ThemeProvider>
+              <SettingsPage />
+            </ThemeProvider>
+          } />
+        </Route>
+      </Routes>
+    </Router>
   );
 }
 
