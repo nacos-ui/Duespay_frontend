@@ -8,6 +8,7 @@ import UploadReceiptStep from './components/UploadReceiptStep';
 import ConfirmationStep from './components/ConfirmationStep';
 import ErrorModal from '../../appComponents/ErrorModal';
 import { fetchWithErrorModal } from '../../appComponents/fetchWithErrorModal';
+import { fetchWithTimeout, handleFetchError } from '../../utils/fetchUtils';
 import { API_ENDPOINTS } from '../../apiConfig';
 import { usePageTitle } from "../../hooks/usePageTitle";
 import { isColorDark } from "./utils/colorUtils";
@@ -67,7 +68,11 @@ const DuesPayPaymentFlow = () => {
     const fetchAssociation = async () => {
       setIsLoading(true);
       try {
-        const res = await fetch(API_ENDPOINTS.GET_PAYMENT_ASSOCIATION(shortName));
+        const res = await fetchWithTimeout(
+          API_ENDPOINTS.GET_PAYMENT_ASSOCIATION(shortName),
+          {},
+          20000 // 20 seconds timeout for initial load
+        );
         if (!res.ok) throw new Error('Failed to fetch association');
         const data = await res.json();
         setAssociationData(data);
@@ -81,10 +86,12 @@ const DuesPayPaymentFlow = () => {
         setAssociationData(null);
         setPaymentItems([]);
         setSelectedItems([]);
+        
+        const { message } = handleFetchError(err);
         setModalError({
           open: true,
           title: "Error",
-          message: "Oops! This item is unavailable. Check back later."
+          message: message || "Oops! This item is unavailable. Check back later."
         });
       } finally {
         setIsLoading(false);
@@ -139,15 +146,31 @@ const DuesPayPaymentFlow = () => {
 
     try {
       const res = await fetchWithErrorModal(
-        fetch(API_ENDPOINTS.VERIFY_AND_CREATE_TRANSACTION, {
-          method: 'POST',
-          body: formData,
-        }),
-        setModalError
+        fetchWithTimeout(
+          API_ENDPOINTS.VERIFY_AND_CREATE_TRANSACTION,
+          {
+            method: 'POST',
+            body: formData,
+          },
+          50000 // 50 seconds timeout for file upload and verification
+        ),
+        (error) => {
+          const { isTimeout, message } = handleFetchError(error);
+          setModalError({
+            open: true,
+            title: isTimeout ? "Request Timeout" : "Error",
+            message: message
+          });
+        }
       );
       return await res.json();
     } catch (err) {
-      // ErrorModal is already shown by fetchWithErrorModal
+      const { isTimeout, message } = handleFetchError(err);
+      setModalError({
+        open: true,
+        title: isTimeout ? "Request Timeout" : "Error",
+        message: message
+      });
       return null;
     }
   };
@@ -157,41 +180,55 @@ const DuesPayPaymentFlow = () => {
     setRegError("");
     setRegLoading(true);
     try {
-      const res = await fetch(API_ENDPOINTS.PAYER_CHECK, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          association_short_name: associationData.association_short_name,
-          matric_number: payerData.matricNumber,
-          email: payerData.email,
-          phone_number: payerData.phoneNumber,
-          first_name: payerData.firstName,
-          last_name: payerData.lastName,
-          faculty: payerData.faculty,
-          department: payerData.department,
-        }),
-      });
+      const res = await fetchWithTimeout(
+        API_ENDPOINTS.PAYER_CHECK,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            association_short_name: associationData.association_short_name,
+            matric_number: payerData.matricNumber,
+            email: payerData.email,
+            phone_number: payerData.phoneNumber,
+            first_name: payerData.firstName,
+            last_name: payerData.lastName,
+            faculty: payerData.faculty,
+            department: payerData.department,
+          }),
+        },
+        30000 // 30 seconds timeout for payer check
+      );
       const data = await res.json();
-      if (!res.ok || !data.success) {
-        setRegError(data.error || "Registration error. Please check your details.");
-        setModalError({
-          open: true,
-          title: "Registration Error",
-          message: data.error || "Registration error. Please check your details."
-        });
+      
+      if (!res.ok) {
+        // Handle field-specific errors (like validation errors)
+        if (data && typeof data === 'object' && !data.success && !data.error) {
+          // This is field validation errors like {"email": ["Invalid email"]}
+          if (registrationStepRef.current?.setBackendErrors) {
+            registrationStepRef.current.setBackendErrors(data);
+          }
+          setRegError("Please fix the errors below.");
+        } else {
+          // This is general error messages like "Phone number already belongs to another user"
+          setRegError(data.error || "Registration error. Please check your details.");
+        }
         setRegLoading(false);
         return false;
       }
+      
+      if (!data.success) {
+        // Show the specific error message from backend
+        setRegError(data.error || "Registration error. Please check your details.");
+        setRegLoading(false);
+        return false;
+      }
+      
       setRegError("");
       setRegLoading(false);
       return true;
     } catch (err) {
-      setRegError("Network error. Please try again.");
-      setModalError({
-        open: true,
-        title: "Network Error",
-        message: "Network error. Please try again."
-      });
+      const { message } = handleFetchError(err);
+      setRegError(message);
       setRegLoading(false);
       return false;
     }
@@ -202,12 +239,6 @@ const DuesPayPaymentFlow = () => {
     if (currentStep === 1) {
       const validationError = registrationStepRef.current?.validate?.();
       if (validationError) {
-        setRegError(validationError);
-        setModalError({
-          open: true,
-          title: "Validation Error",
-          message: validationError
-        });
         return;
       }
       if (!(await checkPayer())) return;
@@ -243,11 +274,11 @@ const DuesPayPaymentFlow = () => {
           });
         }
       } catch (err) {
-        // This should not be reached if verifyAndCreate always returns null on error
+        const { isTimeout, message } = handleFetchError(err);
         setModalError({
           open: true,
-          title: "Unknown Error",
-          message: err.message || "An unknown error occurred."
+          title: isTimeout ? "Request Timeout" : "Unknown Error",
+          message: message
         });
       } finally {
         setIsVerifying(false);
@@ -355,12 +386,6 @@ const DuesPayPaymentFlow = () => {
   if (!associationData) {
     return (
       <>
-        {/* <ErrorModal
-          open={modalError.open}
-          onClose={() => setModalError({ ...modalError, open: false })}
-          title={modalError.title}
-          message={modalError.message}
-        /> */}
         <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-slate-900 text-red-500 dark:text-red-400">
           Page not found. Please check the URL or try again later.
         </div>

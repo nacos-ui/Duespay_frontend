@@ -7,7 +7,8 @@ const FormInput = ({
   onChange, 
   placeholder, 
   required = false,
-  themeColor
+  themeColor,
+  error
 }) => {
   return (
     <div>
@@ -19,17 +20,24 @@ const FormInput = ({
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full px-4 py-3 bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-xl focus:ring-2 focus:border-transparent transition-all text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-400 outline-none"
+        className={`w-full px-4 py-3 bg-white dark:bg-slate-700 border rounded-xl focus:ring-2 focus:border-transparent transition-all text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-400 outline-none ${
+          error 
+            ? 'border-red-500 dark:border-red-400 focus:ring-red-500/50' 
+            : 'border-gray-300 dark:border-slate-600'
+        }`}
         style={{
-          '--tw-ring-color': `${themeColor}30`,
-          focusRingColor: themeColor,
+          '--tw-ring-color': error ? '#ef4444' : `${themeColor}50`,
+          focusRingColor: error ? '#ef4444' : themeColor,
         }}
         onFocus={(e) => {
-          e.target.style.ringColor = themeColor;
-          e.target.style.borderColor = themeColor;
+          if (!error) {
+            e.target.style.borderColor = themeColor;
+          }
         }}
         onBlur={(e) => {
-          e.target.style.borderColor = '';
+          if (!error) {
+            e.target.style.borderColor = '';
+          }
         }}
         placeholder={placeholder}
         required={required}

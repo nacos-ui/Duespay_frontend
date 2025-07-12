@@ -1,5 +1,5 @@
-// export const API_BASE_URL = "http://localhost:8000";
-export const API_BASE_URL = "https://duespay.onrender.com"; 
+export const API_BASE_URL = "http://localhost:8000";
+// export const API_BASE_URL = "https://duespay.onrender.com"; 
 // export const API_BASE_URL = "https://duespay.pythonanywhere.com"; 
 export const API_ENDPOINTS = {
   LOGIN: `${API_BASE_URL}/auth/login/`,
@@ -20,10 +20,7 @@ export const API_ENDPOINTS = {
   GET_ASSOCIATION: `${API_BASE_URL}/association/`,
   PAYMENT_ITEM_DETAILS: (id) => `${API_BASE_URL}/payment-items/${id}/`,
   PAYER_CHECK: `${API_BASE_URL}/payer-check/`,
-
-
-  USER_PROFILE: `${API_BASE_URL}/user/profile/`,
-  UPDATE_PROFILE: `${API_BASE_URL}/user/update/`,
   NOTIFICATIONS: `${API_BASE_URL}/notifications/`,
-  MARK_NOTIFICATION_READ: (id) => `${API_BASE_URL}/notifications/${id}/read/`,
+  UNREAD_NOTIFICATIONS_COUNT: `${API_BASE_URL}/notifications/unread-count/`,
+  MARK_ALL_NOTIFICATIONS_READ: `${API_BASE_URL}/notifications/mark-all-read/`,
 };
