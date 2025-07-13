@@ -12,6 +12,7 @@ const SignupForm = ({ onToggle }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState({});
 
   usePageTitle("Sign Up - DuesPay");
   const [formData, setFormData] = useState({
@@ -28,9 +29,10 @@ const SignupForm = ({ onToggle }) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setFieldErrors({}); // Clear all field errors
     
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
+      setFieldErrors({confirmPassword: 'Passwords do not match'});
       setLoading(false);
       return;
     }
@@ -52,6 +54,7 @@ const SignupForm = ({ onToggle }) => {
       });
 
       const data = await response.json();
+      console.log('Registration response:', data);
 
       if (response.ok) {
         setSuccess(true);
@@ -59,7 +62,17 @@ const SignupForm = ({ onToggle }) => {
           onToggle(); // Switch to login form
         }, 2000);
       } else {
-        setError(data.message || data.username[0] || data.detail || 'Registration failed. Please try again.');
+        // Handle field-specific errors
+        if (data.errors && typeof data.errors === 'object') {
+          setFieldErrors(data.errors);
+        }
+        
+        // Handle general error message
+        if (data.message || data.detail) {
+          setError(data.message || data.detail);
+        } else if (!data.errors) {
+          setError('Registration failed. Please try again.');
+        }
       }
     } catch (err) {
       setError('Unable to connect to server. Please try again.');
@@ -87,7 +100,7 @@ const SignupForm = ({ onToggle }) => {
   }
 
   return (
-    <div className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6">
       <div className="text-center">
         <div className="flex items-center justify-center mb-2">
           <div className="bg-none rounded-lg">
@@ -122,6 +135,9 @@ const SignupForm = ({ onToggle }) => {
             required
             disabled={loading}
           />
+          {fieldErrors.username && (
+            <p className="mt-1 text-sm text-red-400">{fieldErrors.username}</p>
+          )}
         </div>
         
         <div className="grid grid-cols-2 gap-4">
@@ -138,6 +154,9 @@ const SignupForm = ({ onToggle }) => {
               required
               disabled={loading}
             />
+            {fieldErrors.first_name && (
+              <p className="mt-1 text-sm text-red-400">{fieldErrors.first_name}</p>
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -152,6 +171,9 @@ const SignupForm = ({ onToggle }) => {
               required
               disabled={loading}
             />
+            {fieldErrors.last_name && (
+              <p className="mt-1 text-sm text-red-400">{fieldErrors.last_name}</p>
+            )}
           </div>
         </div>
 
@@ -166,7 +188,11 @@ const SignupForm = ({ onToggle }) => {
             placeholder="Enter your email"
             className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-colors"
             required
+            disabled={loading}
           />
+          {fieldErrors.email && (
+            <p className="mt-1 text-sm text-red-400">{fieldErrors.email}</p>
+          )}
         </div>
 
         <div>
@@ -180,7 +206,11 @@ const SignupForm = ({ onToggle }) => {
             placeholder="Enter your phone number (e.g., +2349034049655)"
             className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-colors"
             required
+            disabled={loading}
           />
+          {fieldErrors.phone_number && (
+            <p className="mt-1 text-sm text-red-400">{fieldErrors.phone_number}</p>
+          )}
         </div>
 
         <div>
@@ -195,6 +225,7 @@ const SignupForm = ({ onToggle }) => {
               placeholder="Create password"
               className="w-full px-4 py-3 pr-12 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-colors"
               required
+              disabled={loading}
             />
             <button
               type="button"
@@ -204,6 +235,9 @@ const SignupForm = ({ onToggle }) => {
               {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
             </button>
           </div>
+          {fieldErrors.password && (
+            <p className="mt-1 text-sm text-red-400">{fieldErrors.password}</p>
+          )}
         </div>
 
         <div>
@@ -218,6 +252,7 @@ const SignupForm = ({ onToggle }) => {
               placeholder="Confirm password"
               className="w-full px-4 py-3 pr-12 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-colors"
               required
+              disabled={loading}
             />
             <button
               type="button"
@@ -227,12 +262,14 @@ const SignupForm = ({ onToggle }) => {
               {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
             </button>
           </div>
+          {fieldErrors.confirmPassword && (
+            <p className="mt-1 text-sm text-red-400">{fieldErrors.confirmPassword}</p>
+          )}
         </div>
 
         <SubmitButton
           loading={loading}
           loadingText="Creating Account..."
-          onClick={handleSubmit}
           type="submit"
         >
           Create Account
@@ -242,13 +279,14 @@ const SignupForm = ({ onToggle }) => {
       <div className="text-center">
         <span className="text-gray-400">Already have an account? </span>
         <button
+          type="button"
           onClick={onToggle}
           className="text-purple-400 hover:text-purple-300 font-medium transition-colors"
         >
           Sign In
         </button>
       </div>
-    </div>
+    </form>
   );
 };
 
