@@ -190,25 +190,27 @@ export default function PayersPage() {
         {/* Bulk Actions */}
         {selectedPayers.length > 0 && (
           <div className="mb-4 p-4 bg-gray-800 rounded-lg border border-gray-700">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <span className="text-white font-medium">
                 {selectedPayers.length} payer{selectedPayers.length > 1 ? 's' : ''} selected
               </span>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <button
                   onClick={() => handleBulkAction('delete')}
                   disabled={bulkActionLoading}
-                  className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded transition-colors disabled:opacity-50"
+                  className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded transition-colors disabled:opacity-50 text-sm"
                 >
                   <Trash2 className="w-4 h-4" />
-                  Delete All
+                  <span className="hidden sm:inline">Delete All</span>
+                  <span className="sm:hidden">Delete</span>
                 </button>
                 <button
                   onClick={() => setSelectedPayers([])}
-                  className="flex items-center gap-2 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded transition-colors"
+                  className="flex items-center gap-2 bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded transition-colors text-sm"
                 >
                   <X className="w-4 h-4" />
-                  Clear
+                  <span className="hidden sm:inline">Clear</span>
+                  <span className="sm:hidden">Clear</span>
                 </button>
               </div>
             </div>
