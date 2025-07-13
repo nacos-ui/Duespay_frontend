@@ -62,8 +62,10 @@ export default function TransactionDetailsModal({ transaction, onClose, onStatus
               <div className="text-white">₦{Number(transaction.amount_paid).toLocaleString()}</div>
             </div>
             <div className="mb-2">
-              <span className="text-gray-400 text-sm">Date of Payment</span>
-              <div className="text-white">{new Date(transaction.submitted_at).toLocaleDateString()}</div>
+              <span className="text-gray-400 text-sm">Date and Time of Payment</span>
+              <div className="text-white">
+                {new Date(transaction.submitted_at).toLocaleDateString()} at {new Date(transaction.submitted_at).toLocaleTimeString()}
+              </div>
             </div>
             <div className="mb-2">
               <span className="text-gray-400 text-sm">Verification Status</span>

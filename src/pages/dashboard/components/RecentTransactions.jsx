@@ -46,7 +46,13 @@ export default function RecentTransactions({ transactions = [], loading }) {
                     </span>
                   </td>
                   <td className="py-2 text-gray-300">
-                    {new Date(tx.submitted_at).toLocaleDateString()}
+                    <div>
+                      {new Date(tx.submitted_at).toLocaleDateString()}
+                      <br />
+                      <span className="text-xs text-gray-400">
+                        {new Date(tx.submitted_at).toLocaleTimeString()}
+                      </span>
+                    </div>
                   </td>
                 </tr>
               ))

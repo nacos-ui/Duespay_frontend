@@ -7,6 +7,8 @@ import { API_ENDPOINTS } from "../../apiConfig";
 import StatusMessage from "../../appComponents/StatusMessage";
 import PaymentItemForm from "./components/PaymentItemForm";
 import { usePageTitle } from "../../hooks/usePageTitle";
+import { fetchWithTimeout, handleFetchError } from "../../utils/fetchUtils";
+import ConfirmationModal from "../../appComponents/ConfirmationModal";
 
 export default function PaymentItems() {
   const [search, setSearch] = useState("");
@@ -19,8 +21,14 @@ export default function PaymentItems() {
   const [formLoading, setFormLoading] = useState(false);
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
+  
+  // Delete confirmation state
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   usePageTitle("Payment Items - DuesPay");
+  
   // Fetch payment items with filters
   const fetchPaymentItems = async () => {
     setIsLoading(true);
@@ -31,17 +39,20 @@ export default function PaymentItems() {
       if (status) params.append("status", status);
       if (type) params.append("type", type);
 
-      const res = await fetch(`${API_ENDPOINTS.PAYMENT_ITEMS}?${params.toString()}`, {
+      const res = await fetchWithTimeout(`${API_ENDPOINTS.PAYMENT_ITEMS}?${params.toString()}`, {
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`,
         },
-      });
+      }, 30000); // 30 seconds timeout
+
       if (!res.ok) throw new Error("Failed to fetch payment items");
       const data = await res.json();
       // Always use data.results if present, else fallback
       setPaymentItems(Array.isArray(data.results) ? data.results : (Array.isArray(data) ? data : []));
     } catch (err) {
+      const { message } = handleFetchError(err);
+      setError(message);
       setPaymentItems([]);
     } finally {
       setIsLoading(false);
@@ -51,7 +62,7 @@ export default function PaymentItems() {
   useEffect(() => {
     fetchPaymentItems();
     // eslint-disable-next-line
-  }, [search, status, type, success, error]);
+  }, [search, status, type]);
 
   // Success/error message auto-clear
   useEffect(() => {
@@ -72,14 +83,15 @@ export default function PaymentItems() {
     setSuccess("");
     try {
       const token = localStorage.getItem("access_token");
-      const res = await fetch(API_ENDPOINTS.PAYMENT_ITEMS, {
+      const res = await fetchWithTimeout(API_ENDPOINTS.PAYMENT_ITEMS, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`,
         },
         body: JSON.stringify(form),
-      });
+      }, 30000); // 30 seconds timeout
+
       if (!res.ok) {
         const err = await res.json();
         setFormError(err.detail || "Failed to create payment item");
@@ -88,8 +100,9 @@ export default function PaymentItems() {
       setShowForm(false);
       setSuccess("Payment item created successfully!");
       fetchPaymentItems();
-    } catch {
-      setFormError("Failed to create payment item");
+    } catch (err) {
+      const { message } = handleFetchError(err);
+      setFormError(message);
     } finally {
       setFormLoading(false);
     }
@@ -103,14 +116,15 @@ export default function PaymentItems() {
     setSuccess("");
     try {
       const token = localStorage.getItem("access_token");
-      const res = await fetch(`${API_ENDPOINTS.PAYMENT_ITEMS}${editItem.id}/`, {
+      const res = await fetchWithTimeout(`${API_ENDPOINTS.PAYMENT_ITEMS}${editItem.id}/`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`,
         },
         body: JSON.stringify(form),
-      });
+      }, 30000); // 30 seconds timeout
+
       if (!res.ok) {
         const err = await res.json();
         setFormError(err.detail || "Failed to update payment item");
@@ -120,11 +134,54 @@ export default function PaymentItems() {
       setShowForm(false);
       setSuccess("Payment item updated successfully!");
       fetchPaymentItems();
-    } catch {
-      setFormError("Failed to update payment item");
+    } catch (err) {
+      const { message } = handleFetchError(err);
+      setFormError(message);
     } finally {
       setFormLoading(false);
     }
+  };
+
+  // Delete Payment Item
+  const handleDeletePaymentItem = async () => {
+    if (!itemToDelete) return;
+    
+    setDeleteLoading(true);
+    setError("");
+    setSuccess("");
+    try {
+      const token = localStorage.getItem("access_token");
+      const res = await fetchWithTimeout(`${API_ENDPOINTS.PAYMENT_ITEMS}${itemToDelete.id}/`, {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
+      }, 30000); // 30 seconds timeout
+
+      if (!res.ok) {
+        const err = await res.json();
+        setError(err.detail || "Failed to delete payment item");
+        return;
+      }
+      
+      setShowDeleteModal(false);
+      setItemToDelete(null);
+      setSuccess("Payment item deleted successfully!");
+      fetchPaymentItems();
+    } catch (err) {
+      const { message } = handleFetchError(err);
+      setError(message);
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
+  // Handle delete button click
+  const handleDeleteClick = (item) => {
+    setItemToDelete(item);
+    setShowDeleteModal(true);
+    setSuccess("");
+    setError("");
   };
 
   return (
@@ -178,14 +235,14 @@ export default function PaymentItems() {
             <option value="compulsory">Compulsory</option>
             <option value="optional">Optional</option>
           </select>
-          <button className="flex items-center gap-2 bg-[#23263A] text-white px-4 py-2 rounded">
+          {/* <button className="flex items-center gap-2 bg-[#23263A] text-white px-4 py-2 rounded">
             <Upload className="w-4 h-4" /> Export
-          </button>
+          </button> */}
         </div>
 
         <div className="flex items-center gap-2 mb-2">
-          <input type="checkbox" id="selectAll" className="accent-purple-600" />
-          <label htmlFor="selectAll" className="text-gray-300 text-sm">Select All</label>
+          {/* <input type="checkbox" id="selectAll" className="accent-purple-600" /> */}
+          {/* <label htmlFor="selectAll" className="text-gray-300 text-sm">Select All</label> */}
           <span className="ml-auto text-gray-400 text-xs">{paymentItems.length} items</span>
         </div>
 
@@ -209,11 +266,13 @@ export default function PaymentItems() {
                       setSuccess("");
                       setError("");
                     }}
+                    onDelete={() => handleDeleteClick(item)}
                   />
                 ))
               )
           }
         </div>
+        
         {(showForm || editItem) && (
           <PaymentItemForm
             initial={editItem}
@@ -227,6 +286,21 @@ export default function PaymentItems() {
             error={error}
           />
         )}
+
+        {/* Delete Confirmation Modal */}
+        <ConfirmationModal
+          isOpen={showDeleteModal}
+          onClose={() => {
+            setShowDeleteModal(false);
+            setItemToDelete(null);
+          }}
+          onConfirm={handleDeletePaymentItem}
+          loading={deleteLoading}
+          title="Delete Payment Item"
+          message={`Are you sure you want to delete "${itemToDelete?.title}"? This action cannot be undone.`}
+          confirmText="Delete"
+          type="danger"
+        />
       </div>
     </MainLayout>
   );

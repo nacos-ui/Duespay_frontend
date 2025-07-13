@@ -89,13 +89,13 @@ export default function Navbar({ onToggleSidebar, sidebarOpen }) {
 
           {/* Right: Icons and Avatar */}
           <div className="flex items-center gap-4 ml-auto">
-            <button
+            {/* <button
               onClick={toggleTheme}
               className="bg-slate-800 text-white p-2 rounded-full shadow hover:bg-slate-700 transition"
               aria-label="Toggle theme"
             >
               {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
-            </button>
+            </button> */}
             
             {/* Notifications Button */}
             <button

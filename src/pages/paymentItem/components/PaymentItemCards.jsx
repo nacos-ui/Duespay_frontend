@@ -6,7 +6,8 @@ export default function PaymentItemCard({
   status,
   is_active,
   created_at,
-  onEdit, // <-- add this
+  onEdit,
+  onDelete, // <-- add this prop
 }) {
   const formattedDate = new Date(created_at).toLocaleTimeString("en-US", {
     year: "numeric",
@@ -35,7 +36,7 @@ export default function PaymentItemCard({
         <button className="text-blue-400 hover:text-blue-600" onClick={onEdit}>
           <Edit size={16} />
         </button>
-        <button className="text-red-400 hover:text-red-600">
+        <button className="text-red-400 hover:text-red-600" onClick={onDelete}>
           <Trash2 size={16} />
         </button>
       </div>
