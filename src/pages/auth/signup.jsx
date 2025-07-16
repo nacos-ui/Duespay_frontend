@@ -29,7 +29,7 @@ const SignupForm = ({ onToggle }) => {
     e.preventDefault();
     setLoading(true);
     setError('');
-    setFieldErrors({}); // Clear all field errors
+    setFieldErrors({}); 
     
     if (formData.password !== formData.confirmPassword) {
       setFieldErrors({confirmPassword: 'Passwords do not match'});

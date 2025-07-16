@@ -2,14 +2,46 @@ import React, { useState } from 'react';
 import { Sun, Moon } from 'lucide-react';
 import LoginForm from './login';
 import SignupForm from './signup';
+import PasswordReset from './passwordReset';
 import { useTheme } from '../../appComponents/ThemeContext';
 
 const AuthPage = () => {
-  const [isLogin, setIsLogin] = useState(true);
+  const [currentView, setCurrentView] = useState('login'); // 'login', 'signup', 'reset'
   const { theme, toggleTheme } = useTheme();
 
   const toggleForm = () => {
-    setIsLogin(!isLogin);
+    setCurrentView(currentView === 'login' ? 'signup' : 'login');
+  };
+
+  const renderCurrentView = () => {
+    switch (currentView) {
+      case 'login':
+        return (
+          <LoginForm 
+            onToggle={toggleForm}
+            onForgotPassword={() => setCurrentView('reset')}
+          />
+        );
+      case 'signup':
+        return (
+          <SignupForm 
+            onToggle={toggleForm}
+          />
+        );
+      case 'reset':
+        return (
+          <PasswordReset 
+            onBack={() => setCurrentView('login')}
+          />
+        );
+      default:
+        return (
+          <LoginForm 
+            onToggle={toggleForm}
+            onForgotPassword={() => setCurrentView('reset')}
+          />
+        );
+    }
   };
 
   return (
@@ -72,11 +104,7 @@ const AuthPage = () => {
       {/* Form Section */}
       <div className="flex-1 lg:w-1/2 flex items-center justify-center p-6 lg:p-12">
         <div className="w-full max-w-md">
-          {isLogin ? (
-            <LoginForm onToggle={toggleForm} />
-          ) : (
-            <SignupForm onToggle={toggleForm} />
-          )}
+          {renderCurrentView()}
         </div>
       </div>
     </div>

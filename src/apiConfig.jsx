@@ -6,7 +6,9 @@ export const API_ENDPOINTS = {
   // authentication endpoints
   LOGIN: `${API_BASE_URL}/auth/login/`,
   SIGNUP: `${API_BASE_URL}/auth/register/`,
-  
+  PASSWORD_RESET: `${API_BASE_URL}/auth/password-reset/`,
+  PASSWORD_RESET_CONFIRM: `${API_BASE_URL}/auth/password-reset-confirm/`,
+
   // Payment items endpoints
   PAYMENT_ITEM_DETAILS: (id) => `${API_BASE_URL}/payment-items/${id}/`,
   PAYMENT_ITEMS: `${API_BASE_URL}/payment-items/`,

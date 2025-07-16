@@ -10,6 +10,7 @@ import PayersPage from './pages/Payers/PayersPage';
 import SettingsPage from './pages/settingsPage/SettingsPage';
 import ErrorBoundaryWithModal from './appComponents/ErrorBoundaryWithModal';
 import { ThemeProvider } from './appComponents/ThemeContext';
+import PasswordResetConfirm from './pages/auth/passwordResetConfirm';
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
             <Auth />
           </ThemeProvider>
         } />
+        <Route path="/reset-password" element={<PasswordResetConfirm />} />
         <Route path="/:shortName" element={
           <ErrorBoundaryWithModal>
             <DuesPayPaymentFlow />

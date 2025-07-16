@@ -8,7 +8,7 @@ import { usePageTitle } from '../../hooks/usePageTitle';
 
 const loginURL = API_ENDPOINTS.LOGIN;
 
-const LoginForm = ({ onToggle }) => {
+const LoginForm = ({ onToggle, onForgotPassword }) => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -57,6 +57,11 @@ const LoginForm = ({ onToggle }) => {
       setLoading(false);
     }
   };
+
+  // const onForgotPassword = () => {
+  //   // Handle forgot password logic here
+  //   console.log("Forgot password clicked");
+  // };
 
   return (
     <div className="space-y-6 transition-colors duration-300">
@@ -119,14 +124,27 @@ const LoginForm = ({ onToggle }) => {
           </div>
         </div>
 
-        <div className="text-right">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <input
+              id="remember-me"
+              name="remember-me"
+              type="checkbox"
+              className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+            />
+            <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-300">
+              Remember me
+            </label>
+          </div>
           <button
             type="button"
-            className="text-purple-400 hover:text-purple-300 text-sm transition-colors"
+            onClick={onForgotPassword}
+            className="text-sm text-purple-400 hover:text-purple-300 transition-colors"
           >
-            Forgot Password?
+            Forgot password?
           </button>
         </div>
+
         <SubmitButton
           loading={loading}
           loadingText="Signing In..."

@@ -18,6 +18,9 @@ const PaymentSummary = ({ bank_account, totalAmount, themeColor }) => {
   return (
     <div className="bg-gray-100 dark:bg-slate-700 rounded-xl p-6 mt-8 border border-gray-200 dark:border-slate-600">
       <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Payment Details</h3>
+      <p className="text-xs text-gray-500 dark:text-slate-300 mb-4">
+        Please pay the exact amount to the account details below. Payments made to any other account will not be processed.
+      </p>
       <div className="space-y-2 text-sm">
         <div className="flex justify-between">
           <span className="text-gray-600 dark:text-slate-300">Bank Name:</span>
