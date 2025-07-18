@@ -27,6 +27,10 @@ export const getShortNameFromUrl = (pathShortName) => {
     return parts[0];
   }
 
+  if (RESERVED_SUBDOMAINS.includes(pathShortName)) {
+    return null; // Reserved subdomain, return null
+  }
+
   // fallback to path param
   return pathShortName;
 };

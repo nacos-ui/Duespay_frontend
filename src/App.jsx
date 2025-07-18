@@ -20,6 +20,7 @@ function App() {
   const pathParts = pathname.split('/').filter(Boolean);
   const pathShortName = pathParts[0] || null;
   const shortName = getShortNameFromUrl(pathShortName);
+  console.log('Short Name:', shortName);
 
   const host = window.location.hostname;
   const parts = host.split('.');

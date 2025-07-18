@@ -33,6 +33,7 @@ const generateThemeStyles = (themeColor) => {
 const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
   const { shortName: pathShortName } = useParams();
   const shortName = propShortName || getShortNameFromUrl(pathShortName);
+  console.log('Short Name 2:', shortName);
 
   const [currentStep, setCurrentStep] = useState(1);
   const [payerData, setPayerData] = useState({
