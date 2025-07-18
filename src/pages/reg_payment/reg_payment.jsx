@@ -12,6 +12,8 @@ import { fetchWithTimeout, handleFetchError } from '../../utils/fetchUtils';
 import { API_ENDPOINTS } from '../../apiConfig';
 import { usePageTitle } from "../../hooks/usePageTitle";
 import { isColorDark } from "./utils/colorUtils";
+import NotFoundPage from '../404_page';
+import { getShortNameFromUrl } from '../../utils/getShortname';
 
 // Generate dynamic CSS custom properties
 const generateThemeStyles = (themeColor) => {
@@ -28,8 +30,9 @@ const generateThemeStyles = (themeColor) => {
   };
 };
 
-const DuesPayPaymentFlow = () => {
-  const { shortName } = useParams();
+const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
+  const { shortName: pathShortName } = useParams();
+  const shortName = propShortName || getShortNameFromUrl(pathShortName);
 
   const [currentStep, setCurrentStep] = useState(1);
   const [payerData, setPayerData] = useState({
@@ -384,13 +387,7 @@ const DuesPayPaymentFlow = () => {
   }
 
   if (!associationData) {
-    return (
-      <>
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-slate-900 text-red-500 dark:text-red-400">
-          Page not found. Please check the URL or try again later.
-        </div>
-      </>
-    );
+    return <NotFoundPage message="This association does not exist or is not available." />;
   }
 
   // Generate dynamic theme styles

@@ -309,6 +309,10 @@ export default function AssociationInfoCard({ data, loading, onUpdated }) {
             <span className="text-gray-400 text-sm">Type:</span>
             <span className="ml-2 text-white">{assoc?.Association_type || "—"}</span>
           </div>
+          <div>
+            <span className="text-gray-400 text-sm">Website:</span>
+            <span className="ml-2 text-white">{assoc?.website || "—"}</span>
+          </div>
         </div>
       )}
     </div>
