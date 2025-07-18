@@ -21,7 +21,8 @@ export const getShortNameFromUrl = (pathShortName) => {
   if (
     SETTINGS.BASE_DOMAIN === 'duespay.app' &&
     parts.length === 3 &&
-    parts[1] + '.' + parts[2] === 'duespay.app'
+    parts[1] + '.' + parts[2] === 'duespay.app' &&
+    !RESERVED_SUBDOMAINS.includes(parts[0])
   ) {
     return parts[0];
   }
