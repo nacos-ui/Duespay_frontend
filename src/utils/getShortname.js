@@ -4,6 +4,7 @@ const RESERVED_SUBDOMAINS = ['www'];
 
 export const getShortNameFromUrl = (pathShortName) => {
   const host = window.location.hostname;
+  console.log(host)
   const parts = host.split('.');
 
   // For localhost: fcs.localhost
