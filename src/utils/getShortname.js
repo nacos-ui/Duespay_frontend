@@ -1,5 +1,7 @@
 import SETTINGS from '../settings';
 
+const RESERVED_SUBDOMAINS = ['www'];
+
 export const getShortNameFromUrl = (pathShortName) => {
   const host = window.location.hostname;
   const parts = host.split('.');
@@ -8,7 +10,8 @@ export const getShortNameFromUrl = (pathShortName) => {
   if (
     SETTINGS.BASE_DOMAIN === 'localhost' &&
     parts.length === 2 &&
-    parts[1] === 'localhost'
+    parts[1] === 'localhost' &&
+    !RESERVED_SUBDOMAINS.includes(parts[0])
   ) {
     return parts[0];
   }
