@@ -1,13 +1,12 @@
 import SETTINGS from '../settings';
 
-const RESERVED_SUBDOMAINS = ['www'];
+const RESERVED_SUBDOMAINS = ['www', ''];
 
-export const getShortNameFromUrl = (pathShortName) => {
+export function extractShortName({ pathShortName = null } = {}) {
   const host = window.location.hostname;
-  console.log(host)
   const parts = host.split('.');
 
-  // For localhost: fcs.localhost
+  // localhost: shortname.localhost
   if (
     SETTINGS.BASE_DOMAIN === 'localhost' &&
     parts.length === 2 &&
@@ -17,7 +16,7 @@ export const getShortNameFromUrl = (pathShortName) => {
     return parts[0];
   }
 
-  // For production: fcs.duespay.app
+  // production: shortname.duespay.app
   if (
     SETTINGS.BASE_DOMAIN === 'duespay.app' &&
     parts.length === 3 &&
@@ -27,10 +26,11 @@ export const getShortNameFromUrl = (pathShortName) => {
     return parts[0];
   }
 
-  if (RESERVED_SUBDOMAINS.includes(pathShortName)) {
-    return null; // Reserved subdomain, return null
+  // fallback to path param (for /shortname)
+  if (pathShortName && !RESERVED_SUBDOMAINS.includes(pathShortName)) {
+    return pathShortName;
   }
 
-  // fallback to path param
-  return pathShortName;
-};
+  // No valid shortname found
+  return null;
+}

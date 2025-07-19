@@ -13,7 +13,7 @@ import { API_ENDPOINTS } from '../../apiConfig';
 import { usePageTitle } from "../../hooks/usePageTitle";
 import { isColorDark } from "./utils/colorUtils";
 import NotFoundPage from '../404_page';
-import { getShortNameFromUrl } from '../../utils/getShortname';
+import { extractShortName } from '../../utils/getShortname';
 
 // Generate dynamic CSS custom properties
 const generateThemeStyles = (themeColor) => {
@@ -32,8 +32,7 @@ const generateThemeStyles = (themeColor) => {
 
 const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
   const { shortName: pathShortName } = useParams();
-  const shortName = propShortName || getShortNameFromUrl(pathShortName);
-  console.log('Short Name 2:', shortName);
+  const shortName = propShortName || extractShortName({ pathShortName });
 
   const [currentStep, setCurrentStep] = useState(1);
   const [payerData, setPayerData] = useState({

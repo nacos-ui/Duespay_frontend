@@ -12,39 +12,32 @@ import ErrorBoundaryWithModal from './appComponents/ErrorBoundaryWithModal';
 import { ThemeProvider } from './appComponents/ThemeContext';
 import PasswordResetConfirm from './pages/auth/passwordResetConfirm';
 import NotFoundPage from './pages/404_page';
-import SETTINGS from './settings';
-import { getShortNameFromUrl } from './utils/getShortname';
+import { extractShortName } from './utils/getShortname';
 
 function App() {
   const pathname = window.location.pathname;
   const pathParts = pathname.split('/').filter(Boolean);
   const pathShortName = pathParts[0] || null;
-  const shortName = getShortNameFromUrl(pathShortName);
-  console.log('Short Name:', shortName);
-
   const host = window.location.hostname;
-  const parts = host.split('.');
+  const hostParts = host.split('.');
 
-  // Subdomain detection for both localhost and production
-  const isLocalhostSubdomain =
-    SETTINGS.BASE_DOMAIN === 'localhost' &&
-    parts.length === 2 &&
-    parts[1] === 'localhost';
+  // Get shortname from subdomain or path
+  const subdomainShortName =
+    (hostParts.length === 2 && hostParts[1] === 'localhost') ||
+    (hostParts.length === 3 && hostParts[1] + '.' + hostParts[2] === 'duespay.app')
+      ? hostParts[0]
+      : null;
 
-  const isProdSubdomain =
-    SETTINGS.BASE_DOMAIN === 'duespay.app' &&
-    parts.length === 3 &&
-    parts[1] + '.' + parts[2] === 'duespay.app';
+  const shortName = extractShortName({ pathShortName });
 
-  const isSubdomain = isLocalhostSubdomain || isProdSubdomain;
-
-  // If subdomain and path are both present, show custom 404
-  if (isSubdomain && pathParts.length > 0) {
+  // If subdomain is www or empty, treat as home (not a payment flow)
+  if (subdomainShortName === 'www' || subdomainShortName === '') {
+    // Continue to normal routing (not payment flow)
+  } else if (subdomainShortName && pathParts.length > 0) {
+    // If both subdomain and path are present (except www), show 404
     return <NotFoundPage message="Requested URL not found on this server." />;
-  }
-
-  // If subdomain is present, show payment flow for that association
-  if (isSubdomain) {
+  } else if (subdomainShortName) {
+    // Only subdomain present, show payment flow
     return (
       <ErrorBoundaryWithModal>
         <DuesPayPaymentFlow shortName={shortName} />
