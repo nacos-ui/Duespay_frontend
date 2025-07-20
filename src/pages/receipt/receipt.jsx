@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import NotFoundPage from "../404_page";
 import { fetchWithTimeout, handleFetchError } from "../../utils/fetchUtils";
-const API_BASE_URL = "http://localhost:8000";
+import { API_ENDPOINTS } from "../../apiConfig";
 
 const ReceiptPage = () => {
   const { receipt_no } = useParams();
@@ -68,7 +68,7 @@ const ReceiptPage = () => {
     setLoading(true);
     setNotFound(false);
     setError(null);
-    fetchWithTimeout(`${API_BASE_URL}/receipts/${receipt_no}/`, {}, 15000)
+    fetchWithTimeout(API_ENDPOINTS.GET_RECEIPT(receipt_no), {}, 15000)
       .then(async (res) => {
         if (!res.ok) throw new Error("Network response was not ok");
         const data = await res.json();
@@ -256,62 +256,74 @@ const ReceiptPage = () => {
                   alt="Watermark"
                   crossOrigin="anonymous"
                   style={{
-                    width: "160px",
-                    height: "160px",
+                    width: "200px",
+                    height: "200px",
                     objectFit: "contain"
                   }}
                 />
               </div>
             )}
 
-            {/* Receipt No and Date - moved out of border and right-aligned */}
-            <div style={{ 
-              display: "flex",
-              justifyContent: "flex-end",
-              alignItems: "flex-start",
-              gap: "32px",
-              marginBottom: "8px"
-            }}>
-              <div style={{ textAlign: "right" }}>
-                <div style={{ 
-                  fontSize: "11px", 
-                  fontWeight: "600", 
-                  color: "#6b7280",
-                  marginBottom: "2px",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.5px"
-                }}>
+            {/* Receipt No (far left) and Date (far right) */}
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: "18px",
+                width: "100%",
+              }}
+            >
+              {/* Receipt No */}
+              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                <span
+                  style={{
+                    fontSize: "11px",
+                    fontWeight: "600",
+                    color: "#6b7280",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.5px",
+                  }}
+                >
                   RECEIPT NO
-                </div>
-                <div style={{ 
-                  fontSize: "14px", 
-                  fontFamily: "monospace",
-                  color: "#374151"
-                }}>
+                </span>
+                <span
+                  style={{
+                    fontSize: "14px",
+                    fontFamily: "monospace",
+                    color: "#374151",
+                    marginLeft: "8px",
+                  }}
+                >
                   {receipt.receipt_no}
-                </div>
+                </span>
               </div>
-              <div style={{ textAlign: "right" }}>
-                <div style={{ 
-                  fontSize: "11px", 
-                  fontWeight: "600", 
-                  color: "#6b7280",
-                  marginBottom: "2px",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.5px"
-                }}>
+              {/* Date */}
+              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                <span
+                  style={{
+                    fontSize: "11px",
+                    fontWeight: "600",
+                    color: "#6b7280",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.5px",
+                  }}
+                >
                   DATE
-                </div>
-                <div style={{ 
-                  fontSize: "14px", 
-                  color: "#374151"
-                }}>
+                </span>
+                <span
+                  style={{
+                    fontSize: "14px",
+                    color: "#374151",
+                    marginLeft: "8px",
+                  }}
+                >
                   {new Date(receipt.issued_at).toLocaleDateString('en-US', {
                     year: 'numeric',
                     month: 'long',
                     day: 'numeric'
                   })}
-                </div>
+                </span>
               </div>
             </div>
 
@@ -326,13 +338,14 @@ const ReceiptPage = () => {
               border: "1px solid #e5e7eb",
               borderRadius: "8px",
               padding: "16px",
-              background: "#fafbfc"
+              background: "#fafbfc",
+              opacity: 0.6
             }}>
               {/* Transaction Reference */}
               <div style={{ 
                 display: "flex",
-                alignItems: "flex-start",
-                gap: "24px",
+                flexDirection: "row",
+                alignItems: "center",
                 flexWrap: "wrap"
               }}>
                 <div style={{ 
@@ -341,20 +354,20 @@ const ReceiptPage = () => {
                   color: "#6b7280",
                   textTransform: "uppercase",
                   letterSpacing: "0.5px",
-                  minWidth: "120px",
-                  paddingTop: "8px",
-                  textAlign: "right"
+                  width: "140px",
+                  textAlign: "left",
+                  flexShrink: 0,
                 }}>
                   REFERENCE:
                 </div>
                 <div style={{ 
                   fontSize: "12px", 
+                  fontWeight: "700",
                   fontFamily: "monospace",
                   color: "#374151",
-                  padding: "6px 10px",
-                  borderRadius: "4px",
                   flex: "1",
                   minWidth: "200px",
+                  marginLeft: "0",
                   wordWrap: "break-word",
                   overflowWrap: "break-word"
                 }}>
@@ -365,8 +378,8 @@ const ReceiptPage = () => {
               {/* Payment From */}
               <div style={{ 
                 display: "flex",
-                alignItems: "flex-start",
-                gap: "24px",
+                flexDirection: "row",
+                alignItems: "center",
                 flexWrap: "wrap"
               }}>
                 <div style={{ 
@@ -375,18 +388,19 @@ const ReceiptPage = () => {
                   color: "#6b7280",
                   textTransform: "uppercase",
                   letterSpacing: "0.5px",
-                  minWidth: "120px",
-                  paddingTop: "2px",
-                  textAlign: "right"
+                  width: "140px",
+                  textAlign: "left",
+                  flexShrink: 0,
                 }}>
                   PAYMENT FROM:
                 </div>
                 <div style={{ 
                   fontSize: "16px", 
-                  fontWeight: "600", 
+                  fontWeight: "700", 
                   color: "#111827",
                   flex: "1",
                   minWidth: "200px",
+                  marginLeft: "0",
                   wordWrap: "break-word",
                   overflowWrap: "break-word"
                 }}>
@@ -397,8 +411,8 @@ const ReceiptPage = () => {
               {/* Items Paid */}
               <div style={{ 
                 display: "flex",
-                alignItems: "flex-start",
-                gap: "24px",
+                flexDirection: "row",
+                alignItems: "center",
                 flexWrap: "wrap"
               }}>
                 <div style={{ 
@@ -407,18 +421,20 @@ const ReceiptPage = () => {
                   color: "#6b7280",
                   textTransform: "uppercase",
                   letterSpacing: "0.5px",
-                  minWidth: "120px",
-                  paddingTop: "2px",
-                  textAlign: "right"
+                  width: "140px",
+                  textAlign: "left",
+                  flexShrink: 0,
                 }}>
                   ITEMS PAID:
                 </div>
                 <div style={{ 
                   fontSize: "14px", 
+                  fontWeight: "700",
                   color: "#374151",
                   lineHeight: "1.4",
                   flex: "1",
                   minWidth: "200px",
+                  marginLeft: "0",
                   wordWrap: "break-word",
                   overflowWrap: "break-word"
                 }}>
@@ -429,8 +445,8 @@ const ReceiptPage = () => {
               {/* Amount */}
               <div style={{ 
                 display: "flex",
-                alignItems: "flex-start",
-                gap: "24px",
+                flexDirection: "row",
+                alignItems: "center",
                 flexWrap: "wrap"
               }}>
                 <div style={{ 
@@ -439,13 +455,13 @@ const ReceiptPage = () => {
                   color: "#6b7280",
                   textTransform: "uppercase",
                   letterSpacing: "0.5px",
-                  minWidth: "120px",
-                  paddingTop: "2px",
-                  textAlign: "right"
+                  width: "140px",
+                  textAlign: "left",
+                  flexShrink: 0,
                 }}>
                   AMOUNT:
                 </div>
-                <div style={{ flex: "1", minWidth: "200px" }}>
+                <div style={{ flex: "1", minWidth: "200px", marginLeft: "0" }}>
                   <div style={{ 
                     fontSize: "20px", 
                     fontWeight: "700", 
@@ -457,6 +473,7 @@ const ReceiptPage = () => {
                   </div>
                   <div style={{ 
                     fontSize: "12px", 
+                    fontWeight: "700",
                     color: "#6b7280",
                     fontStyle: "italic",
                     textTransform: "capitalize",

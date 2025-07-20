@@ -43,4 +43,7 @@ export const API_ENDPOINTS = {
   NOTIFICATIONS: `${API_BASE_URL}/notifications/`,
   UNREAD_NOTIFICATIONS_COUNT: `${API_BASE_URL}/notifications/unread-count/`,
   MARK_ALL_NOTIFICATIONS_READ: `${API_BASE_URL}/notifications/mark-all-read/`,
+
+  // Receipt endpoint
+  GET_RECEIPT: (receipt_no) => `${API_BASE_URL}/receipts/${receipt_no}/`,
 };
