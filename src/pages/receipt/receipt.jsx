@@ -1,8 +1,10 @@
+// Updated ReceiptPage component using html2pdf.js
 import React, { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import NotFoundPage from "../404_page";
 import { fetchWithTimeout, handleFetchError } from "../../utils/fetchUtils";
 import { API_ENDPOINTS } from "../../apiConfig";
+import html2pdf from "html2pdf.js";
 
 const ReceiptPage = () => {
   const { receipt_no } = useParams();
@@ -14,7 +16,6 @@ const ReceiptPage = () => {
   const [showPrintBtn, setShowPrintBtn] = useState(true);
   const receiptRef = useRef();
 
-  // Function to convert number to words
   const numberToWords = (num) => {
     const ones = ["", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
     const tens = ["", "", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"];
@@ -46,23 +47,14 @@ const ReceiptPage = () => {
     let thousand = Math.floor((num % 1000000) / 1000);
     let remainder = num % 1000;
 
-    if (billion > 0) {
-      result += convertHundreds(billion) + "billion ";
-    }
-    if (million > 0) {
-      result += convertHundreds(million) + "million ";
-    }
-    if (thousand > 0) {
-      result += convertHundreds(thousand) + "thousand ";
-    }
-    if (remainder > 0) {
-      result += convertHundreds(remainder);
-    }
+    if (billion > 0) result += convertHundreds(billion) + "billion ";
+    if (million > 0) result += convertHundreds(million) + "million ";
+    if (thousand > 0) result += convertHundreds(thousand) + "thousand ";
+    if (remainder > 0) result += convertHundreds(remainder);
 
     return result.trim();
   };
 
-  // Fetch receipt data
   useEffect(() => {
     let isMounted = true;
     setLoading(true);
@@ -92,14 +84,24 @@ const ReceiptPage = () => {
     };
   }, [receipt_no]);
 
-  // Hide print button before print, show after
   const handlePrint = async () => {
     if (isDownloading) return;
     setIsDownloading(true);
     setShowPrintBtn(false);
-    await new Promise((resolve) => setTimeout(resolve, 100)); // let DOM update
 
-    window.print();
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    const element = receiptRef.current;
+    const opt = {
+      margin: 0,
+      filename: `${receipt.receipt_no}.pdf`,
+      image: { type: "jpeg", quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: "pt", format: "a4", orientation: "portrait" },
+      pagebreak: { mode: ["avoid-all"] }
+    };
+
+    await html2pdf().set(opt).from(element).save();
 
     setTimeout(() => {
       setShowPrintBtn(true);
@@ -107,30 +109,10 @@ const ReceiptPage = () => {
     }, 1000);
   };
 
-  // Render loading state
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-lg text-gray-700 animate-pulse">Loading receipt...</div>
-      </div>
-    );
-  }
+  if (loading) return <div className="min-h-screen flex items-center justify-center bg-gray-50">Loading receipt...</div>;
+  if (notFound) return <NotFoundPage message="Receipt not found." />;
+  if (error) return <div className="min-h-screen flex items-center justify-center bg-gray-50 text-red-500">{error}</div>;
 
-  // Render not found state
-  if (notFound) {
-    return <NotFoundPage message="Receipt not found." />;
-  }
-
-  // Render error state
-  if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-lg text-red-500">{error}</div>
-      </div>
-    );
-  }
-
-  // Default theme color and logo
   const themeColor = receipt.association_theme_color || "#0066CC";
   const logo = receipt.association_logo;
   const amountInWords = numberToWords(Number(receipt.amount_paid));
@@ -138,10 +120,9 @@ const ReceiptPage = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-4 sm:py-8 px-2 sm:px-4">
       <div className="max-w-5xl mx-auto">
-        {/* Receipt Container */}
         <div
           ref={receiptRef}
-          className="receipt-container"
+          className="receipt-content"
           style={{
             background: "#ffffff",
             borderRadius: "12px",
@@ -285,7 +266,7 @@ const ReceiptPage = () => {
                     letterSpacing: "0.5px",
                   }}
                 >
-                  RECEIPT NO
+                  RECEIPT NO:
                 </span>
                 <span
                   style={{
@@ -309,7 +290,7 @@ const ReceiptPage = () => {
                     letterSpacing: "0.5px",
                   }}
                 >
-                  DATE
+                  DATE:
                 </span>
                 <span
                   style={{
@@ -519,55 +500,21 @@ const ReceiptPage = () => {
           }}></div>
         </div>
 
-        {/* Print Button */}
         {showPrintBtn && (
-          <div 
-            className="print-button-container"
-            style={{ 
-              textAlign: "center", 
-              marginTop: "24px",
-              "@media print": { display: "none" }
-            }}
-          >
+          <div className="text-center mt-6">
             <button
               onClick={handlePrint}
               disabled={isDownloading}
-              className="print-btn"
               style={{
-                background: isDownloading 
-                  ? "linear-gradient(135deg, #9ca3af 0%, #6b7280 100%)" 
-                  : `linear-gradient(135deg, ${themeColor} 0%, ${themeColor}dd 100%)`,
+                background: isDownloading ? "#9ca3af" : themeColor,
                 color: "white",
-                border: "none",
                 padding: "12px 24px",
                 borderRadius: "8px",
-                fontSize: "14px",
                 fontWeight: "600",
                 cursor: isDownloading ? "not-allowed" : "pointer",
-                boxShadow: isDownloading 
-                  ? "0 4px 16px rgba(156, 163, 175, 0.3)" 
-                  : `0 4px 16px ${themeColor}40`,
-                transition: "all 0.3s ease",
-                transform: isDownloading ? "none" : "translateY(0)",
-                fontFamily: "'Inter', sans-serif",
-                letterSpacing: "0.5px",
-                width: "auto",
-                minWidth: "180px"
-              }}
-              onMouseEnter={(e) => {
-                if (!isDownloading) {
-                  e.target.style.transform = "translateY(-2px)";
-                  e.target.style.boxShadow = `0 6px 20px ${themeColor}50`;
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!isDownloading) {
-                  e.target.style.transform = "translateY(0)";
-                  e.target.style.boxShadow = `0 4px 16px ${themeColor}40`;
-                }
               }}
             >
-              {isDownloading ? "Preparing..." : "Print / Save as PDF"}
+              {isDownloading ? "Preparing PDF..." : "Download PDF"}
             </button>
           </div>
         )}
