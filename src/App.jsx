@@ -13,6 +13,7 @@ import { ThemeProvider } from './appComponents/ThemeContext';
 import PasswordResetConfirm from './pages/auth/passwordResetConfirm';
 import NotFoundPage from './pages/404_page';
 import { extractShortName } from './utils/getShortname';
+import ReceiptPage from './pages/receipt/receipt';
 
 function App() {
   const pathname = window.location.pathname;
@@ -51,11 +52,22 @@ function App() {
       <Routes>
         <Route path='/' element={<Navigate to="/dashboard/overview" replace />} />
         <Route path="/auth" element={
-          <ThemeProvider>
-            <Auth />
-          </ThemeProvider>
+          <ErrorBoundaryWithModal>
+            <ThemeProvider>
+              <Auth />
+            </ThemeProvider>
+          </ErrorBoundaryWithModal>
         } />
-        <Route path="/reset-password" element={<PasswordResetConfirm />} />
+        <Route path="/reset-password" element={
+          <ErrorBoundaryWithModal>
+            <PasswordResetConfirm />
+          </ErrorBoundaryWithModal>
+        } />
+        <Route path="/transactions/receipt/:receipt_no" element={
+          <ErrorBoundaryWithModal>
+            <ReceiptPage />
+          </ErrorBoundaryWithModal>
+        } />
         <Route path="/:shortName" element={
           <ErrorBoundaryWithModal>
             <DuesPayPaymentFlow />
@@ -63,38 +75,54 @@ function App() {
         } />
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard/overview" element={
-            <ThemeProvider>
-              <Overview />
-            </ThemeProvider>
+            <ErrorBoundaryWithModal>
+              <ThemeProvider>
+                <Overview />
+              </ThemeProvider>
+            </ErrorBoundaryWithModal>
           } />
           <Route path="/dashboard/payment-items" element={
-            <ThemeProvider>
-              <PaymentItems />
-            </ThemeProvider>
+            <ErrorBoundaryWithModal>
+              <ThemeProvider>
+                <PaymentItems />
+              </ThemeProvider>
+            </ErrorBoundaryWithModal>
           } />
           <Route path="/dashboard/transactions" element={
-            <ThemeProvider>
-              <TransactionsPage />
-            </ThemeProvider>
+            <ErrorBoundaryWithModal>
+              <ThemeProvider>
+                <TransactionsPage />
+              </ThemeProvider>
+            </ErrorBoundaryWithModal>
           } />
           <Route path="/create-association" element={
-            <ThemeProvider>
-              <AssociationForm />
-            </ThemeProvider>
+            <ErrorBoundaryWithModal>
+              <ThemeProvider>
+                <AssociationForm />
+              </ThemeProvider>
+            </ErrorBoundaryWithModal>
           } />
           <Route path="/dashboard/students" element={
-            <ThemeProvider>
-              <PayersPage />
-            </ThemeProvider>
+            <ErrorBoundaryWithModal>
+              <ThemeProvider>
+                <PayersPage />
+              </ThemeProvider>
+            </ErrorBoundaryWithModal>
           } />
           <Route path="/settings" element={
-            <ThemeProvider>
-              <SettingsPage />
-            </ThemeProvider>
+            <ErrorBoundaryWithModal>
+              <ThemeProvider>
+                <SettingsPage />
+              </ThemeProvider>
+            </ErrorBoundaryWithModal>
           } />
         </Route>
         {/* Catch-all 404 for unregistered routes */}
-        <Route path="*" element={<NotFoundPage />} />
+        <Route path="*" element={
+          <ErrorBoundaryWithModal>
+            <NotFoundPage />
+          </ErrorBoundaryWithModal>
+        } />
       </Routes>
     </Router>
   );

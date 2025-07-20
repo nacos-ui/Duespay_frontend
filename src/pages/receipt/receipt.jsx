@@ -1,0 +1,563 @@
+import React, { useEffect, useState, useRef } from "react";
+import { useParams } from "react-router-dom";
+import NotFoundPage from "../404_page";
+import { fetchWithTimeout, handleFetchError } from "../../utils/fetchUtils";
+const API_BASE_URL = "http://localhost:8000";
+
+const ReceiptPage = () => {
+  const { receipt_no } = useParams();
+  const [receipt, setReceipt] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
+  const [error, setError] = useState(null);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [showPrintBtn, setShowPrintBtn] = useState(true);
+  const receiptRef = useRef();
+
+  // Function to convert number to words
+  const numberToWords = (num) => {
+    const ones = ["", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
+    const tens = ["", "", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"];
+    const teens = ["ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen"];
+
+    const convertHundreds = (n) => {
+      let result = "";
+      if (n >= 100) {
+        result += ones[Math.floor(n / 100)] + " hundred ";
+        n %= 100;
+      }
+      if (n >= 20) {
+        result += tens[Math.floor(n / 10)] + " ";
+        n %= 10;
+      } else if (n >= 10) {
+        result += teens[n - 10] + " ";
+        return result;
+      }
+      if (n > 0) {
+        result += ones[n] + " ";
+      }
+      return result;
+    };
+
+    if (num === 0) return "zero";
+    let result = "";
+    let billion = Math.floor(num / 1000000000);
+    let million = Math.floor((num % 1000000000) / 1000000);
+    let thousand = Math.floor((num % 1000000) / 1000);
+    let remainder = num % 1000;
+
+    if (billion > 0) {
+      result += convertHundreds(billion) + "billion ";
+    }
+    if (million > 0) {
+      result += convertHundreds(million) + "million ";
+    }
+    if (thousand > 0) {
+      result += convertHundreds(thousand) + "thousand ";
+    }
+    if (remainder > 0) {
+      result += convertHundreds(remainder);
+    }
+
+    return result.trim();
+  };
+
+  // Fetch receipt data
+  useEffect(() => {
+    let isMounted = true;
+    setLoading(true);
+    setNotFound(false);
+    setError(null);
+    fetchWithTimeout(`${API_BASE_URL}/receipts/${receipt_no}/`, {}, 15000)
+      .then(async (res) => {
+        if (!res.ok) throw new Error("Network response was not ok");
+        const data = await res.json();
+        if (data.success === false || !data.receipt_no) {
+          if (isMounted) setNotFound(true);
+        } else {
+          if (isMounted) setReceipt(data);
+        }
+      })
+      .catch((err) => {
+        if (isMounted) {
+          const handled = handleFetchError(err);
+          setError(handled.message);
+        }
+      })
+      .finally(() => {
+        if (isMounted) setLoading(false);
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, [receipt_no]);
+
+  // Hide print button before print, show after
+  const handlePrint = async () => {
+    if (isDownloading) return;
+    setIsDownloading(true);
+    setShowPrintBtn(false);
+    await new Promise((resolve) => setTimeout(resolve, 100)); // let DOM update
+
+    window.print();
+
+    setTimeout(() => {
+      setShowPrintBtn(true);
+      setIsDownloading(false);
+    }, 1000);
+  };
+
+  // Render loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-lg text-gray-700 animate-pulse">Loading receipt...</div>
+      </div>
+    );
+  }
+
+  // Render not found state
+  if (notFound) {
+    return <NotFoundPage message="Receipt not found." />;
+  }
+
+  // Render error state
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-lg text-red-500">{error}</div>
+      </div>
+    );
+  }
+
+  // Default theme color and logo
+  const themeColor = receipt.association_theme_color || "#0066CC";
+  const logo = receipt.association_logo;
+  const amountInWords = numberToWords(Number(receipt.amount_paid));
+
+  return (
+    <div className="min-h-screen bg-gray-50 py-4 sm:py-8 px-2 sm:px-4">
+      <div className="max-w-5xl mx-auto">
+        {/* Receipt Container */}
+        <div
+          ref={receiptRef}
+          className="receipt-container"
+          style={{
+            background: "#ffffff",
+            borderRadius: "12px",
+            boxShadow: "0 8px 32px rgba(0,0,0,0.12)",
+            border: "1px solid #e5e7eb",
+            width: "100%",
+            maxWidth: "800px",
+            height: "auto",
+            minHeight: "450px",
+            margin: "0 auto",
+            fontFamily: "'Inter', 'Segoe UI', Arial, sans-serif",
+            fontSize: "14px",
+            position: "relative",
+            overflow: "hidden",
+            display: "flex",
+            flexDirection: "column",
+            transformOrigin: "top center",
+            // Mobile responsive scaling
+            transform: window.innerWidth < 768 ? "scale(0.85)" : "scale(1)",
+            marginBottom: window.innerWidth < 768 ? "20px" : "0"
+          }}
+        >
+          {/* Header Section */}
+          <div 
+            style={{ 
+              background: `linear-gradient(135deg, ${themeColor} 0%, ${themeColor}dd 100%)`,
+              color: "white",
+              padding: "16px 24px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              borderTopLeftRadius: "12px",
+              borderTopRightRadius: "12px",
+              flexWrap: "wrap",
+              gap: "12px"
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", flex: "1", minWidth: "200px" }}>
+              {logo && (
+                <img
+                  src={logo}
+                  alt="Logo"
+                  crossOrigin="anonymous"
+                  style={{
+                    width: "40px",
+                    height: "40px",
+                    borderRadius: "8px",
+                    objectFit: "cover",
+                    marginRight: "12px",
+                    border: "2px solid rgba(255,255,255,0.3)",
+                    background: "#fff",
+                    flexShrink: 0
+                  }}
+                />
+              )}
+              <div style={{ overflow: "hidden" }}>
+                <div style={{ 
+                  fontWeight: "700", 
+                  fontSize: "16px", 
+                  letterSpacing: "0.5px",
+                  marginBottom: "2px",
+                  wordWrap: "break-word",
+                  overflowWrap: "break-word",
+                  whiteSpace: "normal",
+                  lineHeight: "1.2"
+                }}>
+                  {receipt.association_name}
+                </div>
+                <div style={{ 
+                  fontSize: "11px", 
+                  opacity: "0.9",
+                  letterSpacing: "1px" 
+                }}>
+                  {receipt.association_short_name?.toUpperCase()}
+                </div>
+              </div>
+            </div>
+            
+            <div style={{ textAlign: "right", flexShrink: 0 }}>
+              <div style={{ 
+                fontWeight: "700", 
+                fontSize: "16px",
+                marginBottom: "4px",
+                letterSpacing: "1px"
+              }}>
+                RECEIPT
+              </div>
+            </div>
+          </div>
+
+          {/* Main Content Area */}
+          <div style={{ 
+            flex: 1, 
+            padding: "20px 24px", 
+            position: "relative",
+            background: "#ffffff"
+          }}>
+            
+            {/* Watermark */}
+            {logo && (
+              <div style={{
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                opacity: "0.04",
+                pointerEvents: "none",
+                zIndex: 1,
+              }}>
+                <img
+                  src={logo}
+                  alt="Watermark"
+                  crossOrigin="anonymous"
+                  style={{
+                    width: "160px",
+                    height: "160px",
+                    objectFit: "contain"
+                  }}
+                />
+              </div>
+            )}
+
+            {/* Receipt No and Date - moved out of border and right-aligned */}
+            <div style={{ 
+              display: "flex",
+              justifyContent: "flex-end",
+              alignItems: "flex-start",
+              gap: "32px",
+              marginBottom: "8px"
+            }}>
+              <div style={{ textAlign: "right" }}>
+                <div style={{ 
+                  fontSize: "11px", 
+                  fontWeight: "600", 
+                  color: "#6b7280",
+                  marginBottom: "2px",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.5px"
+                }}>
+                  RECEIPT NO
+                </div>
+                <div style={{ 
+                  fontSize: "14px", 
+                  fontFamily: "monospace",
+                  color: "#374151"
+                }}>
+                  {receipt.receipt_no}
+                </div>
+              </div>
+              <div style={{ textAlign: "right" }}>
+                <div style={{ 
+                  fontSize: "11px", 
+                  fontWeight: "600", 
+                  color: "#6b7280",
+                  marginBottom: "2px",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.5px"
+                }}>
+                  DATE
+                </div>
+                <div style={{ 
+                  fontSize: "14px", 
+                  color: "#374151"
+                }}>
+                  {new Date(receipt.issued_at).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* Content Layout (bordered box, does NOT include receipt no/date) */}
+            <div style={{ 
+              display: "flex",
+              flexDirection: "column",
+              gap: "16px",
+              position: "relative",
+              zIndex: 2,
+              maxWidth: "100%",
+              border: "1px solid #e5e7eb",
+              borderRadius: "8px",
+              padding: "16px",
+              background: "#fafbfc"
+            }}>
+              {/* Transaction Reference */}
+              <div style={{ 
+                display: "flex",
+                alignItems: "flex-start",
+                gap: "24px",
+                flexWrap: "wrap"
+              }}>
+                <div style={{ 
+                  fontSize: "11px", 
+                  fontWeight: "600", 
+                  color: "#6b7280",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.5px",
+                  minWidth: "120px",
+                  paddingTop: "8px",
+                  textAlign: "right"
+                }}>
+                  REFERENCE:
+                </div>
+                <div style={{ 
+                  fontSize: "12px", 
+                  fontFamily: "monospace",
+                  color: "#374151",
+                  padding: "6px 10px",
+                  borderRadius: "4px",
+                  flex: "1",
+                  minWidth: "200px",
+                  wordWrap: "break-word",
+                  overflowWrap: "break-word"
+                }}>
+                  {receipt.transaction_reference_id}
+                </div>
+              </div>
+
+              {/* Payment From */}
+              <div style={{ 
+                display: "flex",
+                alignItems: "flex-start",
+                gap: "24px",
+                flexWrap: "wrap"
+              }}>
+                <div style={{ 
+                  fontSize: "11px", 
+                  fontWeight: "600", 
+                  color: "#6b7280",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.5px",
+                  minWidth: "120px",
+                  paddingTop: "2px",
+                  textAlign: "right"
+                }}>
+                  PAYMENT FROM:
+                </div>
+                <div style={{ 
+                  fontSize: "16px", 
+                  fontWeight: "600", 
+                  color: "#111827",
+                  flex: "1",
+                  minWidth: "200px",
+                  wordWrap: "break-word",
+                  overflowWrap: "break-word"
+                }}>
+                  {receipt.payer_first_name} {receipt.payer_last_name}
+                </div>
+              </div>
+
+              {/* Items Paid */}
+              <div style={{ 
+                display: "flex",
+                alignItems: "flex-start",
+                gap: "24px",
+                flexWrap: "wrap"
+              }}>
+                <div style={{ 
+                  fontSize: "11px", 
+                  fontWeight: "600", 
+                  color: "#6b7280",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.5px",
+                  minWidth: "120px",
+                  paddingTop: "2px",
+                  textAlign: "right"
+                }}>
+                  ITEMS PAID:
+                </div>
+                <div style={{ 
+                  fontSize: "14px", 
+                  color: "#374151",
+                  lineHeight: "1.4",
+                  flex: "1",
+                  minWidth: "200px",
+                  wordWrap: "break-word",
+                  overflowWrap: "break-word"
+                }}>
+                  {receipt.items_paid.join(" • ")}
+                </div>
+              </div>
+
+              {/* Amount */}
+              <div style={{ 
+                display: "flex",
+                alignItems: "flex-start",
+                gap: "24px",
+                flexWrap: "wrap"
+              }}>
+                <div style={{ 
+                  fontSize: "11px", 
+                  fontWeight: "600", 
+                  color: "#6b7280",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.5px",
+                  minWidth: "120px",
+                  paddingTop: "2px",
+                  textAlign: "right"
+                }}>
+                  AMOUNT:
+                </div>
+                <div style={{ flex: "1", minWidth: "200px" }}>
+                  <div style={{ 
+                    fontSize: "20px", 
+                    fontWeight: "700", 
+                    color: themeColor,
+                    fontFamily: "'Inter', sans-serif",
+                    marginBottom: "4px"
+                  }}>
+                    ₦{Number(receipt.amount_paid).toLocaleString()}
+                  </div>
+                  <div style={{ 
+                    fontSize: "12px", 
+                    color: "#6b7280",
+                    fontStyle: "italic",
+                    textTransform: "capitalize",
+                    wordWrap: "break-word",
+                    overflowWrap: "break-word"
+                  }}>
+                    {amountInWords} naira only
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Signature Section */}
+            <div style={{
+              position: "absolute",
+              bottom: "20px",
+              right: "24px",
+              textAlign: "right"
+            }}>
+              <div style={{ 
+                width: "120px", 
+                height: "1px", 
+                background: "#d1d5db",
+                marginBottom: "6px",
+                marginLeft: "auto"
+              }}></div>
+              <div style={{ 
+                fontSize: "9px", 
+                color: "#9ca3af",
+                textTransform: "uppercase",
+                letterSpacing: "0.5px"
+              }}>
+                AUTHORIZED SIGNATURE
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Border */}
+          <div style={{
+            height: "4px",
+            background: `linear-gradient(90deg, ${themeColor} 0%, ${themeColor}aa 100%)`,
+            borderBottomLeftRadius: "12px",
+            borderBottomRightRadius: "12px"
+          }}></div>
+        </div>
+
+        {/* Print Button */}
+        {showPrintBtn && (
+          <div 
+            className="print-button-container"
+            style={{ 
+              textAlign: "center", 
+              marginTop: "24px",
+              "@media print": { display: "none" }
+            }}
+          >
+            <button
+              onClick={handlePrint}
+              disabled={isDownloading}
+              className="print-btn"
+              style={{
+                background: isDownloading 
+                  ? "linear-gradient(135deg, #9ca3af 0%, #6b7280 100%)" 
+                  : `linear-gradient(135deg, ${themeColor} 0%, ${themeColor}dd 100%)`,
+                color: "white",
+                border: "none",
+                padding: "12px 24px",
+                borderRadius: "8px",
+                fontSize: "14px",
+                fontWeight: "600",
+                cursor: isDownloading ? "not-allowed" : "pointer",
+                boxShadow: isDownloading 
+                  ? "0 4px 16px rgba(156, 163, 175, 0.3)" 
+                  : `0 4px 16px ${themeColor}40`,
+                transition: "all 0.3s ease",
+                transform: isDownloading ? "none" : "translateY(0)",
+                fontFamily: "'Inter', sans-serif",
+                letterSpacing: "0.5px",
+                width: "auto",
+                minWidth: "180px"
+              }}
+              onMouseEnter={(e) => {
+                if (!isDownloading) {
+                  e.target.style.transform = "translateY(-2px)";
+                  e.target.style.boxShadow = `0 6px 20px ${themeColor}50`;
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isDownloading) {
+                  e.target.style.transform = "translateY(0)";
+                  e.target.style.boxShadow = `0 4px 16px ${themeColor}40`;
+                }
+              }}
+            >
+              {isDownloading ? "Preparing..." : "Print / Save as PDF"}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default ReceiptPage;
