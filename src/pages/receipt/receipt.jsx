@@ -338,8 +338,7 @@ const ReceiptPage = () => {
               border: "1px solid #e5e7eb",
               borderRadius: "8px",
               padding: "16px",
-              background: "#fafbfc",
-              opacity: 0.6
+              background: "#fafbfc66",
             }}>
               {/* Transaction Reference */}
               <div style={{ 
