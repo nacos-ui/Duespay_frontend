@@ -63,7 +63,7 @@ function App() {
             <PasswordResetConfirm />
           </ErrorBoundaryWithModal>
         } />
-        <Route path="/transactions/receipt/:receipt_no" element={
+        <Route path="/transactions/receipt/:receipt_id" element={
           <ErrorBoundaryWithModal>
             <ReceiptPage />
           </ErrorBoundaryWithModal>

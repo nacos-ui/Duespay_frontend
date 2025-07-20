@@ -7,7 +7,7 @@ import { API_ENDPOINTS } from "../../apiConfig";
 import html2pdf from "html2pdf.js";
 
 const ReceiptPage = () => {
-  const { receipt_no } = useParams();
+  const { receipt_id } = useParams();
   const [receipt, setReceipt] = useState(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -60,11 +60,11 @@ const ReceiptPage = () => {
     setLoading(true);
     setNotFound(false);
     setError(null);
-    fetchWithTimeout(API_ENDPOINTS.GET_RECEIPT(receipt_no), {}, 15000)
+    fetchWithTimeout(API_ENDPOINTS.GET_RECEIPT(receipt_id), {}, 15000)
       .then(async (res) => {
         if (!res.ok) throw new Error("Network response was not ok");
         const data = await res.json();
-        if (data.success === false || !data.receipt_no) {
+        if (data.success === false || !data.receipt_id) {
           if (isMounted) setNotFound(true);
         } else {
           if (isMounted) setReceipt(data);
@@ -82,7 +82,7 @@ const ReceiptPage = () => {
     return () => {
       isMounted = false;
     };
-  }, [receipt_no]);
+  }, [receipt_id]);
 
   const handlePrint = async () => {
     if (isDownloading) return;
@@ -167,9 +167,9 @@ const ReceiptPage = () => {
                   alt="Logo"
                   crossOrigin="anonymous"
                   style={{
-                    width: "40px",
-                    height: "40px",
-                    borderRadius: "8px",
+                    width: "50px",
+                    height: "50px",
+                    borderRadius: "50%",
                     objectFit: "cover",
                     marginRight: "12px",
                     border: "2px solid rgba(255,255,255,0.3)",
@@ -178,7 +178,7 @@ const ReceiptPage = () => {
                   }}
                 />
               )}
-              <div style={{ overflow: "hidden" }}>
+              <div>
                 <div style={{ 
                   fontWeight: "700", 
                   fontSize: "16px", 
@@ -228,7 +228,7 @@ const ReceiptPage = () => {
                 top: "50%",
                 left: "50%",
                 transform: "translate(-50%, -50%)",
-                opacity: "0.04",
+                opacity: "0.09",
                 pointerEvents: "none",
                 zIndex: 1,
               }}>
@@ -237,8 +237,8 @@ const ReceiptPage = () => {
                   alt="Watermark"
                   crossOrigin="anonymous"
                   style={{
-                    width: "200px",
-                    height: "200px",
+                    width: "240px",
+                    height: "240px",
                     objectFit: "contain"
                   }}
                 />
@@ -321,40 +321,6 @@ const ReceiptPage = () => {
               padding: "16px",
               background: "#fafbfc66",
             }}>
-              {/* Transaction Reference */}
-              <div style={{ 
-                display: "flex",
-                flexDirection: "row",
-                alignItems: "center",
-                flexWrap: "wrap"
-              }}>
-                <div style={{ 
-                  fontSize: "11px", 
-                  fontWeight: "600", 
-                  color: "#6b7280",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.5px",
-                  width: "140px",
-                  textAlign: "left",
-                  flexShrink: 0,
-                }}>
-                  REFERENCE:
-                </div>
-                <div style={{ 
-                  fontSize: "12px", 
-                  fontWeight: "700",
-                  fontFamily: "monospace",
-                  color: "#374151",
-                  flex: "1",
-                  minWidth: "200px",
-                  marginLeft: "0",
-                  wordWrap: "break-word",
-                  overflowWrap: "break-word"
-                }}>
-                  {receipt.transaction_reference_id}
-                </div>
-              </div>
-
               {/* Payment From */}
               <div style={{ 
                 display: "flex",
@@ -375,7 +341,7 @@ const ReceiptPage = () => {
                   PAYMENT FROM:
                 </div>
                 <div style={{ 
-                  fontSize: "16px", 
+                  fontSize: "15px", 
                   fontWeight: "700", 
                   color: "#111827",
                   flex: "1",
@@ -408,7 +374,7 @@ const ReceiptPage = () => {
                   ITEMS PAID:
                 </div>
                 <div style={{ 
-                  fontSize: "14px", 
+                  fontSize: "15px", 
                   fontWeight: "700",
                   color: "#374151",
                   lineHeight: "1.4",
@@ -421,6 +387,37 @@ const ReceiptPage = () => {
                   {receipt.items_paid.join(" • ")}
                 </div>
               </div>
+              {/* Amount in words */}
+              <div style={{ 
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+                flexWrap: "wrap"
+              }}>
+                <div style={{ 
+                  fontSize: "11px", 
+                  fontWeight: "600", 
+                  color: "#6b7280",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.5px",
+                  width: "140px",
+                  textAlign: "left",
+                  flexShrink: 0,
+                }}>
+                  AMOUNT IN WORDS:
+                </div>
+                <div style={{ flex: "1", minWidth: "200px", marginLeft: "0" }}>
+                  <div style={{ 
+                    fontSize: "15px", 
+                    fontWeight: "700", 
+                    color: "#374151",
+                    fontFamily: "'Inter', sans-serif",
+                    marginBottom: "4px"
+                  }}>
+                    {amountInWords} naira only
+                  </div>
+                </div>
+              </div>    
 
               {/* Amount */}
               <div style={{ 
@@ -451,19 +448,8 @@ const ReceiptPage = () => {
                   }}>
                     ₦{Number(receipt.amount_paid).toLocaleString()}
                   </div>
-                  <div style={{ 
-                    fontSize: "12px", 
-                    fontWeight: "700",
-                    color: "#6b7280",
-                    fontStyle: "italic",
-                    textTransform: "capitalize",
-                    wordWrap: "break-word",
-                    overflowWrap: "break-word"
-                  }}>
-                    {amountInWords} naira only
-                  </div>
                 </div>
-              </div>
+              </div>          
             </div>
 
             {/* Signature Section */}
@@ -500,24 +486,50 @@ const ReceiptPage = () => {
           }}></div>
         </div>
 
-        {showPrintBtn && (
-          <div className="text-center mt-6">
-            <button
-              onClick={handlePrint}
-              disabled={isDownloading}
-              style={{
-                background: isDownloading ? "#9ca3af" : themeColor,
-                color: "white",
-                padding: "12px 24px",
-                borderRadius: "8px",
-                fontWeight: "600",
-                cursor: isDownloading ? "not-allowed" : "pointer",
-              }}
-            >
-              {isDownloading ? "Preparing PDF..." : "Download PDF"}
-            </button>
-          </div>
-        )}
+        {/* Download PDF Button */}
+        <div className="text-center mt-6">
+          <button
+            onClick={handlePrint}
+            disabled={isDownloading}
+            style={{
+              background: isDownloading ? "#9ca3af" : themeColor,
+              color: "white",
+              padding: "12px 24px",
+              borderRadius: "8px",
+              fontWeight: "600",
+              cursor: isDownloading ? "not-allowed" : "pointer",
+              opacity: isDownloading ? 0.7 : 1,
+              transition: "opacity 0.2s"
+            }}
+          >
+            {isDownloading ? (
+              <span>
+                <span className="animate-spin" style={{ display: "inline-block", marginRight: 8 }}>
+                  {/* Simple spinner SVG */}
+                  <svg width="18" height="18" viewBox="0 0 38 38" xmlns="http://www.w3.org/2000/svg" stroke="#fff">
+                    <g fill="none" fillRule="evenodd">
+                      <g transform="translate(1 1)" strokeWidth="3">
+                        <circle strokeOpacity=".3" cx="18" cy="18" r="18"/>
+                        <path d="M36 18c0-9.94-8.06-18-18-18">
+                          <animateTransform
+                            attributeName="transform"
+                            type="rotate"
+                            from="0 18 18"
+                            to="360 18 18"
+                            dur="1s"
+                            repeatCount="indefinite"/>
+                        </path>
+                      </g>
+                    </g>
+                  </svg>
+                </span>
+                Preparing PDF...
+              </span>
+            ) : (
+              "Download PDF"
+            )}
+          </button>
+        </div>
       </div>
     </div>
   );
