@@ -2,9 +2,11 @@ import { useState, useEffect } from "react";
 import { Edit } from "lucide-react";
 import { API_ENDPOINTS } from "../../../apiConfig";
 import StatusMessage from "../../../appComponents/StatusMessage";
+import SETTINGS from "../../../settings";
 
 export default function AssociationInfoCard({ data, loading, onUpdated }) {
   const assoc = data?.results?.[0] || null;
+  const domain = SETTINGS.BASE_DOMAIN;
 
   const initialForm = assoc
     ? {
@@ -168,14 +170,14 @@ export default function AssociationInfoCard({ data, loading, onUpdated }) {
           </button>
         )}
       </div>
+      {/* Show message regardless of edit state */}
+      {message.text && (
+        <StatusMessage type={message.type}>
+          {message.text}
+        </StatusMessage>
+      )}
       {edit ? (
         <div className="space-y-3">
-          {message.text && (
-            <StatusMessage type={message.type}>
-              {message.text}
-            </StatusMessage>
-          )}
-          
           <div>
             <label className="text-gray-400 text-sm">Logo</label>
             <div className="flex items-center gap-3 mt-1">
@@ -309,9 +311,45 @@ export default function AssociationInfoCard({ data, loading, onUpdated }) {
             <span className="text-gray-400 text-sm">Type:</span>
             <span className="ml-2 text-white">{assoc?.Association_type || "—"}</span>
           </div>
-          <div>
-            <span className="text-gray-400 text-sm">Website:</span>
-            <span className="ml-2 text-white">{assoc?.website || "—"}</span>
+          <div className="flex items-center gap-2">
+            <span className="text-gray-400 text-sm">Payment Link:</span>
+            <span className="ml-2 flex items-center gap-2">
+              {assoc?.association_short_name ? (
+                <>
+                  <a
+                    href={`https://${assoc.association_short_name}.${domain}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-white break-all"
+                  >
+                    {`https://${assoc.association_short_name}.${domain}`}
+                  </a>
+                  <button
+                    className="ml-1 text-gray-400 hover:text-purple-400"
+                    title="Copy payment link"
+                    onClick={() => {
+                      const link = `https://${assoc.association_short_name}.${domain}`;
+                      navigator.clipboard.writeText(link);
+                      setMessage({ type: 'success', text: 'Payment link copied!' });
+                    }}
+                    style={{ lineHeight: 0 }}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width={16}
+                      height={16}
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" strokeWidth="2"/>
+                      <rect x="2" y="2" width="13" height="13" rx="2" stroke="currentColor" strokeWidth="2"/>
+                    </svg>
+                  </button>
+                </>
+              ) : (
+                <span className="text-white">—</span>
+              )}
+            </span>
           </div>
         </div>
       )}

@@ -107,14 +107,14 @@ export default function BankInfoCard({ data, loading, onUpdated }) {
           </button>
         )}
       </div>
+      {/* Show message regardless of edit state */}
+      {message.text && (
+        <StatusMessage type={message.type}>
+          {message.text}
+        </StatusMessage>
+      )}
       {edit ? (
         <div className="space-y-3">
-          {message.text && (
-            <StatusMessage type={message.type}>
-              {message.text}
-            </StatusMessage>
-          )}
-          
           <div>
             <label className="text-gray-400 text-sm">Bank Name</label>
             <input

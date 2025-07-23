@@ -107,9 +107,16 @@ export default function AdminProfileCard({ data, loading, onUpdated }) {
           </button>
         )}
       </div>
+      {/* Show success message after edit */}
+      {!edit && message.type === "success" && message.text && (
+        <StatusMessage type={message.type}>
+          {message.text}
+        </StatusMessage>
+      )}
       {edit ? (
         <div className="space-y-3">
-          {message.text && (
+          {/* Show only error messages in edit mode */}
+          {message.type !== "success" && message.text && (
             <StatusMessage type={message.type}>
               {message.text}
             </StatusMessage>
