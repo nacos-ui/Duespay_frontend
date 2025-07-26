@@ -38,7 +38,7 @@ export default function Sidebar({ onClose }) {
               <Link
                 key={item.label}
                 to={item.to}
-                className={`flex items-center gap-2 px-4 py-5 rounded-4xl cursor-pointer
+                className={`flex items-center gap-2 px-3 py-4 rounded-3xl cursor-pointer
                   ${location.pathname === item.to ? 'bg-purple-700' : 'hover:bg-[#0F111F]'}`}
                 onClick={onClose}
               >
@@ -56,7 +56,7 @@ export default function Sidebar({ onClose }) {
             <h2 className="text-[#8C8C8C] font-sans font-semibold text-[16px] leading-6 mx-.5 mb-4">Settings</h2>
             <Link
               to="/settings"
-              className={`flex items-center gap-2 px-4 py-5 rounded-4xl cursor-pointer
+              className={`flex items-center gap-2 px-3 py-4 rounded-3xl cursor-pointer
                 ${location.pathname === '/settings' ? 'bg-purple-700' : 'hover:bg-[#0F111F]'}`}
               onClick={onClose}
             >
