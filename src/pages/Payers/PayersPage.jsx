@@ -10,7 +10,7 @@ import ConfirmationModal from "../../appComponents/ConfirmationModal";
 import { API_ENDPOINTS } from "../../apiConfig";  
 import { usePageTitle } from "../../hooks/usePageTitle";
 import { fetchWithTimeout, handleFetchError } from "../../utils/fetchUtils";
-import { exportPayers } from "../../utils/exportUtils";
+import { exportPayers } from "../../utils/exportUtils"; 
 
 export default function PayersPage() {
   const [payers, setPayers] = useState([]);
@@ -50,7 +50,7 @@ export default function PayersPage() {
       if (department) params.append("department", department);
       params.append("page", page);
 
-      const res = await fetchWithTimeout(`${API_ENDPOINTS.CREATE_PAYER}?${params.toString()}`, {
+      const res = await fetchWithTimeout(`${API_ENDPOINTS.GET_PAYERS}?${params.toString()}`, {
         headers: { Authorization: `Bearer ${token}` }
       }, 30000);
       

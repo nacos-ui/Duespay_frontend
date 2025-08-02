@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { API_ENDPOINTS } from '../../apiConfig';
 import SubmitButton from '../../appComponents/SubmitButton';
+import { fetchWithTimeout, handleFetchError } from '../../utils/fetchUtils';
 import { usePageTitle } from '../../hooks/usePageTitle';
 
 const PasswordResetConfirm = () => {
@@ -45,7 +46,7 @@ const PasswordResetConfirm = () => {
     }
 
     try {
-      const response = await fetch(API_ENDPOINTS.PASSWORD_RESET_CONFIRM, {
+      const response = await fetchWithTimeout(API_ENDPOINTS.PASSWORD_RESET_CONFIRM, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -55,7 +56,7 @@ const PasswordResetConfirm = () => {
           uid,
           password: formData.password
         })
-      });
+      }, 15000); // 15 second timeout for password reset confirm
 
       const data = await response.json();
 
@@ -78,7 +79,9 @@ const PasswordResetConfirm = () => {
         }
       }
     } catch (err) {
-      setError('Unable to connect to server. Please try again.');
+      // Use the error handler for consistent timeout/network error messages
+      const errorInfo = handleFetchError(err);
+      setError(errorInfo.message);
       console.error('Password reset confirm error:', err);
     } finally {
       setLoading(false);

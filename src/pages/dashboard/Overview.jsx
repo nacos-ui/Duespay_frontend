@@ -6,6 +6,7 @@ import PaymentCompletionChart from "./components/PaymentCompletionChart";
 import TopDepartments from "./components/TopDepartments";
 import { API_ENDPOINTS } from "../../apiConfig";
 import { usePageTitle } from "../../hooks/usePageTitle";
+import { fetchWithTimeout, handleFetchError } from '../../utils/fetchUtils'; 
 
 export default function Overview() {
   const [transactions, setTransactions] = useState([]);
@@ -18,15 +19,19 @@ export default function Overview() {
     const fetchTransactions = async () => {
       try {
         const token = localStorage.getItem("access_token");
-        const res = await fetch(API_ENDPOINTS.GET_TRANSACTIONS, {
+        const res = await fetchWithTimeout(API_ENDPOINTS.GET_TRANSACTIONS, {
           headers: {
             Authorization: `Bearer ${token}`
           }
-        });
+        }, 10000); // 10 second timeout for dashboard data
+        
         const data = await res.json();
         setTransactions(data.results || []);
         setMeta(data.meta || {});
       } catch (err) {
+        // Use error handler for consistent timeout/network error handling
+        const errorInfo = handleFetchError(err);
+        console.error('Failed to fetch dashboard data:', errorInfo.message);
         setTransactions([]);
         setMeta(null);
       } finally {

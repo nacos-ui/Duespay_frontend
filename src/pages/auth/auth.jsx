@@ -3,11 +3,11 @@ import { Sun, Moon } from 'lucide-react';
 import LoginForm from './login';
 import SignupForm from './signup';
 import PasswordReset from './passwordReset';
-import { useTheme } from '../../appComponents/ThemeContext';
+// import { useTheme } from '../../appComponents/ThemeContext';
 
 const AuthPage = () => {
   const [currentView, setCurrentView] = useState('login'); // 'login', 'signup', 'reset'
-  const { theme, toggleTheme } = useTheme();
+  // const { theme, toggleTheme } = useTheme();
 
   const toggleForm = () => {
     setCurrentView(currentView === 'login' ? 'signup' : 'login');

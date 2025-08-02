@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { Eye, EyeOff, ShoppingCart, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Check } from 'lucide-react';
 import { API_ENDPOINTS } from '../../apiConfig';
+import StatusMessage from '../../appComponents/StatusMessage';
 import SubmitButton from '../../appComponents/SubmitButton';
 import { usePageTitle } from '../../hooks/usePageTitle';
+import { fetchWithTimeout, handleFetchError } from '../../utils/fetchUtils'; // Add this import
 
 const signupURL = API_ENDPOINTS.SIGNUP;
 
@@ -29,54 +31,38 @@ const SignupForm = ({ onToggle }) => {
     e.preventDefault();
     setLoading(true);
     setError('');
-    setFieldErrors({}); 
-    
-    if (formData.password !== formData.confirmPassword) {
-      setFieldErrors({confirmPassword: 'Passwords do not match'});
-      setLoading(false);
-      return;
-    }
+    setFieldErrors({});
 
     try {
-      const response = await fetch(signupURL, {
+      // Use fetchWithTimeout instead of direct api call
+      const response = await fetchWithTimeout(signupURL, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           username: formData.username,
-          email: formData.email,
-          phone_number: formData.phone_number,
           first_name: formData.first_name,
           last_name: formData.last_name,
+          email: formData.email,
+          phone_number: formData.phone_number,
           password: formData.password
         })
-      });
+      }, 20000); // 20 second timeout for signup
 
       const data = await response.json();
-      console.log('Registration response:', data);
 
       if (response.ok) {
         setSuccess(true);
-        setTimeout(() => {
-          onToggle(); // Switch to login form
-        }, 2000);
       } else {
-        // Handle field-specific errors
-        if (data.errors && typeof data.errors === 'object') {
+        if (data.errors) {
           setFieldErrors(data.errors);
-        }
-        
-        // Handle general error message
-        if (data.message || data.detail) {
-          setError(data.message || data.detail);
-        } else if (!data.errors) {
-          setError('Registration failed. Please try again.');
+        } else {
+          setError(data.message || data.detail || 'Signup failed. Please try again.');
         }
       }
     } catch (err) {
-      setError('Unable to connect to server. Please try again.');
-      console.error('Registration error:', err);
+      // Use the error handler for consistent timeout/network error messages
+      const errorInfo = handleFetchError(err);
+      setError(errorInfo.message);
     } finally {
       setLoading(false);
     }
@@ -87,14 +73,11 @@ const SignupForm = ({ onToggle }) => {
       <div className="text-center space-y-6">
         <div className="flex items-center justify-center mb-4">
           <div className="bg-green-600 p-2 rounded-lg">
-            <ShoppingCart className="h-6 w-6 text-white" />
+            <Check className="h-6 w-6 text-white" />
           </div>
         </div>
         <h2 className="text-2xl font-bold text-white mb-2">Account Created!</h2>
-        <p className="text-gray-400">Your account has been successfully created. Redirecting to login...</p>
-        <div className="flex items-center justify-center">
-          <Loader2 className="h-6 w-6 animate-spin text-purple-500" />
-        </div>
+        <p className="text-gray-400">Your account has been successfully created. You can now sign in.</p>
       </div>
     );
   }

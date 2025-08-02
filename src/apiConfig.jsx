@@ -1,5 +1,5 @@
-// export const API_BASE_URL = "http://localhost:8000";
-export const API_BASE_URL = "https://duespay.onrender.com";
+export const API_BASE_URL = "http://localhost:8000";
+// export const API_BASE_URL = "https://duespay.onrender.com";
 // export const API_BASE_URL = "https://duespay.pythonanywhere.com"; 
 
 export const API_ENDPOINTS = {
@@ -27,7 +27,7 @@ export const API_ENDPOINTS = {
   GET_ASSOCIATION: `${API_BASE_URL}/association/`,
 
   // Payers endpoints
-  CREATE_PAYER: `${API_BASE_URL}/payers/`,
+  GET_PAYERS: `${API_BASE_URL}/payers/`,
   GET_PAYER: (id) => `${API_BASE_URL}/payers/${id}/`,
   PAYER_CHECK: `${API_BASE_URL}/payer-check/`,
 

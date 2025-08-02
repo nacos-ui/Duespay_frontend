@@ -1,8 +1,10 @@
+import api from './api'; 
+
 export const fetchWithTimeout = (url, options = {}, timeout = 30000) => {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeout);
   
-  return fetch(url, {
+  return api(url, {
     ...options,
     signal: controller.signal,
   }).finally(() => {
@@ -18,7 +20,7 @@ export const handleFetchError = (error) => {
     };
   }
   
-  if (error.message && error.message.includes('fetch')) {
+  if (error.message && error.message.includes('Network Error')) {
     return {
       isTimeout: false,
       message: "Network error. Please check your connection and try again."

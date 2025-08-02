@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { API_ENDPOINTS } from "../../../apiConfig";
+import { fetchWithTimeout, handleFetchError } from "../../../utils/fetchUtils";
 
 export default function PayerTransactionsModal({ matricNumber, onClose, onViewTransaction }) {
   const [transactions, setTransactions] = useState([]);
@@ -11,12 +12,20 @@ export default function PayerTransactionsModal({ matricNumber, onClose, onViewTr
       setLoading(true);
       try {
         const token = localStorage.getItem("access_token");
-        const res = await fetch(`${API_ENDPOINTS.GET_TRANSACTIONS}?search=${matricNumber}`, {
+        const res = await fetchWithTimeout(`${API_ENDPOINTS.GET_TRANSACTIONS}?search=${matricNumber}`, {
           headers: { Authorization: `Bearer ${token}` }
-        });
-        const data = await res.json();
-        setTransactions(data.results || []);
-      } catch {
+        }, 10000); // 10 second timeout for fetching payer transactions
+        
+        if (res.ok) {
+          const data = await res.json();
+          setTransactions(data.results || []);
+        } else {
+          console.error('Failed to fetch payer transactions');
+          setTransactions([]);
+        }
+      } catch (error) {
+        const errorInfo = handleFetchError(error);
+        console.error('Error fetching payer transactions:', errorInfo.message);
         setTransactions([]);
       } finally {
         setLoading(false);

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Edit } from "lucide-react";
 import { API_ENDPOINTS } from "../../../apiConfig";
 import StatusMessage from "../../../appComponents/StatusMessage";
+import { fetchWithTimeout, handleFetchError } from "../../../utils/fetchUtils";
 
 export default function BankInfoCard({ data, loading, onUpdated }) {
   // Extract the first result or null
@@ -63,11 +64,11 @@ export default function BankInfoCard({ data, loading, onUpdated }) {
       : API_ENDPOINTS.GET_CREATE_BANK_ACCOUNT;
 
     try {
-      const res = await fetch(url, {
+      const res = await fetchWithTimeout(url, {
         method,
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify(form),
-      });
+      }, 15000); // 15 second timeout for bank info update
 
       if (res.ok) {
         const updated = await res.json();
@@ -85,7 +86,8 @@ export default function BankInfoCard({ data, loading, onUpdated }) {
         setSaving(false);
       }
     } catch (error) {
-      setMessage({ type: 'error', text: 'Network error occurred. Please try again.' });
+      const errorInfo = handleFetchError(error);
+      setMessage({ type: 'error', text: errorInfo.message });
       setSaving(false);
     }
   };

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { X } from "lucide-react";
 import { API_ENDPOINTS } from "../../../apiConfig";
+import { fetchWithTimeout, handleFetchError } from "../../../utils/fetchUtils";
 
 export default function TransactionDetailsModal({ transaction, onClose, onStatusChange }) {
   const [verifying, setVerifying] = useState(false);
@@ -13,7 +14,7 @@ export default function TransactionDetailsModal({ transaction, onClose, onStatus
     setError("");
     try {
       const token = localStorage.getItem("access_token");
-      const res = await fetch(API_ENDPOINTS.DETAIL_TRANSACTION(transaction.id), {
+      const res = await fetchWithTimeout(API_ENDPOINTS.DETAIL_TRANSACTION(transaction.id), {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -22,12 +23,14 @@ export default function TransactionDetailsModal({ transaction, onClose, onStatus
         body: JSON.stringify({
           is_verified: !transaction.is_verified,
         }),
-      });
+      }, 15000); // 15 second timeout for transaction verification toggle
+      
       if (!res.ok) throw new Error("Failed to update status");
       if (onStatusChange) onStatusChange();
       if (onClose) onClose(); 
     } catch (err) {
-      setError("Could not update verification status.");
+      const errorInfo = handleFetchError(err);
+      setError(errorInfo.message || "Could not update verification status.");
     } finally {
       setVerifying(false);
     }

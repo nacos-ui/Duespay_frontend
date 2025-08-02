@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ArrowLeft, Mail, CheckCircle, Loader2 } from 'lucide-react';
 import { API_ENDPOINTS } from '../../apiConfig';
 import SubmitButton from '../../appComponents/SubmitButton';
+import { fetchWithTimeout, handleFetchError } from '../../utils/fetchUtils';
 import { usePageTitle } from '../../hooks/usePageTitle';
 
 const PasswordReset = ({ onBack }) => {
@@ -20,13 +21,13 @@ const PasswordReset = ({ onBack }) => {
     setFieldErrors({});
 
     try {
-      const response = await fetch(API_ENDPOINTS.PASSWORD_RESET, {
+      const response = await fetchWithTimeout(API_ENDPOINTS.PASSWORD_RESET, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ email })
-      });
+      }, 15000); // 15 second timeout for password reset
 
       const data = await response.json();
 
@@ -46,7 +47,9 @@ const PasswordReset = ({ onBack }) => {
         }
       }
     } catch (err) {
-      setError('Unable to connect to server. Please try again.');
+      // Use the error handler for consistent timeout/network error messages
+      const errorInfo = handleFetchError(err);
+      setError(errorInfo.message);
       console.error('Password reset error:', err);
     } finally {
       setLoading(false);

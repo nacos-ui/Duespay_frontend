@@ -9,6 +9,7 @@ import FormInput from './components/FormInput';
 import FileUpload from './components/FileUpload';
 import ColorPicker from './components/ColorPicker';
 import FormSelect from './components/FormSelect';
+import { fetchWithTimeout, handleFetchError } from '../../utils/fetchUtils'; 
 
 
 // Main Association Form Component
@@ -39,11 +40,12 @@ const AssociationForm = () => {
     const fetchAssociation = async () => {
       try {
         const token = localStorage.getItem("access_token");
-        const response = await fetch(API_ENDPOINTS.CREATE_ASSOCIATION, {
+        const response = await fetchWithTimeout(API_ENDPOINTS.CREATE_ASSOCIATION, {
           headers: {
             "Authorization": `Bearer ${token}`,
           },
-        });
+        }, 10000); // 10 second timeout for fetching association
+        
         if (response.ok) {
           const data = await response.json();
           // Use the first association from results array
@@ -60,7 +62,9 @@ const AssociationForm = () => {
           }
         }
       } catch (err) {
-        // Optionally handle error
+        // Handle timeout/network errors silently for fetching existing data
+        const errorInfo = handleFetchError(err);
+        console.log('Failed to fetch existing association:', errorInfo.message);
       }
     };
     fetchAssociation();
@@ -119,13 +123,13 @@ const AssociationForm = () => {
         method = "PUT";
       }
 
-      const response = await fetch(url, {
+      const response = await fetchWithTimeout(url, {
         method,
         body: submitData,
         headers: {
           "Authorization": `Bearer ${token}`,
         },
-      });
+      }, 30000); // 30 second timeout for association creation/update (file upload takes longer)
 
       if (response.ok) {
         setSuccess('Association Created successfully!');
@@ -139,7 +143,9 @@ const AssociationForm = () => {
         setSuccess('');
       }
     } catch (error) {
-      setError('Error Creating association. Please try again.');
+      // Use the error handler for consistent timeout/network error messages
+      const errorInfo = handleFetchError(error);
+      setError(errorInfo.message);
       setSuccess('');
     } finally {
       setLoading(false);

@@ -5,6 +5,7 @@ import AdminProfileCard from "./components/AdminProfileCard";
 import AssociationInfoCard from "./components/AssociationInfoCard"
 import { API_ENDPOINTS } from "../../apiConfig";
 import { usePageTitle } from "../../hooks/usePageTitle";
+import { fetchWithTimeout, handleFetchError } from "../../utils/fetchUtils";
 
 export default function SettingsPage() {
   const [bankInfo, setBankInfo] = useState(null);
@@ -13,19 +14,48 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
 
   usePageTitle("Settings - DuesPay");
+  
   // Fetch all settings data
   useEffect(() => {
-    const token = localStorage.getItem("access_token");
-    setLoading(true);
-    Promise.all([
-      fetch(API_ENDPOINTS.GET_CREATE_BANK_ACCOUNT, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()),
-      fetch(API_ENDPOINTS.GET_ADMIN_USER, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()),
-      fetch(API_ENDPOINTS.GET_ASSOCIATION, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()),
-    ]).then(([bank, admin, assoc]) => {
-      setBankInfo(bank);
-      setAdmin(admin);
-      setAssociation(assoc);
-    }).finally(() => setLoading(false));
+    const fetchSettingsData = async () => {
+      const token = localStorage.getItem("access_token");
+      setLoading(true);
+      
+      try {
+        const [bankResponse, adminResponse, assocResponse] = await Promise.all([
+          fetchWithTimeout(API_ENDPOINTS.GET_CREATE_BANK_ACCOUNT, { 
+            headers: { Authorization: `Bearer ${token}` } 
+          }, 10000), // 10 second timeout for bank info
+          fetchWithTimeout(API_ENDPOINTS.GET_ADMIN_USER, { 
+            headers: { Authorization: `Bearer ${token}` } 
+          }, 10000), // 10 second timeout for admin data
+          fetchWithTimeout(API_ENDPOINTS.GET_ASSOCIATION, { 
+            headers: { Authorization: `Bearer ${token}` } 
+          }, 10000), // 10 second timeout for association data
+        ]);
+
+        const [bankData, adminData, assocData] = await Promise.all([
+          bankResponse.ok ? bankResponse.json() : null,
+          adminResponse.ok ? adminResponse.json() : null,
+          assocResponse.ok ? assocResponse.json() : null,
+        ]);
+
+        setBankInfo(bankData);
+        setAdmin(adminData);
+        setAssociation(assocData);
+      } catch (error) {
+        const errorInfo = handleFetchError(error);
+        console.error('Failed to fetch settings data:', errorInfo.message);
+        // Set default values on error
+        setBankInfo(null);
+        setAdmin(null);
+        setAssociation(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSettingsData();
   }, []);
 
   // Optionally, add update handlers for each card to refresh data after edits

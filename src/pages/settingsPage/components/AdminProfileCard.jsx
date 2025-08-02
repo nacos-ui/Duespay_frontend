@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Edit, Eye, EyeOff } from "lucide-react";
 import { API_ENDPOINTS } from "../../../apiConfig";
 import StatusMessage from "../../../appComponents/StatusMessage";
+import { fetchWithTimeout, handleFetchError } from "../../../utils/fetchUtils";
 
 export default function AdminProfileCard({ data, loading, onUpdated }) {
   const [edit, setEdit] = useState(false);
@@ -59,11 +60,11 @@ export default function AdminProfileCard({ data, loading, onUpdated }) {
     }
 
     try {
-      const res = await fetch(API_ENDPOINTS.GET_ADMIN_USER, {
+      const res = await fetchWithTimeout(API_ENDPOINTS.GET_ADMIN_USER, {
         method: "PATCH",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify(updateData),
-      });
+      }, 15000); // 15 second timeout for admin profile update
       
       if (res.ok) {
         const updated = await res.json();
@@ -78,7 +79,8 @@ export default function AdminProfileCard({ data, loading, onUpdated }) {
         setSaving(false);
       }
     } catch (error) {
-      setMessage({ type: 'error', text: 'Network error occurred' });
+      const errorInfo = handleFetchError(error);
+      setMessage({ type: 'error', text: errorInfo.message });
       setSaving(false);
     }
   };

@@ -3,6 +3,7 @@ import { Edit } from "lucide-react";
 import { API_ENDPOINTS } from "../../../apiConfig";
 import StatusMessage from "../../../appComponents/StatusMessage";
 import SETTINGS from "../../../settings";
+import { fetchWithTimeout, handleFetchError } from "../../../utils/fetchUtils";
 
 export default function AssociationInfoCard({ data, loading, onUpdated }) {
   const assoc = data?.results?.[0] || null;
@@ -116,11 +117,11 @@ export default function AssociationInfoCard({ data, loading, onUpdated }) {
         };
       }
 
-      const res = await fetch(url, {
+      const res = await fetchWithTimeout(url, {
         method,
         headers,
         body,
-      });
+      }, 30000); // 30 second timeout for association update (includes file upload)
 
       if (res.ok) {
         const updated = await res.json();
@@ -138,7 +139,8 @@ export default function AssociationInfoCard({ data, loading, onUpdated }) {
         setSaving(false);
       }
     } catch (error) {
-      setMessage({ type: 'error', text: 'Network error occurred. Please try again.' });
+      const errorInfo = handleFetchError(error);
+      setMessage({ type: 'error', text: errorInfo.message });
       setSaving(false);
     }
   };

@@ -5,6 +5,7 @@ import { API_ENDPOINTS } from '../../apiConfig';
 import StatusMessage from '../../appComponents/StatusMessage';
 import SubmitButton from '../../appComponents/SubmitButton';
 import { usePageTitle } from '../../hooks/usePageTitle';
+import { fetchWithTimeout, handleFetchError } from '../../utils/fetchUtils'; // Add this import
 
 const loginURL = API_ENDPOINTS.LOGIN;
 
@@ -25,22 +26,26 @@ const LoginForm = ({ onToggle, onForgotPassword }) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    
     try {
-      const response = await fetch(loginURL, {
+      // Use fetchWithTimeout instead of direct api call
+      const response = await fetchWithTimeout(loginURL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           username: formData.username,
           password: formData.password
         })
-      });
+      }, 15000); // 15 second timeout for login
 
       const data = await response.json();
 
       if (response.ok) {
         localStorage.setItem('access_token', data.access);
         localStorage.setItem('refresh_token', data.refresh);
+        
         setSuccess('Login successful!');
+        
         setTimeout(() => {
           if (data.is_first_login) {
             navigate('/create-association');
@@ -52,7 +57,9 @@ const LoginForm = ({ onToggle, onForgotPassword }) => {
         setError(data.message || data.detail || 'Login failed. Please check your credentials.');
       }
     } catch (err) {
-      setError('Unable to connect to server. Please try again.');
+      // Use the error handler for consistent timeout/network error messages
+      const errorInfo = handleFetchError(err);
+      setError(errorInfo.message);
     } finally {
       setLoading(false);
     }
