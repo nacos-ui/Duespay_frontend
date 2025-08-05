@@ -4,11 +4,12 @@ import PaymentItemCard from "./components/PaymentItemCards";
 import PaymentItemSkeleton from "./components/PaymentItemSkeleton";
 import MainLayout from "../../layouts/mainLayout";
 import { API_ENDPOINTS } from "../../apiConfig";
-import StatusMessage from "../../appComponents/StatusMessage";
+import StatusMessage from "../../components/StatusMessage";
 import PaymentItemForm from "./components/PaymentItemForm";
 import { usePageTitle } from "../../hooks/usePageTitle";
 import { fetchWithTimeout, handleFetchError } from "../../utils/fetchUtils";
-import ConfirmationModal from "../../appComponents/ConfirmationModal";
+import ConfirmationModal from "../../components/ConfirmationModal";
+import { useSession } from "../../contexts/SessionContext";
 
 export default function PaymentItems() {
   const [search, setSearch] = useState("");
@@ -27,14 +28,27 @@ export default function PaymentItems() {
   const [itemToDelete, setItemToDelete] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
+  // Get current session from context
+  const { currentSession, loading: sessionLoading } = useSession();
+
   usePageTitle("Payment Items - DuesPay");
   
   // Fetch payment items with filters
   const fetchPaymentItems = async () => {
+    // Don't fetch if no current session
+    if (!currentSession?.id) {
+      setIsLoading(false);
+      return;
+    }
+
     setIsLoading(true);
     try {
       const token = localStorage.getItem("access_token");
       const params = new URLSearchParams();
+      
+      // Add session filter
+      params.append("session_id", currentSession.id);
+      
       if (search) params.append("search", search);
       if (status) params.append("status", status);
       if (type) params.append("type", type);
@@ -48,7 +62,6 @@ export default function PaymentItems() {
 
       if (!res.ok) throw new Error("Failed to fetch payment items");
       const data = await res.json();
-      // Always use data.results if present, else fallback
       setPaymentItems(Array.isArray(data.results) ? data.results : (Array.isArray(data) ? data : []));
     } catch (err) {
       const { message } = handleFetchError(err);
@@ -60,9 +73,20 @@ export default function PaymentItems() {
   };
 
   useEffect(() => {
+    // Listen for session changes
+    const handleSessionChange = () => {
+      console.log('Session changed - refetching payment items');
+      fetchPaymentItems();
+    };
+
+    window.addEventListener('sessionChanged', handleSessionChange);
+    return () => window.removeEventListener('sessionChanged', handleSessionChange);
+  }, [currentSession?.id]);
+
+  useEffect(() => {
     fetchPaymentItems();
     // eslint-disable-next-line
-  }, [search, status, type]);
+  }, [search, status, type, currentSession?.id]);
 
   // Success/error message auto-clear
   useEffect(() => {
@@ -77,24 +101,37 @@ export default function PaymentItems() {
 
   // Add Payment Item
   const handleAddPaymentItem = async (form, setFormError) => {
+    if (!currentSession?.id) {
+      setFormError("No active session selected");
+      return;
+    }
+
     setFormLoading(true);
     setFormError("");
     setError("");
     setSuccess("");
     try {
       const token = localStorage.getItem("access_token");
+      
+      // Include session ID in the form data
+      const formWithSession = {
+        ...form,
+        session: currentSession.id
+      };
+
       const res = await fetchWithTimeout(API_ENDPOINTS.PAYMENT_ITEMS, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`,
         },
-        body: JSON.stringify(form),
+        body: JSON.stringify(formWithSession),
       }, 30000); // 30 seconds timeout
 
       if (!res.ok) {
         const err = await res.json();
-        setFormError(err.detail || "Failed to create payment item");
+        console.error('Create payment item error:', err);
+        setFormError(err.detail || err.message || "Failed to create payment item");
         return;
       }
       setShowForm(false);
@@ -110,24 +147,37 @@ export default function PaymentItems() {
 
   // Edit Payment Item
   const handleEditPaymentItem = async (form, setFormError) => {
+    if (!currentSession?.id) {
+      setFormError("No active session selected");
+      return;
+    }
+
     setFormLoading(true);
     setFormError("");
     setError("");
     setSuccess("");
     try {
       const token = localStorage.getItem("access_token");
+      
+      // Include session ID in the form data
+      const formWithSession = {
+        ...form,
+        session: currentSession.id
+      };
+
       const res = await fetchWithTimeout(`${API_ENDPOINTS.PAYMENT_ITEMS}${editItem.id}/`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`,
         },
-        body: JSON.stringify(form),
+        body: JSON.stringify(formWithSession),
       }, 30000); // 30 seconds timeout
 
       if (!res.ok) {
         const err = await res.json();
-        setFormError(err.detail || "Failed to update payment item");
+        console.error('Update payment item error:', err);
+        setFormError(err.detail || err.message || "Failed to update payment item");
         return;
       }
       setEditItem(null);
@@ -184,13 +234,51 @@ export default function PaymentItems() {
     setError("");
   };
 
+  // Show loading while session is loading
+  if (sessionLoading) {
+    return (
+      <MainLayout>
+        <div className="sm:p-8 mt-20 bg-transparent min-h-screen">
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto"></div>
+            <p className="text-gray-400 mt-4">Loading session...</p>
+          </div>
+        </div>
+      </MainLayout>
+    );
+  }
+
+  // Show no session message
+  if (!currentSession) {
+    return (
+      <MainLayout>
+        <div className="sm:p-8 mt-20 bg-transparent min-h-screen">
+          <div className="text-center py-12">
+            <h1 className="text-2xl font-bold text-white mb-4">No Active Session</h1>
+            <p className="text-gray-400 mb-6">
+              Please select a session to manage payment items.
+            </p>
+            <button
+              onClick={() => window.location.href = '/settings'}
+              className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
+            >
+              Go to Settings
+            </button>
+          </div>
+        </div>
+      </MainLayout>
+    );
+  }
+
   return (
     <MainLayout>
       <div className="sm:p-8 mt-20 bg-transparent min-h-screen">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-2">
           <div>
             <h1 className="text-2xl font-bold text-white">Payment Items</h1>
-            <p className="text-gray-400 text-sm">Manage your organization&apos;s payment options</p>
+            <p className="text-gray-400 text-sm">
+              Manage payment options for {currentSession.title}
+            </p>
           </div>
           <button
             className="mt-3 sm:mt-0 flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-2xl transition"
@@ -235,14 +323,9 @@ export default function PaymentItems() {
             <option value="compulsory">Compulsory</option>
             <option value="optional">Optional</option>
           </select>
-          {/* <button className="flex items-center gap-2 bg-[#23263A] text-white px-4 py-2 rounded">
-            <Upload className="w-4 h-4" /> Export
-          </button> */}
         </div>
 
         <div className="flex items-center gap-2 mb-2">
-          {/* <input type="checkbox" id="selectAll" className="accent-purple-600" /> */}
-          {/* <label htmlFor="selectAll" className="text-gray-300 text-sm">Select All</label> */}
           <span className="ml-auto text-gray-400 text-xs">{paymentItems.length} items</span>
         </div>
 
@@ -253,7 +336,7 @@ export default function PaymentItems() {
                 <div className="col-span-full text-center text-gray-400 py-12">
                   {typeof paymentItems === "object" && paymentItems.message
                     ? paymentItems.message
-                    : "No payment items found."}
+                    : "No payment items found for this session."}
                 </div>
               ) : (
                 paymentItems.map((item, idx) => (

@@ -6,8 +6,8 @@ import RegistrationStep from './components/RegistrationStep';
 import PaymentSelectionStep from './components/PaymentSelectionStep';
 import UploadReceiptStep from './components/UploadReceiptStep';
 import ConfirmationStep from './components/ConfirmationStep';
-import ErrorModal from '../../appComponents/ErrorModal';
-import { fetchWithErrorModal } from '../../appComponents/fetchWithErrorModal';
+import ErrorModal from '../../components/ErrorModal';
+import { fetchWithErrorModal } from '../../components/fetchWithErrorModal';
 import { fetchWithTimeout, handleFetchError } from '../../utils/fetchUtils';
 import { API_ENDPOINTS } from '../../apiConfig';
 import { usePageTitle } from "../../hooks/usePageTitle";
@@ -147,27 +147,41 @@ const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
       formData.append('payment_item_ids', id);
     });
 
+    // Convert selected items - try sending as individual fields instead of JSON
+    // selectedItems.forEach(itemId => {
+    //   formData.append('payment_item_ids', itemId);
+    // });
+
+    // Try using native fetch instead of the api wrapper for FormData
     try {
-      const res = await fetchWithErrorModal(
-        fetchWithTimeout(
-          API_ENDPOINTS.VERIFY_AND_CREATE_TRANSACTION,
-          {
-            method: 'POST',
-            body: formData,
-          },
-          50000 // 50 seconds timeout for file upload and verification
-        ),
-        (error) => {
-          const { isTimeout, message } = handleFetchError(error);
-          setModalError({
-            open: true,
-            title: isTimeout ? "Request Timeout" : "Error",
-            message: message
-          });
-        }
-      );
-      return await res.json();
+      console.log('Making API request to:', API_ENDPOINTS.VERIFY_AND_CREATE_TRANSACTION);
+      
+      // Use native fetch for FormData to avoid axios complications
+      const response = await fetch(API_ENDPOINTS.VERIFY_AND_CREATE_TRANSACTION, {
+        method: 'POST',
+        body: formData,
+        // Don't set Content-Type - let browser handle it for FormData
+      });
+      
+      console.log('API response status:', response.status);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.log('Backend error response:', errorData);
+        setModalError({
+          open: true,
+          title: "Backend Error",
+          message: JSON.stringify(errorData, null, 2)
+        });
+        return null;
+      }
+      
+      const responseData = await response.json();
+      console.log('API response data:', responseData);
+      
+      return responseData;
     } catch (err) {
+      console.error('Request error:', err);
       const { isTimeout, message } = handleFetchError(err);
       setModalError({
         open: true,

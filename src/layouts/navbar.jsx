@@ -1,11 +1,12 @@
 import { Bell, Settings, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import { Link } from "react-router-dom";
-import { useTheme } from "../appComponents/ThemeContext";
-import { Sun, Moon } from "lucide-react";
 import { useState, useEffect } from "react";
 import NotificationsModal from "./NotificationsModal";
+import ProfileAvatar from "../components/ProfileAvatar";
 import { API_ENDPOINTS } from "../apiConfig";
+import { fetchWithTimeout, handleFetchError } from '../utils/fetchUtils';
+import { useSession } from "../contexts/SessionContext";
 
 const navItems = [
   { label: 'Dashboard Overview', to: '/dashboard/overview' },
@@ -16,7 +17,7 @@ const navItems = [
 
 export default function Navbar({ onToggleSidebar, sidebarOpen }) {
   const location = useLocation();
-  const { theme, toggleTheme } = useTheme();
+  const { loading: sessionLoading } = useSession();
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 
@@ -25,28 +26,34 @@ export default function Navbar({ onToggleSidebar, sidebarOpen }) {
   const centerTitle = currentNav ? currentNav.label : "";
 
   useEffect(() => {
-    fetchUnreadCount();
-    // Set up interval to check for new notifications every 30 seconds
-    const interval = setInterval(fetchUnreadCount, 30000);
-    return () => clearInterval(interval);
-  }, []);
+    // Only fetch notifications after session is loaded
+    if (!sessionLoading) {
+      fetchUnreadCount();
+      // Set up interval to check for new notifications every 30 seconds
+      const interval = setInterval(fetchUnreadCount, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [sessionLoading]);
 
   const fetchUnreadCount = async () => {
     try {
       const token = localStorage.getItem('access_token');
-      const response = await fetch(API_ENDPOINTS.UNREAD_NOTIFICATIONS_COUNT, {
+      if (!token) return;
+
+      const response = await fetchWithTimeout(API_ENDPOINTS.UNREAD_NOTIFICATIONS_COUNT, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-      });
+      }, 10000);
       
       if (response.ok) {
         const data = await response.json();
         setUnreadCount(data.unread_count);
       }
     } catch (error) {
-      console.error('Error fetching unread count:', error);
+      const errorInfo = handleFetchError(error);
+      console.error('Error fetching unread count:', errorInfo.message);
     }
   };
 
@@ -64,7 +71,6 @@ export default function Navbar({ onToggleSidebar, sidebarOpen }) {
             onClick={onToggleSidebar}
             aria-label="Toggle sidebar"
           >
-            {/* Show open/close icon based on sidebar state */}
             {sidebarOpen ? (
               <PanelLeftClose className="w-6 h-6 text-white" />
             ) : (
@@ -79,7 +85,7 @@ export default function Navbar({ onToggleSidebar, sidebarOpen }) {
                 className="h-7 w-7 rounded-lg object-cover bg-white"
               />
             </div>
-            <span className="text-white font-bold text-lg" style={{ color: "#ffffff" }}>uesPay</span>
+            <span className="text-white font-bold text-lg">uesPay</span>
           </div>
 
           {/* Center: Title (hide on small screens) */}
@@ -89,19 +95,12 @@ export default function Navbar({ onToggleSidebar, sidebarOpen }) {
 
           {/* Right: Icons and Avatar */}
           <div className="flex items-center gap-4 ml-auto">
-            {/* <button
-              onClick={toggleTheme}
-              className="bg-slate-800 text-white p-2 rounded-full shadow hover:bg-slate-700 transition"
-              aria-label="Toggle theme"
-            >
-              {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
-            </button> */}
-            
             {/* Notifications Button */}
             <button
               onClick={() => setShowNotifications(true)}
               className="relative p-2 hover:bg-gray-800 rounded-full transition"
               aria-label="View notifications"
+              disabled={sessionLoading}
             >
               <Bell className="w-5 h-5 text-gray-300 hover:text-white" />
               {unreadCount > 0 && (
@@ -114,9 +113,9 @@ export default function Navbar({ onToggleSidebar, sidebarOpen }) {
             <Link to="/settings">
               <Settings className="w-5 h-5 text-gray-300 hover:text-white cursor-pointer" />
             </Link>
-            <div className="bg-purple-600 w-8 h-8 rounded-full flex items-center justify-center font-bold text-white cursor-pointer">
-              P
-            </div>
+            
+            {/* Profile Avatar - Always show, but with loading state */}
+            <ProfileAvatar />
           </div>
         </div>
       </div>

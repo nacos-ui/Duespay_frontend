@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ArrowLeft, Mail, CheckCircle, Loader2 } from 'lucide-react';
 import { API_ENDPOINTS } from '../../apiConfig';
-import SubmitButton from '../../appComponents/SubmitButton';
+import SubmitButton from '../../components/SubmitButton';
 import { fetchWithTimeout, handleFetchError } from '../../utils/fetchUtils';
 import { usePageTitle } from '../../hooks/usePageTitle';
 

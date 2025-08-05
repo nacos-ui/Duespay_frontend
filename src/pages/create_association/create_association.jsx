@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Upload, ShoppingCart } from 'lucide-react';
-import StatusMessage from '../../appComponents/StatusMessage';
-import SubmitButton from '../../appComponents/SubmitButton';
+import StatusMessage from '../../components/StatusMessage';
+import SubmitButton from '../../components/SubmitButton';
 import { API_ENDPOINTS } from '../../apiConfig';
 import { usePageTitle } from '../../hooks/usePageTitle';
 import FormInput from './components/FormInput';

@@ -321,6 +321,42 @@ const ReceiptPage = () => {
               padding: "16px",
               background: "#fafbfc66",
             }}>
+              {/* Session Title */}
+              {receipt.session_title && (
+                <div style={{ 
+                  display: "flex",
+                  flexDirection: "row",
+                  alignItems: "center",
+                  flexWrap: "wrap"
+                }}>
+                  <div style={{ 
+                    fontSize: "11px", 
+                    fontWeight: "600", 
+                    color: "#6b7280",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.5px",
+                    width: "140px",
+                    textAlign: "left",
+                    flexShrink: 0,
+                  }}>
+                    SESSION:
+                  </div>
+                  <div style={{ 
+                    fontSize: "15px", 
+                    fontWeight: "700",
+                    color: "#374151",
+                    lineHeight: "1.4",
+                    flex: "1",
+                    minWidth: "200px",
+                    marginLeft: "0",
+                    wordWrap: "break-word",
+                    overflowWrap: "break-word"
+                  }}>
+                    {receipt.session_title}
+                  </div>
+                </div>
+              )}
+
               {/* Payment From */}
               <div style={{ 
                 display: "flex",

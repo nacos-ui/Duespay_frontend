@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { API_ENDPOINTS } from '../../apiConfig';
-import SubmitButton from '../../appComponents/SubmitButton';
+import SubmitButton from '../../components/SubmitButton';
 import { fetchWithTimeout, handleFetchError } from '../../utils/fetchUtils';
 import { usePageTitle } from '../../hooks/usePageTitle';
 

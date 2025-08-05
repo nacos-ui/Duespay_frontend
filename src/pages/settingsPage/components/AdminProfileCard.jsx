@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { Edit, Eye, EyeOff } from "lucide-react";
 import { API_ENDPOINTS } from "../../../apiConfig";
-import StatusMessage from "../../../appComponents/StatusMessage";
+import StatusMessage from "../../../components/StatusMessage";
 import { fetchWithTimeout, handleFetchError } from "../../../utils/fetchUtils";
+import SettingsCardSkeleton from "./SettingsCardSkeleton";
 
 export default function AdminProfileCard({ data, loading, onUpdated }) {
   const [edit, setEdit] = useState(false);
@@ -64,7 +65,7 @@ export default function AdminProfileCard({ data, loading, onUpdated }) {
         method: "PATCH",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify(updateData),
-      }, 15000); // 15 second timeout for admin profile update
+      }, 15000);
       
       if (res.ok) {
         const updated = await res.json();
@@ -92,9 +93,7 @@ export default function AdminProfileCard({ data, loading, onUpdated }) {
     }));
   };
 
-  if (loading && !data) return (
-    <div className="bg-gray-900 rounded-xl p-6 min-h-[260px] animate-pulse" />
-  );
+  if (loading && !data) return <SettingsCardSkeleton />;
 
   return (
     <div className="bg-gray-900 rounded-xl p-6 min-h-[260px] min-w-auto flex-wrap wrap-break-word relative">
@@ -104,20 +103,23 @@ export default function AdminProfileCard({ data, loading, onUpdated }) {
           Admin Profile
         </h2>
         {!edit && (
-          <button className="text-purple-400" onClick={() => setEdit(true)}>
+          <button 
+            className="text-purple-400 hover:text-purple-300 transition-colors"
+            onClick={() => setEdit(true)}
+          >
             <Edit size={18} />
           </button>
         )}
       </div>
-      {/* Show success message after edit */}
+      
       {!edit && message.type === "success" && message.text && (
         <StatusMessage type={message.type}>
           {message.text}
         </StatusMessage>
       )}
+      
       {edit ? (
         <div className="space-y-3">
-          {/* Show only error messages in edit mode */}
           {message.type !== "success" && message.text && (
             <StatusMessage type={message.type}>
               {message.text}
@@ -127,7 +129,7 @@ export default function AdminProfileCard({ data, loading, onUpdated }) {
           <div>
             <label className="text-gray-400 text-sm">Username</label>
             <input
-              className="w-full bg-[#23263A] text-white rounded px-3 py-2 mt-1"
+              className="w-full bg-[#23263A] text-white rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-purple-600"
               value={form.username || ""}
               onChange={e => setForm(f => ({ ...f, username: e.target.value }))}
             />
@@ -135,7 +137,7 @@ export default function AdminProfileCard({ data, loading, onUpdated }) {
           <div>
             <label className="text-gray-400 text-sm">Email</label>
             <input
-              className="w-full bg-[#23263A] text-white rounded px-3 py-2 mt-1"
+              className="w-full bg-[#23263A] text-white rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-purple-600"
               value={form.email || ""}
               onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
             />
@@ -144,7 +146,7 @@ export default function AdminProfileCard({ data, loading, onUpdated }) {
             <div className="flex-1">
               <label className="text-gray-400 text-sm">First Name</label>
               <input
-                className="w-full bg-[#23263A] text-white rounded px-3 py-2 mt-1"
+                className="w-full bg-[#23263A] text-white rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-purple-600"
                 value={form.first_name || ""}
                 onChange={e => setForm(f => ({ ...f, first_name: e.target.value }))}
               />
@@ -152,7 +154,7 @@ export default function AdminProfileCard({ data, loading, onUpdated }) {
             <div className="flex-1">
               <label className="text-gray-400 text-sm">Last Name</label>
               <input
-                className="w-full bg-[#23263A] text-white rounded px-3 py-2 mt-1"
+                className="w-full bg-[#23263A] text-white rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-purple-600"
                 value={form.last_name || ""}
                 onChange={e => setForm(f => ({ ...f, last_name: e.target.value }))}
               />
@@ -161,7 +163,7 @@ export default function AdminProfileCard({ data, loading, onUpdated }) {
           <div>
             <label className="text-gray-400 text-sm">Phone Number</label>
             <input
-              className="w-full bg-[#23263A] text-white rounded px-3 py-2 mt-1"
+              className="w-full bg-[#23263A] text-white rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-purple-600"
               value={form.phone_number || ""}
               onChange={e => setForm(f => ({ ...f, phone_number: e.target.value }))}
             />
@@ -173,7 +175,7 @@ export default function AdminProfileCard({ data, loading, onUpdated }) {
             <div className="relative">
               <input
                 type={showPasswords.new ? "text" : "password"}
-                className="w-full bg-[#23263A] text-white rounded px-3 py-2 pr-10 mt-1"
+                className="w-full bg-[#23263A] text-white rounded px-3 py-2 pr-10 mt-1 focus:outline-none focus:ring-2 focus:ring-purple-600"
                 value={passwordData.new_password}
                 onChange={e => setPasswordData(p => ({ ...p, new_password: e.target.value }))}
                 placeholder="Enter new password (optional)"
@@ -193,7 +195,7 @@ export default function AdminProfileCard({ data, loading, onUpdated }) {
             <div className="relative">
               <input
                 type={showPasswords.confirm ? "text" : "password"}
-                className="w-full bg-[#23263A] text-white rounded px-3 py-2 pr-10 mt-1"
+                className="w-full bg-[#23263A] text-white rounded px-3 py-2 pr-10 mt-1 focus:outline-none focus:ring-2 focus:ring-purple-600"
                 value={passwordData.confirm_password}
                 onChange={e => setPasswordData(p => ({ ...p, confirm_password: e.target.value }))}
                 placeholder="Confirm new password"
@@ -208,16 +210,16 @@ export default function AdminProfileCard({ data, loading, onUpdated }) {
             </div>
           </div>
 
-          <div className="flex gap-2 mt-3">
+          <div className="flex gap-2 mt-4">
             <button
-              className="bg-purple-600 text-white px-4 py-2 rounded"
+              className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded transition-colors disabled:opacity-50"
               onClick={handleSave}
               disabled={saving}
             >
               {saving ? "Saving..." : "Save Changes"}
             </button>
             <button
-              className="bg-gray-700 text-white px-4 py-2 rounded"
+              className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded transition-colors"
               onClick={() => {
                 setEdit(false);
                 setPasswordData({ new_password: "", confirm_password: "" });
@@ -230,21 +232,21 @@ export default function AdminProfileCard({ data, loading, onUpdated }) {
           </div>
         </div>
       ) : (
-        <div className="space-y-2">
-          <div>
-            <span className="text-gray-400 text-sm">Username:</span>
+        <div className="space-y-3">
+          <div className="flex items-center">
+            <span className="text-gray-400 text-sm w-24">Username:</span>
             <span className="ml-2 text-white">{data?.username || "—"}</span>
           </div>
-          <div>
-            <span className="text-gray-400 text-sm">Full Name:</span>
+          <div className="flex items-center">
+            <span className="text-gray-400 text-sm w-24">Full Name:</span>
             <span className="ml-2 text-white">{(data?.first_name || "—") + " " + (data?.last_name || "")}</span>
           </div>
-          <div>
-            <span className="text-gray-400 text-sm">Email:</span>
+          <div className="flex items-center">
+            <span className="text-gray-400 text-sm w-24">Email:</span>
             <span className="ml-2 text-white">{data?.email || "—"}</span>
           </div>
-          <div>
-            <span className="text-gray-400 text-sm">Phone:</span>
+          <div className="flex items-center">
+            <span className="text-gray-400 text-sm w-24">Phone:</span>
             <span className="ml-2 text-white">{data?.phone_number || "—"}</span>
           </div>
         </div>

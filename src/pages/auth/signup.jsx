@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Eye, EyeOff, Check } from 'lucide-react';
 import { API_ENDPOINTS } from '../../apiConfig';
-import StatusMessage from '../../appComponents/StatusMessage';
-import SubmitButton from '../../appComponents/SubmitButton';
+import StatusMessage from '../../components/StatusMessage';
+import SubmitButton from '../../components/SubmitButton';
 import { usePageTitle } from '../../hooks/usePageTitle';
 import { fetchWithTimeout, handleFetchError } from '../../utils/fetchUtils'; // Add this import
 

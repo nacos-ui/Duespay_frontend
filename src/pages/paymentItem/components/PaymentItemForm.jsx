@@ -1,7 +1,7 @@
 import { X } from "lucide-react";
 import { useEffect, useState } from "react";
-import StatusMessage from "../../../appComponents/StatusMessage";
-import SubmitButton from "../../../appComponents/SubmitButton";
+import StatusMessage from "../../../components/StatusMessage";
+import SubmitButton from "../../../components/SubmitButton";
 
 const PaymentItemForm = ({ initial, onClose, onSubmit, loading, success, error }) => {
   const [form, setForm] = useState(

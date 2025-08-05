@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import MainLayout from "../../layouts/mainLayout";
 import BankInfoCard from "./components/BankInfoCard";
 import AdminProfileCard from "./components/AdminProfileCard";
-import AssociationInfoCard from "./components/AssociationInfoCard"
+import AssociationInfoCard from "./components/AssociationInfoCard";
+import SessionManagementCard from "./components/SessionManagementCard";
 import { API_ENDPOINTS } from "../../apiConfig";
 import { usePageTitle } from "../../hooks/usePageTitle";
 import { fetchWithTimeout, handleFetchError } from "../../utils/fetchUtils";
@@ -58,14 +59,12 @@ export default function SettingsPage() {
     fetchSettingsData();
   }, []);
 
-  // Optionally, add update handlers for each card to refresh data after edits
-
   return (
     <MainLayout>
       <div className="pt-16 sm:pt-16 sm:p-6 min-h-screen bg-[#0F111F]">
         <h1 className="text-2xl font-bold text-white mb-1">Settings</h1>
         <p className="text-gray-400 mb-8">Manage your account settings and preferences</p>
-        <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <BankInfoCard
             data={bankInfo}
             loading={loading}
@@ -81,6 +80,7 @@ export default function SettingsPage() {
             loading={loading}
             onUpdated={updated => setAssociation(updated)}
           />
+          <SessionManagementCard />
         </div>
       </div>
     </MainLayout>

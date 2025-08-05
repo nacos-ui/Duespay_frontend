@@ -4,11 +4,12 @@ import MainLayout from "../../layouts/mainLayout";
 import TransactionsTable from "./components/TransactionsTable";
 import TransactionDetailsModal from "./components/TransactionDetailsModal";
 import Pagination from "./components/Pagination";
-import ConfirmationModal from "../../appComponents/ConfirmationModal";
+import ConfirmationModal from "../../components/ConfirmationModal";
 import { API_ENDPOINTS } from "../../apiConfig";
 import { usePageTitle } from "../../hooks/usePageTitle";
 import { fetchWithTimeout, handleFetchError } from "../../utils/fetchUtils";
 import { exportTransactions } from "../../utils/exportUtils";
+import { useSession } from "../../contexts/SessionContext";
 
 export default function TransactionsPage() {
   const [transactions, setTransactions] = useState([]);
@@ -24,6 +25,9 @@ export default function TransactionsPage() {
   const [showBulkModal, setShowBulkModal] = useState(false);
   const [bulkActionType, setBulkActionType] = useState(''); // 'verify', 'delete'
 
+  // Get current session from context
+  const { currentSession, loading: sessionLoading } = useSession();
+
   usePageTitle("Transactions - DuesPay");
 
   // Filters
@@ -32,10 +36,20 @@ export default function TransactionsPage() {
   const [type, setType] = useState("");
 
   const fetchTransactions = async (page = 1) => {
+    // Don't fetch if no current session
+    if (!currentSession?.id) {
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     try {
       const token = localStorage.getItem("access_token");
       const params = new URLSearchParams();
+      
+      // Add session filter
+      params.append("session_id", currentSession.id);
+      
       if (search) params.append("search", search);
       if (status) params.append("status", status);
       if (type) params.append("type", type);
@@ -72,8 +86,8 @@ export default function TransactionsPage() {
         fetchWithTimeout(API_ENDPOINTS.VERIFY_EDIT_TRANSACTION(txId), {
           method: "PATCH",
           headers: {
-        "Authorization": `Bearer ${token}`,
-        "Content-Type": "application/json"
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
           },
           body: JSON.stringify({ is_verified: true })
         }, 30000)
@@ -104,7 +118,7 @@ export default function TransactionsPage() {
         fetchWithTimeout(API_ENDPOINTS.DELETE_TRANSACTION(txId), {
           method: "DELETE",
           headers: {
-        "Authorization": `Bearer ${token}`
+            "Authorization": `Bearer ${token}`
           }
         }, 30000)
       );
@@ -138,9 +152,9 @@ export default function TransactionsPage() {
     }
   };
 
-  // Handle export using utility function
+  // Handle export using utility function - now includes session
   const handleExport = () => {
-    exportTransactions(search, status, type, setExportLoading);
+    exportTransactions(search, status, type, setExportLoading, currentSession?.id);
   };
 
   // Get bulk modal content
@@ -165,16 +179,65 @@ export default function TransactionsPage() {
   };
 
   useEffect(() => {
+    // Listen for session changes
+    const handleSessionChange = () => {
+      console.log('Session changed - refetching transactions');
+      fetchTransactions(1); // Reset to page 1 when session changes
+      setPage(1);
+      setSelectedTransactions([]); // Clear selections
+    };
+
+    window.addEventListener('sessionChanged', handleSessionChange);
+    return () => window.removeEventListener('sessionChanged', handleSessionChange);
+  }, [currentSession?.id]);
+
+  useEffect(() => {
     fetchTransactions(page);
     // eslint-disable-next-line
-  }, [page, search, status, type]);
+  }, [page, search, status, type, currentSession?.id]);
+
+  // Show loading while session is loading
+  if (sessionLoading) {
+    return (
+      <MainLayout>
+        <div className="bg-[#0F111F] min-h-screen pt-16 sm:p-6 sm:pt-16">
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto"></div>
+            <p className="text-gray-400 mt-4">Loading session...</p>
+          </div>
+        </div>
+      </MainLayout>
+    );
+  }
+
+  // Show no session message
+  if (!currentSession) {
+    return (
+      <MainLayout>
+        <div className="bg-[#0F111F] min-h-screen pt-16 sm:p-6 sm:pt-16">
+          <div className="text-center py-12">
+            <h1 className="text-2xl font-bold text-white mb-4">No Active Session</h1>
+            <p className="text-gray-400 mb-6">
+              Please select a session to view transactions.
+            </p>
+            <button
+              onClick={() => window.location.href = '/settings'}
+              className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
+            >
+              Go to Settings
+            </button>
+          </div>
+        </div>
+      </MainLayout>
+    );
+  }
 
   return (
     <MainLayout>
       <div className="bg-[#0F111F] min-h-screen pt-16 sm:p-6 sm:pt-16">
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-white mb-1">Transactions</h1>
-          <p className="text-gray-400">A list of all transactions and payment proofs.</p>
+          <p className="text-gray-400">A list of all transactions and payment proofs for {currentSession.title}</p>
         </div>
 
         {/* Filters */}

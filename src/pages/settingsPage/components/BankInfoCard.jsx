@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Edit } from "lucide-react";
 import { API_ENDPOINTS } from "../../../apiConfig";
-import StatusMessage from "../../../appComponents/StatusMessage";
+import StatusMessage from "../../../components/StatusMessage";
 import { fetchWithTimeout, handleFetchError } from "../../../utils/fetchUtils";
+import SettingsCardSkeleton from "./SettingsCardSkeleton";
 
 export default function BankInfoCard({ data, loading, onUpdated }) {
   // Extract the first result or null
@@ -68,14 +69,13 @@ export default function BankInfoCard({ data, loading, onUpdated }) {
         method,
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify(form),
-      }, 15000); // 15 second timeout for bank info update
+      }, 15000);
 
       if (res.ok) {
         const updated = await res.json();
         setMessage({ type: 'success', text: 'Bank information updated successfully!' });
         setSaving(false);
         setEdit(false);
-        // Wrap in results array to keep parent logic consistent
         onUpdated({ results: [updated] });
       } else {
         const error = await res.json();
@@ -92,9 +92,7 @@ export default function BankInfoCard({ data, loading, onUpdated }) {
     }
   };
 
-  if (loading && !bank) return (
-    <div className="bg-gray-900 rounded-xl p-6 min-h-[260px] animate-pulse" />
-  );
+  if (loading && !bank) return <SettingsCardSkeleton />;
 
   return (
     <div className="bg-gray-900 rounded-xl p-6 min-h-[260px] min-w-auto relative">
@@ -104,23 +102,27 @@ export default function BankInfoCard({ data, loading, onUpdated }) {
           Bank Information
         </h2>
         {!edit && (
-          <button className="text-purple-400" onClick={() => setEdit(true)}>
+          <button 
+            className="text-purple-400 hover:text-purple-300 transition-colors"
+            onClick={() => setEdit(true)}
+          >
             <Edit size={18} />
           </button>
         )}
       </div>
-      {/* Show message regardless of edit state */}
+      
       {message.text && (
         <StatusMessage type={message.type}>
           {message.text}
         </StatusMessage>
       )}
+      
       {edit ? (
         <div className="space-y-3">
           <div>
             <label className="text-gray-400 text-sm">Bank Name</label>
             <input
-              className="w-full bg-[#23263A] text-white rounded px-3 py-2 mt-1"
+              className="w-full bg-[#23263A] text-white rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-purple-600"
               value={form.bank_name || ""}
               onChange={e => setForm(f => ({ ...f, bank_name: e.target.value }))}
               placeholder="Enter bank name"
@@ -129,7 +131,7 @@ export default function BankInfoCard({ data, loading, onUpdated }) {
           <div>
             <label className="text-gray-400 text-sm">Account Name</label>
             <input
-              className="w-full bg-[#23263A] text-white rounded px-3 py-2 mt-1"
+              className="w-full bg-[#23263A] text-white rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-purple-600"
               value={form.account_name || ""}
               onChange={e => setForm(f => ({ ...f, account_name: e.target.value }))}
               placeholder="Enter account holder name"
@@ -138,23 +140,23 @@ export default function BankInfoCard({ data, loading, onUpdated }) {
           <div>
             <label className="text-gray-400 text-sm">Account Number</label>
             <input
-              className="w-full bg-[#23263A] text-white rounded px-3 py-2 mt-1"
+              className="w-full bg-[#23263A] text-white rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-purple-600"
               value={form.account_number || ""}
               onChange={e => setForm(f => ({ ...f, account_number: e.target.value }))}
               placeholder="Enter account number"
               type="number"
             />
           </div>
-          <div className="flex gap-2 mt-3">
+          <div className="flex gap-2 mt-4">
             <button
-              className="bg-purple-600 text-white px-4 py-2 rounded"
+              className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded transition-colors disabled:opacity-50"
               onClick={handleSave}
               disabled={saving}
             >
               {saving ? "Saving..." : "Save Changes"}
             </button>
             <button
-              className="bg-gray-700 text-white px-4 py-2 rounded"
+              className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded transition-colors"
               onClick={() => {
                 setEdit(false);
                 setMessage({ type: '', text: '' });
@@ -166,17 +168,17 @@ export default function BankInfoCard({ data, loading, onUpdated }) {
           </div>
         </div>
       ) : (
-        <div className="space-y-2">
-          <div>
-            <span className="text-gray-400 text-sm">Bank Name:</span>
+        <div className="space-y-3">
+          <div className="flex items-center">
+            <span className="text-gray-400 text-sm w-24">Bank Name:</span>
             <span className="ml-2 text-white">{bank?.bank_name || "—"}</span>
           </div>
-          <div>
-            <span className="text-gray-400 text-sm">Account Name:</span>
+          <div className="flex items-center">
+            <span className="text-gray-400 text-sm w-24">Account Name:</span>
             <span className="ml-2 text-white">{bank?.account_name || "—"}</span>
           </div>
-          <div>
-            <span className="text-gray-400 text-sm">Account Number:</span>
+          <div className="flex items-center">
+            <span className="text-gray-400 text-sm w-24">Account Number:</span>
             <span className="ml-2 text-white">{bank?.account_number ? `••••${bank.account_number.slice(-4)}` : "—"}</span>
           </div>
         </div>

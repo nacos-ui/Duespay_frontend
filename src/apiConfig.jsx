@@ -1,11 +1,12 @@
-export const API_BASE_URL = "http://localhost:8000";
-// export const API_BASE_URL = "https://duespay.onrender.com";
-// export const API_BASE_URL = "https://duespay.pythonanywhere.com"; 
+// export const API_BASE_URL = "http://localhost:8000";
+export const API_BASE_URL = "https://duespay.onrender.com";
+// export const API_BASE_URL = "https://duespay.pythonanywhere.com";
 
 export const API_ENDPOINTS = {
-  // authentication endpoints
+  // Auth endpoints
   LOGIN: `${API_BASE_URL}/auth/login/`,
   SIGNUP: `${API_BASE_URL}/auth/register/`,
+  REFRESH_TOKEN: `${API_BASE_URL}/auth/token/refresh/`, // Add this line
   PASSWORD_RESET: `${API_BASE_URL}/auth/password-reset/`,
   PASSWORD_RESET_CONFIRM: `${API_BASE_URL}/auth/password-reset-confirm/`,
 
@@ -39,11 +40,17 @@ export const API_ENDPOINTS = {
   GET_ADMIN_USER: `${API_BASE_URL}/adminuser/`,
   UPDATE_ADMIN_USER: (id) => `${API_BASE_URL}/adminuser/${id}/`,
 
+  // Session endpoints
+  GET_SESSIONS: `${API_BASE_URL}/sessions/`,
+  CREATE_SESSION: `${API_BASE_URL}/sessions/`,
+  UPDATE_SESSION: (id) => `${API_BASE_URL}/sessions/${id}/`,
+  SET_CURRENT_SESSION: (id) => `${API_BASE_URL}/sessions/${id}/set_current/`,
+  GET_CURRENT_SESSION: `${API_BASE_URL}/sessions/current/`,
+  GET_PROFILE: `${API_BASE_URL}/association/profile/`,
+
   // Notifications endpoints
   NOTIFICATIONS: `${API_BASE_URL}/notifications/`,
   UNREAD_NOTIFICATIONS_COUNT: `${API_BASE_URL}/notifications/unread-count/`,
   MARK_ALL_NOTIFICATIONS_READ: `${API_BASE_URL}/notifications/mark-all-read/`,
-
-  // Receipt endpoint
   GET_RECEIPT: (receipt_id) => `${API_BASE_URL}/receipts/${receipt_id}/`,
 };
