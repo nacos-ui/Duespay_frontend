@@ -40,7 +40,7 @@ const AssociationForm = () => {
     const fetchAssociation = async () => {
       try {
         const token = localStorage.getItem("access_token");
-        const response = await fetchWithTimeout(API_ENDPOINTS.CREATE_ASSOCIATION, {
+        const response = await fetch(API_ENDPOINTS.CREATE_ASSOCIATION, {
           headers: {
             "Authorization": `Bearer ${token}`,
           },
@@ -123,7 +123,7 @@ const AssociationForm = () => {
         method = "PUT";
       }
 
-      const response = await fetchWithTimeout(url, {
+      const response = await fetch(url, {
         method,
         body: submitData,
         headers: {
