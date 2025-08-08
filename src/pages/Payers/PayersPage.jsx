@@ -44,41 +44,51 @@ export default function PayersPage() {
   const [selectedTransaction, setSelectedTransaction] = useState(null);
 
   // Fetch payers
-  const fetchPayers = async (page = 1) => {
+  const fetchPayers = async (page = 1, isBackgroundFetch = false) => {
     // Don't fetch if no current session
     if (!currentSession?.id) {
-      setLoading(false);
+      if (!isBackgroundFetch) setLoading(false);
       return;
     }
 
-    setLoading(true);
+    if (!isBackgroundFetch) setLoading(true);
     try {
       const token = localStorage.getItem("access_token");
       const params = new URLSearchParams();
-      
+
       // Add session filter
       params.append("session_id", currentSession.id);
-      
+
       if (search) params.append("search", search);
       if (faculty) params.append("faculty", faculty);
       if (department) params.append("department", department);
       params.append("page", page);
 
       const res = await fetchWithTimeout(`${API_ENDPOINTS.GET_PAYERS}?${params.toString()}`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
       }, 30000);
-      
-      if (!res.ok) throw new Error("Failed to fetch payers");
+
+      if (!res.ok) {
+        if (isBackgroundFetch) {
+          console.error("Background fetch for payers failed.");
+          return;
+        }
+        throw new Error("Failed to fetch payers");
+      }
       const data = await res.json();
       setPayers(data.results || []);
       setCount(data.count || 0);
     } catch (err) {
       const { message } = handleFetchError(err);
       console.error("Error fetching payers:", message);
-      setPayers([]);
-      setCount(0);
+      if (!isBackgroundFetch) {
+        setPayers([]);
+        setCount(0);
+      }
     } finally {
-      setLoading(false);
+      if (!isBackgroundFetch) setLoading(false);
     }
   };
 
@@ -87,7 +97,7 @@ export default function PayersPage() {
     setBulkActionLoading(true);
     try {
       const token = localStorage.getItem("access_token");
-      
+
       // Send delete requests for each selected payer
       const promises = selectedPayers.map(payerId =>
         fetchWithTimeout(`${API_ENDPOINTS.GET_PAYERS}${payerId}/`, {
@@ -99,11 +109,11 @@ export default function PayersPage() {
       );
 
       await Promise.all(promises);
-      
+
       setShowBulkModal(false);
       setSelectedPayers([]);
       fetchPayers(page);
-      
+
     } catch (err) {
       const { message } = handleFetchError(err);
       alert(`Bulk delete failed: ${message}`);
@@ -160,6 +170,18 @@ export default function PayersPage() {
   useEffect(() => {
     fetchPayers(page);
     // eslint-disable-next-line
+  }, [page, search, faculty, department, currentSession?.id]);
+
+  // Poll for new payers
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      // Only poll on the first page and without filters to keep it simple
+      if (page === 1 && !search && !faculty && !department) {
+        fetchPayers(1, true); // true for background fetch
+      }
+    }, 5000); // Poll every 5 seconds. You can adjust this value.
+
+    return () => clearInterval(intervalId); // Cleanup when component unmounts or dependencies change
   }, [page, search, faculty, department, currentSession?.id]);
 
   // Show loading while session is loading

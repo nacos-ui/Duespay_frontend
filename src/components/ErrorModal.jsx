@@ -4,7 +4,7 @@ export default function ErrorModal({ open, onClose, title = "Error", message = "
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm">
       <div className="bg-slate-900 rounded-2xl shadow-2xl px-8 py-10 w-full max-w-md text-center animate-fadeInUp">
         {/* Animated X icon */}
         <div className="flex justify-center mb-4">

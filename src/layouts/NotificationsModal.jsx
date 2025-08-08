@@ -3,7 +3,9 @@ import { X, Bell, Check, CheckCheck, Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { API_ENDPOINTS } from '../apiConfig';
 import Pagination from '../pages/Transactions/components/Pagination';
-import { fetchWithTimeout, handleFetchError } from '../utils/fetchUtils'; 
+import { fetchWithTimeout } from '../utils/fetchUtils';
+import { fetchWithErrorModal } from '../components/fetchWithErrorModal';
+import { useGlobalError } from '../contexts/ErrorContext';
 
 const NotificationsModal = ({ isOpen, onClose, onNotificationRead }) => {
   const [notifications, setNotifications] = useState([]);
@@ -11,6 +13,7 @@ const NotificationsModal = ({ isOpen, onClose, onNotificationRead }) => {
   const [page, setPage] = useState(1);
   const [count, setCount] = useState(0);
   const [markingAllRead, setMarkingAllRead] = useState(false);
+  const { setModalError } = useGlobalError(); // Use global error
   const pageSize = 5;
   const navigate = useNavigate();
 
@@ -24,23 +27,22 @@ const NotificationsModal = ({ isOpen, onClose, onNotificationRead }) => {
     setLoading(true);
     try {
       const token = localStorage.getItem('access_token');
-      const response = await fetchWithTimeout(`${API_ENDPOINTS.NOTIFICATIONS}?page=${page}&page_size=${pageSize}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      }, 10000); // 10 second timeout for fetching notifications
+      const res = await fetchWithErrorModal(
+        fetchWithTimeout(`${API_ENDPOINTS.NOTIFICATIONS}?page=${page}&page_size=${pageSize}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }, 10000), // 1ms timeout for testing
+        setModalError // Pass global error handler
+      );
       
-      if (response.ok) {
-        const data = await response.json();
-        setNotifications(data.results);
-        setCount(data.count);
-      } else {
-        console.error('Failed to fetch notifications');
-      }
+      const data = await res.json();
+      setNotifications(data.results);
+      setCount(data.count);
     } catch (error) {
-      const errorInfo = handleFetchError(error);
-      console.error('Error fetching notifications:', errorInfo.message);
+      // Error already handled by fetchWithErrorModal
+      console.error('Fetch failed:', error);
     } finally {
       setLoading(false);
     }
@@ -49,32 +51,30 @@ const NotificationsModal = ({ isOpen, onClose, onNotificationRead }) => {
   const markAsRead = async (notificationId) => {
     try {
       const token = localStorage.getItem('access_token');
-      const response = await fetchWithTimeout(`${API_ENDPOINTS.NOTIFICATIONS}${notificationId}/`, {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ is_read: true }),
-      }, 8000); // 8 second timeout for marking as read
+      const res = await fetchWithErrorModal(
+        fetchWithTimeout(`${API_ENDPOINTS.NOTIFICATIONS}${notificationId}/`, {
+          method: 'PATCH',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ is_read: true }),
+        }, 8000),
+        setModalError
+      );
       
-      if (response.ok) {
-        // Update local state
-        setNotifications(prev => 
-          prev.map(notif => 
-            notif.id === notificationId 
-              ? { ...notif, is_read: true }
-              : notif
-          )
-        );
-        // Notify parent component to update unread count
-        onNotificationRead();
-      } else {
-        console.error('Failed to mark notification as read');
-      }
+      // Update local state
+      setNotifications(prev => 
+        prev.map(notif => 
+          notif.id === notificationId 
+            ? { ...notif, is_read: true }
+            : notif
+        )
+      );
+      // Notify parent component to update unread count
+      onNotificationRead();
     } catch (error) {
-      const errorInfo = handleFetchError(error);
-      console.error('Error marking notification as read:', errorInfo.message);
+      console.error('Error marking notification as read:', error);
     }
   };
 
@@ -82,27 +82,25 @@ const NotificationsModal = ({ isOpen, onClose, onNotificationRead }) => {
     setMarkingAllRead(true);
     try {
       const token = localStorage.getItem('access_token');
-      const response = await fetchWithTimeout(`${API_ENDPOINTS.MARK_ALL_NOTIFICATIONS_READ}`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      }, 10000); // 10 second timeout for marking all as read
+      await fetchWithErrorModal(
+        fetchWithTimeout(`${API_ENDPOINTS.MARK_ALL_NOTIFICATIONS_READ}`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }, 10000),
+        setModalError
+      );
       
-      if (response.ok) {
-        // Update local state
-        setNotifications(prev => 
-          prev.map(notif => ({ ...notif, is_read: true }))
-        );
-        // Notify parent component to update unread count
-        onNotificationRead();
-      } else {
-        console.error('Failed to mark all notifications as read');
-      }
+      // Update local state
+      setNotifications(prev => 
+        prev.map(notif => ({ ...notif, is_read: true }))
+      );
+      // Notify parent component to update unread count
+      onNotificationRead();
     } catch (error) {
-      const errorInfo = handleFetchError(error);
-      console.error('Error marking all notifications as read:', errorInfo.message);
+      console.error('Error marking all notifications as read:', error);
     } finally {
       setMarkingAllRead(false);
     }

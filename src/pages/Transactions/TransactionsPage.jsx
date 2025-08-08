@@ -35,21 +35,21 @@ export default function TransactionsPage() {
   const [status, setStatus] = useState("");
   const [type, setType] = useState("");
 
-  const fetchTransactions = async (page = 1) => {
+  const fetchTransactions = async (page = 1, isBackgroundFetch = false) => {
     // Don't fetch if no current session
     if (!currentSession?.id) {
-      setLoading(false);
+      if (!isBackgroundFetch) setLoading(false);
       return;
     }
 
-    setLoading(true);
+    if (!isBackgroundFetch) setLoading(true);
     try {
       const token = localStorage.getItem("access_token");
       const params = new URLSearchParams();
-      
+
       // Add session filter
       params.append("session_id", currentSession.id);
-      
+
       if (search) params.append("search", search);
       if (status) params.append("status", status);
       if (type) params.append("type", type);
@@ -60,18 +60,26 @@ export default function TransactionsPage() {
           Authorization: `Bearer ${token}`
         }
       }, 30000);
-      
-      if (!res.ok) throw new Error("Failed to fetch transactions");
+
+      if (!res.ok) {
+        if (isBackgroundFetch) {
+          console.error("Background fetch for transactions failed.");
+          return;
+        }
+        throw new Error("Failed to fetch transactions");
+      }
       const data = await res.json();
       setTransactions(data.results || []);
       setCount(data.count || 0);
     } catch (err) {
       const { message } = handleFetchError(err);
       console.error("Error fetching transactions:", message);
-      setTransactions([]);
-      setCount(0);
+      if (!isBackgroundFetch) {
+        setTransactions([]);
+        setCount(0);
+      }
     } finally {
-      setLoading(false);
+      if (!isBackgroundFetch) setLoading(false);
     }
   };
 
@@ -80,7 +88,7 @@ export default function TransactionsPage() {
     setBulkActionLoading(true);
     try {
       const token = localStorage.getItem("access_token");
-      
+
       // Send requests for each selected transaction
       const promises = selectedTransactions.map(txId =>
         fetchWithTimeout(API_ENDPOINTS.VERIFY_EDIT_TRANSACTION(txId), {
@@ -94,11 +102,11 @@ export default function TransactionsPage() {
       );
 
       await Promise.all(promises);
-      
+
       setShowBulkModal(false);
       setSelectedTransactions([]);
       fetchTransactions(page);
-      
+
     } catch (err) {
       const { message } = handleFetchError(err);
       alert(`Bulk verify failed: ${message}`);
@@ -112,7 +120,7 @@ export default function TransactionsPage() {
     setBulkActionLoading(true);
     try {
       const token = localStorage.getItem("access_token");
-      
+
       // Send delete requests for each selected transaction
       const promises = selectedTransactions.map(txId =>
         fetchWithTimeout(API_ENDPOINTS.DELETE_TRANSACTION(txId), {
@@ -124,11 +132,11 @@ export default function TransactionsPage() {
       );
 
       await Promise.all(promises);
-      
+
       setShowBulkModal(false);
       setSelectedTransactions([]);
       fetchTransactions(page);
-      
+
     } catch (err) {
       const { message } = handleFetchError(err);
       alert(`Bulk delete failed: ${message}`);
@@ -194,6 +202,18 @@ export default function TransactionsPage() {
   useEffect(() => {
     fetchTransactions(page);
     // eslint-disable-next-line
+  }, [page, search, status, type, currentSession?.id]);
+
+  // Poll for new transactions
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      // Only poll on the first page and without filters to keep it simple
+      if (page === 1 && !search && !status && !type) {
+        fetchTransactions(1, true); // true for background fetch
+      }
+    }, 5000); // Poll every 5 seconds. You can adjust this value.
+
+    return () => clearInterval(intervalId); // Cleanup when component unmounts or dependencies change
   }, [page, search, status, type, currentSession?.id]);
 
   // Show loading while session is loading

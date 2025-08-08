@@ -16,6 +16,7 @@ import PasswordResetConfirm from './pages/auth/passwordResetConfirm';
 import NotFoundPage from './pages/404_page';
 import { extractShortName } from './utils/getShortname';
 import ReceiptPage from './pages/receipt/receipt';
+import { ErrorProvider } from './contexts/ErrorContext';
 
 function App() {
   const pathname = window.location.pathname;
@@ -51,30 +52,32 @@ function App() {
   // Otherwise, use router for normal routes
   return (
     <ErrorBoundaryWithModal>
-      <SessionProvider>
-        <Router>
-          <Routes>
-            <Route path='/' element={<Navigate to="/dashboard/overview" replace />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/reset-password" element={<PasswordResetConfirm />} />
-            <Route path="/transactions/receipt/:receipt_id" element={<ReceiptPage />} />
-            <Route path="/:shortName" element={<DuesPayPaymentFlow />} />
-            
-            <Route element={<ProtectedRoute />}>
-              <Route path="/dashboard/overview" element={<Overview />} />
-              <Route path="/dashboard/payment-items" element={<PaymentItems />} />
-              <Route path="/dashboard/transactions" element={<TransactionsPage />} />
-              <Route path="/create-association" element={<AssociationForm />} />
-              <Route path="/dashboard/students" element={<PayersPage />} />
-              <Route path="/settings" element={<SettingsPage />} />
-              <Route path="/dashboard/sessions/new" element={<CreateSessionPage />} />
-            </Route>
-            
-            {/* Catch-all 404 for unregistered routes */}
-            <Route path="*" element={<NotFoundPage />} />
-          </Routes>
-        </Router>
-      </SessionProvider>
+      <ErrorProvider>
+        <SessionProvider>
+          <Router>
+            <Routes>
+              <Route path='/' element={<Navigate to="/dashboard/overview" replace />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/reset-password" element={<PasswordResetConfirm />} />
+              <Route path="/transactions/receipt/:receipt_id" element={<ReceiptPage />} />
+              <Route path="/:shortName" element={<DuesPayPaymentFlow />} />
+              
+              <Route element={<ProtectedRoute />}>
+                <Route path="/dashboard/overview" element={<Overview />} />
+                <Route path="/dashboard/payment-items" element={<PaymentItems />} />
+                <Route path="/dashboard/transactions" element={<TransactionsPage />} />
+                <Route path="/create-association" element={<AssociationForm />} />
+                <Route path="/dashboard/students" element={<PayersPage />} />
+                <Route path="/settings" element={<SettingsPage />} />
+                <Route path="/dashboard/sessions/new" element={<CreateSessionPage />} />
+              </Route>
+              
+              {/* Catch-all 404 for unregistered routes */}
+              <Route path="*" element={<NotFoundPage />} />
+            </Routes>
+          </Router>
+        </SessionProvider>
+      </ErrorProvider>
     </ErrorBoundaryWithModal>
   );
 }
