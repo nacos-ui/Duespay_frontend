@@ -1,5 +1,6 @@
 // export const API_BASE_URL = "http://localhost:8000";
-export const API_BASE_URL = "https://duespay.onrender.com";
+export const API_BASE_URL = "https://duespay-backend.fly.dev";
+// export const API_BASE_URL = "https://duespay.onrender.com";
 // export const API_BASE_URL = "https://duespay.pythonanywhere.com";
 
 export const API_ENDPOINTS = {
