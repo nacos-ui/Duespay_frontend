@@ -8,9 +8,17 @@ export const fetchWithTimeout = async (url, options = {}, timeout = 30000) => {
     }, timeout);
 
     try {
-      const response = await api(url, options);
-      clearTimeout(timeoutId);
-      resolve(response);
+      // Check if body is FormData - if so, use raw fetch
+      if (options.body instanceof FormData) {
+        const response = await fetch(url, options);
+        clearTimeout(timeoutId);
+        resolve(response);
+      } else {
+        // Use your api wrapper for other requests
+        const response = await api(url, options);
+        clearTimeout(timeoutId);
+        resolve(response);
+      }
     } catch (error) {
       clearTimeout(timeoutId);
       reject(error);

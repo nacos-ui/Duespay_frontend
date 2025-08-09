@@ -157,7 +157,7 @@ const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
       console.log('Making API request to:', API_ENDPOINTS.VERIFY_AND_CREATE_TRANSACTION);
       
       // Use native fetch for FormData to avoid axios complications
-      const response = await fetch(API_ENDPOINTS.VERIFY_AND_CREATE_TRANSACTION, {
+      const response = await fetchWithTimeout(API_ENDPOINTS.VERIFY_AND_CREATE_TRANSACTION, {
         method: 'POST',
         body: formData,
         // Don't set Content-Type - let browser handle it for FormData

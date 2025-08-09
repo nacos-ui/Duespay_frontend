@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Upload, ShoppingCart } from 'lucide-react';
 import StatusMessage from '../../components/StatusMessage';
 import SubmitButton from '../../components/SubmitButton';
 import { API_ENDPOINTS } from '../../apiConfig';
@@ -40,7 +39,7 @@ const AssociationForm = () => {
     const fetchAssociation = async () => {
       try {
         const token = localStorage.getItem("access_token");
-        const response = await fetch(API_ENDPOINTS.CREATE_ASSOCIATION, {
+        const response = await fetchWithTimeout(API_ENDPOINTS.CREATE_ASSOCIATION, {
           headers: {
             "Authorization": `Bearer ${token}`,
           },
@@ -123,7 +122,7 @@ const AssociationForm = () => {
         method = "PUT";
       }
 
-      const response = await fetch(url, {
+      const response = await fetchWithTimeout(url, {
         method,
         body: submitData,
         headers: {

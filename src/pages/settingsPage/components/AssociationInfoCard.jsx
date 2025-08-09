@@ -114,7 +114,7 @@ export default function AssociationInfoCard({ data, loading, onUpdated }) {
         };
 
         // Use native fetch for FormData uploads
-        const res = await fetch(url, requestOptions);
+        const res = await fetchWithTimeout(url, requestOptions);
 
         if (res.ok) {
           const updated = await res.json();
