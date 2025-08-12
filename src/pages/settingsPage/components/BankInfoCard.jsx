@@ -221,7 +221,7 @@ export default function BankInfoCard({ data, loading, onUpdated }) {
     const token = localStorage.getItem("access_token");
     const method = bank && bank.id ? "PATCH" : "POST";
     const url = bank && bank.id
-      ? `${API_ENDPOINTS.UPDATE_DETAIL_BANK_ACCOUNT}/${bank.id}/`
+      ? API_ENDPOINTS.UPDATE_DETAIL_BANK_ACCOUNT(bank.id)
       : API_ENDPOINTS.GET_CREATE_BANK_ACCOUNT;
 
     try {
