@@ -36,6 +36,8 @@ export const API_ENDPOINTS = {
   // Bank account endpoints
   GET_CREATE_BANK_ACCOUNT: `${API_BASE_URL}/bank-account/`,
   UPDATE_DETAIL_BANK_ACCOUNT: (id) => `${API_BASE_URL}/bank-account/${id}/`,
+  GET_BANKS: `${API_BASE_URL}/bank-account/all-banks/`,
+  VERIFY_BANK: `${API_BASE_URL}/bank-account/verify/`,
 
   // Adminuser endpoints
   GET_ADMIN_USER: `${API_BASE_URL}/adminuser/`,
