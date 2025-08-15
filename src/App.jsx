@@ -17,6 +17,8 @@ import NotFoundPage from './pages/404_page';
 import { extractShortName } from './utils/getShortname';
 import ReceiptPage from './pages/receipt/receipt';
 import { ErrorProvider } from './contexts/ErrorContext';
+import PaymentCallback from './pages/payment/PaymentCallback';
+import PaymentSuccess from './pages/payment/PaymentSuccess';
 
 function App() {
   const pathname = window.location.pathname;
@@ -71,6 +73,9 @@ function App() {
                 <Route path="/settings" element={<SettingsPage />} />
                 <Route path="/dashboard/sessions/new" element={<CreateSessionPage />} />
               </Route>
+              
+              <Route path="/payment/callback" element={<PaymentCallback />} />
+              <Route path="/payment/success" element={<PaymentSuccess />} />
               
               {/* Catch-all 404 for unregistered routes */}
               <Route path="*" element={<NotFoundPage />} />

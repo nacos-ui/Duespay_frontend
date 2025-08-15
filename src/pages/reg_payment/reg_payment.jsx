@@ -1,13 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
-import { User, CreditCard, Upload, CheckCircle } from 'lucide-react';
+import { User, CreditCard } from 'lucide-react';
 import Header from './components/Header';
 import RegistrationStep from './components/RegistrationStep';
 import PaymentSelectionStep from './components/PaymentSelectionStep';
-import UploadReceiptStep from './components/UploadReceiptStep';
-import ConfirmationStep from './components/ConfirmationStep';
 import ErrorModal from '../../components/ErrorModal';
-import { fetchWithErrorModal } from '../../components/fetchWithErrorModal';
 import { fetchWithTimeout, handleFetchError } from '../../utils/fetchUtils';
 import { API_ENDPOINTS } from '../../apiConfig';
 import { usePageTitle } from "../../hooks/usePageTitle";
@@ -15,19 +12,23 @@ import { isColorDark } from "./utils/colorUtils";
 import NotFoundPage from '../404_page';
 import { extractShortName } from '../../utils/getShortname';
 
-// Generate dynamic CSS custom properties
+// Helper: returns id if object, or the value if it's already a number/string
+const pickId = (val) => {
+  if (val == null) return null;
+  return typeof val === 'object' ? (val.id ?? null) : val;
+};
+
+// Theme CSS vars
 const generateThemeStyles = (themeColor) => {
   if (!themeColor) return {};
-  
-  const isDark = isColorDark(themeColor);
-  
-  return {
-    '--theme-color': themeColor,
-    '--theme-text': isDark ? '#ffffff' : '#000000',
-    '--theme-text-secondary': isDark ? '#e5e7eb' : '#374151',
-    '--theme-border': themeColor,
-    '--theme-hover': `${themeColor}dd`, // Add slight transparency for hover
-  };
+  return { '--theme-color': themeColor };
+};
+
+// Minimal sanitizer to avoid HTML special chars Korapay rejects
+const sanitizeName = (name) => {
+  if (!name) return '';
+  // remove < > & " ' and collapse whitespace
+  return String(name).replace(/[<>&"']/g, '').replace(/\s+/g, ' ').trim();
 };
 
 const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
@@ -44,26 +45,20 @@ const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
     faculty: '',
     department: '',
   });
-    
+
   const [associationData, setAssociationData] = useState(null);
   const [paymentItems, setPaymentItems] = useState([]);
   const [selectedItems, setSelectedItems] = useState([]);
-  const [proofFile, setProofFile] = useState(null);
-  const [isVerified, setIsVerified] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isVerifying, setIsVerifying] = useState(false);
 
-  // Registration error and loading state
+  const [payerId, setPayerId] = useState(null);
+  const [referenceId, setReferenceId] = useState(null);
+
   const [regError, setRegError] = useState("");
   const [regLoading, setRegLoading] = useState(false);
 
-  // Transaction summary state
-  const [transaction, setTransaction] = useState(null);
-
-  // Error modal state
   const [modalError, setModalError] = useState({ open: false, title: "", message: "" });
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Get theme color from association data
   const themeColor = associationData?.theme_color || '#9810fa';
   const isDarkTheme = isColorDark(themeColor);
 
@@ -74,7 +69,7 @@ const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
         const res = await fetchWithTimeout(
           API_ENDPOINTS.GET_PAYMENT_ASSOCIATION(shortName),
           {},
-          20000 // 20 seconds timeout for initial load
+          20000
         );
         if (!res.ok) throw new Error('Failed to fetch association');
         const data = await res.json();
@@ -89,7 +84,6 @@ const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
         setAssociationData(null);
         setPaymentItems([]);
         setSelectedItems([]);
-        
         const { message } = handleFetchError(err);
         setModalError({
           open: true,
@@ -103,30 +97,12 @@ const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
     if (shortName) fetchAssociation();
   }, [shortName]);
 
-  usePageTitle("Payment Flow - DuesPay");
-  const steps = [
-    { number: 1, title: "Registration", icon: User },
-    { number: 2, title: "Payment Selection", icon: CreditCard },
-    { number: 3, title: "Upload Receipt", icon: Upload },
-    { number: 4, title: "Confirmation", icon: CheckCircle }
-  ];
-
-  const handleInputChange = (field, value) => {
-    setPayerData(prev => ({ ...prev, [field]: value }));
-  };
-
   const handleItemSelection = (itemId) => {
     const item = paymentItems.find(i => i.id === itemId);
     if (item && item.status === 'compulsory') return;
     setSelectedItems(prev =>
-      prev.includes(itemId)
-        ? prev.filter(id => id !== itemId)
-        : [...prev, itemId]
+      prev.includes(itemId) ? prev.filter(id => id !== itemId) : [...prev, itemId]
     );
-  };
-
-  const handleFileUpload = (file) => {
-    setProofFile(file);
   };
 
   const getTotalAmount = () => {
@@ -136,63 +112,9 @@ const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
     }, 0);
   };
 
-  // --- Proof verification and transaction submission logic ---
-  const verifyAndCreate = async () => {
-    const formData = new FormData();
-    formData.append('proof_file', proofFile);
-    formData.append('association_short_name', associationData.association_short_name);
-    formData.append('amount_paid', getTotalAmount());
-    formData.append('payer', JSON.stringify(payerData));
-    selectedItems.forEach(id => {
-      formData.append('payment_item_ids', id);
-    });
+  const registrationStepRef = useRef();
 
-    // Convert selected items - try sending as individual fields instead of JSON
-    // selectedItems.forEach(itemId => {
-    //   formData.append('payment_item_ids', itemId);
-    // });
-
-    // Try using native fetch instead of the api wrapper for FormData
-    try {
-      console.log('Making API request to:', API_ENDPOINTS.VERIFY_AND_CREATE_TRANSACTION);
-      
-      // Use native fetch for FormData to avoid axios complications
-      const response = await fetchWithTimeout(API_ENDPOINTS.VERIFY_AND_CREATE_TRANSACTION, {
-        method: 'POST',
-        body: formData,
-        // Don't set Content-Type - let browser handle it for FormData
-      });
-      
-      console.log('API response status:', response.status);
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.log('Backend error response:', errorData);
-        setModalError({
-          open: true,
-          title: "Backend Error",
-          message: JSON.stringify(errorData, null, 2)
-        });
-        return null;
-      }
-      
-      const responseData = await response.json();
-      console.log('API response data:', responseData);
-      
-      return responseData;
-    } catch (err) {
-      console.error('Request error:', err);
-      const { isTimeout, message } = handleFetchError(err);
-      setModalError({
-        open: true,
-        title: isTimeout ? "Request Timeout" : "Error",
-        message: message
-      });
-      return null;
-    }
-  };
-
-  // --- Payer check logic for registration step ---
+  // STEP 1: Payer check → save payer_id
   const checkPayer = async () => {
     setRegError("");
     setRegLoading(true);
@@ -203,43 +125,34 @@ const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            association_short_name: associationData.association_short_name,
+            association_short_name: associationData?.association_short_name || shortName,
             matric_number: payerData.matricNumber,
             email: payerData.email,
             phone_number: payerData.phoneNumber,
-            first_name: payerData.firstName,
-            last_name: payerData.lastName,
+            first_name: sanitizeName(payerData.firstName),
+            last_name: sanitizeName(payerData.lastName),
             faculty: payerData.faculty,
             department: payerData.department,
           }),
         },
-        30000 // 30 seconds timeout for payer check
+        30000
       );
       const data = await res.json();
-      
-      if (!res.ok) {
-        // Handle field-specific errors (like validation errors)
+
+      if (!res.ok || !data?.success) {
         if (data && typeof data === 'object' && !data.success && !data.error) {
-          // This is field validation errors like {"email": ["Invalid email"]}
-          if (registrationStepRef.current?.setBackendErrors) {
-            registrationStepRef.current.setBackendErrors(data);
-          }
+          registrationStepRef.current?.setBackendErrors?.(data);
           setRegError("Please fix the errors below.");
         } else {
-          // This is general error messages like "Phone number already belongs to another user"
-          setRegError(data.error || "Registration error. Please check your details.");
+          setRegError(data?.error || "Registration error. Please check your details.");
         }
         setRegLoading(false);
         return false;
       }
-      
-      if (!data.success) {
-        // Show the specific error message from backend
-        setRegError(data.error || "Registration error. Please check your details.");
-        setRegLoading(false);
-        return false;
-      }
-      
+
+      if (data?.payer_id) setPayerId(data.payer_id);
+      if (!data?.payer_id && data?.data?.payer_id) setPayerId(data.data.payer_id);
+
       setRegError("");
       setRegLoading(false);
       return true;
@@ -251,126 +164,116 @@ const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
     }
   };
 
-  const registrationStepRef = useRef();
+  // STEP 3: Initiate payment → redirect to checkout_url
+  const initiatePayment = async () => {
+    try {
+      if (!payerId) throw new Error("Missing payer identifier.");
+
+      // Use previous-style extraction + numeric support + fallback to first item
+      const association_id =
+        associationData?.association?.id ??
+        associationData?.id ??
+        associationData?.association_id ??
+        (paymentItems?.[0]?.association ?? null);
+
+      const session_id =
+        pickId(associationData?.association?.current_session) ??
+        pickId(associationData?.association?.active_session) ??
+        pickId(associationData?.current_session) ??
+        pickId(associationData?.active_session) ??
+        pickId(associationData?.session) ??
+        associationData?.session_id ??
+        (paymentItems?.[0]?.session ?? null);
+
+      if (!association_id || !session_id) {
+        throw new Error("Missing association/session information.");
+      }
+      if (!selectedItems.length) {
+        throw new Error("Please select at least one item.");
+      }
+
+      // Guard endpoint to avoid undefined.startsWith in api.js
+      const endpoint = API_ENDPOINTS.PAYMENT_INITIATE;
+      if (!endpoint || typeof endpoint !== 'string') {
+        throw new Error("PAYMENT_INITIATE endpoint is not configured.");
+      }
+
+      const res = await fetchWithTimeout(
+        endpoint,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            payer_id: payerId,
+            association_id,
+            session_id,
+            payment_item_ids: selectedItems,
+          }),
+        },
+        30000
+      );
+
+      // Try to parse any backend error payload for better context
+      let data;
+      try { data = await res.json(); } catch { data = null; }
+
+      if (!res.ok || !data?.checkout_url || !data?.reference_id) {
+        const backendMsg = data?.message || data?.detail || data?.error;
+        throw new Error(backendMsg || "Failed to initiate payment.");
+      }
+
+      setReferenceId(data.reference_id);
+      window.location.href = data.checkout_url;
+    } catch (err) {
+      const { message } = handleFetchError(err);
+      setModalError({
+        open: true,
+        title: "Payment Error",
+        message,
+      });
+    }
+  };
+
   const nextStep = async () => {
     if (currentStep === 1) {
       const validationError = registrationStepRef.current?.validate?.();
-      if (validationError) {
-        return;
-      }
+      if (validationError) return;
       if (!(await checkPayer())) return;
-      setCurrentStep(currentStep + 1);
+      setCurrentStep(2);
       return;
     }
-    if (currentStep === 3) {
-      setIsVerifying(true);
-      let result = null;
-      try {
-        result = await verifyAndCreate();
-        if (result && result.success) {
-          setIsVerified(true);
-          setTransaction({
-            reference_id: result.reference_id,
-            transaction_id: result.transaction_id,
-            payer_name: `${payerData.firstName} ${payerData.lastName}`,
-            items_paid: result.items_paid || [],
-            total_amount: (result.items_paid || []).reduce(
-              (sum, item) => sum + parseFloat(item.amount || 0),
-              0
-            ),
-          });
-          setCurrentStep(currentStep + 1);
-        } else if (result === null) {
-          // ErrorModal already shown, just stop loader
-          // Optionally, you can set a custom error here if you want
-        } else {
-          setModalError({
-            open: true,
-            title: "Verification Error",
-            message: (result && result.error) || "Verification or transaction failed."
-          });
-        }
-      } catch (err) {
-        const { isTimeout, message } = handleFetchError(err);
-        setModalError({
-          open: true,
-          title: isTimeout ? "Request Timeout" : "Unknown Error",
-          message: message
-        });
-      } finally {
-        setIsVerifying(false);
-      }
-    } else if (currentStep < 4) {
-      setCurrentStep(currentStep + 1);
+    if (currentStep === 2) {
+      await initiatePayment();
+      return;
     }
   };
 
   const prevStep = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
-    }
+    if (currentStep > 1) setCurrentStep(currentStep - 1);
   };
 
   const canProceed = () => {
     switch (currentStep) {
       case 1:
-        return payerData.firstName && payerData.lastName && payerData.email && payerData.matricNumber && payerData.phoneNumber;
+        return (
+          payerData.firstName &&
+          payerData.lastName &&
+          payerData.email &&
+          payerData.matricNumber &&
+          payerData.phoneNumber
+        );
       case 2:
         return selectedItems.length > 0;
-      case 3:
-        return proofFile;
       default:
         return true;
     }
   };
 
-  const renderCurrentStep = () => {
-    switch (currentStep) {
-      case 1:
-        return (
-          <RegistrationStep
-            ref={registrationStepRef}
-            payerData={payerData}
-            handleInputChange={handleInputChange}
-            error={regError}
-            loading={regLoading}
-            associationData={associationData}
-            themeColor={themeColor}
-          />
-        );
-      case 2:
-        return (
-          <PaymentSelectionStep
-            paymentItems={paymentItems}
-            selectedItems={selectedItems}
-            handleItemSelection={handleItemSelection}
-            associationData={associationData}
-            getTotalAmount={getTotalAmount}
-            themeColor={themeColor}
-          />
-        );
-      case 3:
-        return (
-          <UploadReceiptStep
-            payerData={payerData}
-            proofFile={proofFile}
-            handleFileUpload={handleFileUpload}
-            getTotalAmount={getTotalAmount}
-            themeColor={themeColor}
-          />
-        );
-      case 4:
-        return (
-          <ConfirmationStep
-            isVerified={isVerified}
-            transaction={transaction}
-            themeColor={themeColor}
-          />
-        );
-      default:
-        return null;
-    }
-  };
+  usePageTitle("Payment Flow - DuesPay");
+  const steps = [
+    { number: 1, title: "Registration", icon: User },
+    { number: 2, title: "Payment Selection", icon: CreditCard },
+  ];
 
   if (isLoading) {
     return (
@@ -380,31 +283,10 @@ const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
     );
   }
 
-  if (isVerifying) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-white">
-        <div className="mb-4">
-          <svg 
-            className="animate-spin h-12 w-12" 
-            style={{ color: themeColor }}
-            xmlns="http://www.w3.org/2000/svg" 
-            fill="none" 
-            viewBox="0 0 24 24"
-          >
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
-          </svg>
-        </div>
-        <div>Verifying proof of payment...</div>
-      </div>
-    );
-  }
-
   if (!associationData) {
     return <NotFoundPage message="This association does not exist or is not available." />;
   }
 
-  // Generate dynamic theme styles
   const dynamicStyles = generateThemeStyles(themeColor);
 
   return (
@@ -415,26 +297,37 @@ const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
         title={modalError.title}
         message={modalError.message}
       />
-
-      <div 
+      <div
         className="min-h-screen bg-gray-50 dark:bg-slate-900 flex items-center justify-center p-1 sm:p-8 md:p-16"
         style={dynamicStyles}
       >
         <div className="bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl sm:rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden border border-gray-200 dark:border-slate-700">
-          <Header
-            associationData={associationData}
-            steps={steps}
-            currentStep={currentStep}
-            themeColor={themeColor}
-          />
-
-          {/* Step Content */}
+          <Header associationData={associationData} steps={steps} currentStep={currentStep} themeColor={themeColor} />
           <div className="sm:p-8 p-4 bg-white dark:bg-slate-800 text-gray-900 dark:text-white">
-            {renderCurrentStep()}
+            {currentStep === 1 && (
+              <RegistrationStep
+                ref={registrationStepRef}
+                payerData={payerData}
+                handleInputChange={(f, v) => setPayerData(prev => ({ ...prev, [f]: v }))}
+                error={regError}
+                loading={regLoading}
+                associationData={associationData}
+                themeColor={themeColor}
+              />
+            )}
+            {currentStep === 2 && (
+              <PaymentSelectionStep
+                paymentItems={paymentItems}
+                selectedItems={selectedItems}
+                handleItemSelection={handleItemSelection}
+                associationData={associationData}
+                getTotalAmount={getTotalAmount}
+                themeColor={themeColor}
+              />
+            )}
 
-            {/* Navigation Buttons */}
             <div className="flex justify-between mt-8 pt-6 border-t border-gray-200 dark:border-slate-700">
-              {currentStep > 1 && currentStep < 4 && (
+              {currentStep > 1 && (
                 <button
                   onClick={prevStep}
                   className="px-6 py-3 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-slate-300 rounded-xl hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors font-medium border border-gray-300 dark:border-slate-600"
@@ -442,43 +335,26 @@ const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
                   Previous
                 </button>
               )}
-
-              {currentStep < 4 && (
-                <button
-                  onClick={nextStep}
-                  disabled={!canProceed() || isVerifying || regLoading}
-                  className={`px-8 py-3 rounded-xl font-medium transition-all ml-auto ${
-                    canProceed() && !isVerifying && !regLoading
-                      ? 'text-white hover:shadow-lg transition-all'
-                      : 'bg-gray-200 dark:bg-slate-700 text-gray-500 dark:text-slate-500 cursor-not-allowed border border-gray-300 dark:border-slate-600'
-                  }`}
-                  style={
-                    canProceed() && !isVerifying && !regLoading
-                      ? {
-                          backgroundColor: themeColor,
-                          color: isDarkTheme ? '#ffffff' : '#000000',
-                          boxShadow: `0 10px 25px ${themeColor}25`,
-                        }
-                      : {}
-                  }
-                >
-                  {regLoading ? 'Checking...' : currentStep === 3 ? 'Submit' : 'Continue'}
-                </button>
-              )}
-
-              {currentStep === 4 && isVerified && (
-                <button
-                  onClick={() => window.location.reload()}
-                  className="px-8 py-3 text-white rounded-xl hover:shadow-lg transition-all font-medium mx-auto"
-                  style={{
-                    backgroundColor: themeColor,
-                    color: isDarkTheme ? '#ffffff' : '#000000',
-                    boxShadow: `0 10px 25px ${themeColor}25`,
-                  }}
-                >
-                  Make Another Payment
-                </button>
-              )}
+              <button
+                onClick={nextStep}
+                disabled={!canProceed() || regLoading}
+                className={`px-8 py-3 rounded-xl font-medium transition-all ml-auto ${
+                  canProceed() && !regLoading
+                    ? 'text-white hover:shadow-lg transition-all'
+                    : 'bg-gray-200 dark:bg-slate-700 text-gray-500 dark:text-slate-500 cursor-not-allowed border border-gray-300 dark:border-slate-600'
+                }`}
+                style={
+                  canProceed() && !regLoading
+                    ? {
+                        backgroundColor: themeColor,
+                        color: isDarkTheme ? '#ffffff' : '#000000',
+                        boxShadow: `0 10px 25px ${themeColor}25`,
+                      }
+                    : {}
+                }
+              >
+                {currentStep === 1 ? 'Continue' : 'Pay Now'}
+              </button>
             </div>
           </div>
         </div>

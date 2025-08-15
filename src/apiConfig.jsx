@@ -1,6 +1,6 @@
-// export const API_BASE_URL = "http://localhost:8000";
+export const API_BASE_URL = "http://localhost:8000";
 // export const API_BASE_URL = "https://duespay-backend.fly.dev";
-export const API_BASE_URL = "https://duespay.onrender.com";
+// export const API_BASE_URL = "https://duespay.onrender.com";
 // export const API_BASE_URL = "https://duespay.pythonanywhere.com";
 
 export const API_ENDPOINTS = {
@@ -56,4 +56,8 @@ export const API_ENDPOINTS = {
   UNREAD_NOTIFICATIONS_COUNT: `${API_BASE_URL}/notifications/unread-count/`,
   MARK_ALL_NOTIFICATIONS_READ: `${API_BASE_URL}/notifications/mark-all-read/`,
   GET_RECEIPT: (receipt_id) => `${API_BASE_URL}/receipts/${receipt_id}/`,
+
+  // initiate payment
+  PAYMENT_INITIATE: `${API_BASE_URL}/payment/initiate/`,
+  PAYMENT_STATUS: (transaction_id) => `${API_BASE_URL}/payment/status/${transaction_id}/`
 };
