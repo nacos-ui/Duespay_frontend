@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
-import { User, CreditCard } from 'lucide-react';
+import { User, CreditCard, Loader2 } from 'lucide-react';
 import Header from './components/Header';
 import RegistrationStep from './components/RegistrationStep';
 import PaymentSelectionStep from './components/PaymentSelectionStep';
@@ -58,6 +58,8 @@ const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
 
   const [modalError, setModalError] = useState({ open: false, title: "", message: "" });
   const [isLoading, setIsLoading] = useState(false);
+  // Add loading for Pay Now
+  const [payLoading, setPayLoading] = useState(false);
 
   const themeColor = associationData?.theme_color || '#9810fa';
   const isDarkTheme = isColorDark(themeColor);
@@ -167,6 +169,7 @@ const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
   // STEP 3: Initiate payment → redirect to checkout_url
   const initiatePayment = async () => {
     try {
+      setPayLoading(true);
       if (!payerId) throw new Error("Missing payer identifier.");
 
       // Use previous-style extraction + numeric support + fallback to first item
@@ -192,11 +195,16 @@ const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
         throw new Error("Please select at least one item.");
       }
 
-      // Guard endpoint to avoid undefined.startsWith in api.js
       const endpoint = API_ENDPOINTS.PAYMENT_INITIATE;
       if (!endpoint || typeof endpoint !== 'string') {
         throw new Error("PAYMENT_INITIATE endpoint is not configured.");
       }
+
+      // Build Korapay-friendly customer fields
+      const payer_name = sanitizeName(
+        `${payerData.firstName || ''} ${payerData.lastName || ''}`.trim()
+      );
+      const payer_email = String(payerData.email || '').trim();
 
       const res = await fetchWithTimeout(
         endpoint,
@@ -208,6 +216,8 @@ const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
             association_id,
             session_id,
             payment_item_ids: selectedItems,
+            payer_name,
+            payer_email,
           }),
         },
         30000
@@ -223,6 +233,7 @@ const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
       }
 
       setReferenceId(data.reference_id);
+      // Redirect to Korapay checkout
       window.location.href = data.checkout_url;
     } catch (err) {
       const { message } = handleFetchError(err);
@@ -231,6 +242,7 @@ const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
         title: "Payment Error",
         message,
       });
+      setPayLoading(false);
     }
   };
 
@@ -323,6 +335,8 @@ const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
                 associationData={associationData}
                 getTotalAmount={getTotalAmount}
                 themeColor={themeColor}
+                // Hide any bank account details; using Korapay now
+                hideBankDetails
               />
             )}
 
@@ -337,14 +351,14 @@ const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
               )}
               <button
                 onClick={nextStep}
-                disabled={!canProceed() || regLoading}
+                disabled={!canProceed() || regLoading || payLoading}
                 className={`px-8 py-3 rounded-xl font-medium transition-all ml-auto ${
-                  canProceed() && !regLoading
+                  canProceed() && !regLoading && !payLoading
                     ? 'text-white hover:shadow-lg transition-all'
                     : 'bg-gray-200 dark:bg-slate-700 text-gray-500 dark:text-slate-500 cursor-not-allowed border border-gray-300 dark:border-slate-600'
                 }`}
                 style={
-                  canProceed() && !regLoading
+                  canProceed() && !regLoading && !payLoading
                     ? {
                         backgroundColor: themeColor,
                         color: isDarkTheme ? '#ffffff' : '#000000',
@@ -353,7 +367,14 @@ const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
                     : {}
                 }
               >
-                {currentStep === 1 ? 'Continue' : 'Pay Now'}
+                {currentStep === 1 ? (
+                  'Continue'
+                ) : (
+                  <span className="inline-flex items-center gap-2">
+                    {payLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+                    {payLoading ? 'Redirecting…' : 'Pay Now'}
+                  </span>
+                )}
               </button>
             </div>
           </div>
