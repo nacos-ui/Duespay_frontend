@@ -10,6 +10,7 @@ export const API_ENDPOINTS = {
   REFRESH_TOKEN: `${API_BASE_URL}/auth/token/refresh/`, // Add this line
   PASSWORD_RESET: `${API_BASE_URL}/auth/password-reset/`,
   PASSWORD_RESET_CONFIRM: `${API_BASE_URL}/auth/password-reset-confirm/`,
+  GOOGLE_AUTH: `${API_BASE_URL}/auth/google/`,
 
   // Payment items endpoints
   PAYMENT_ITEM_DETAILS: (id) => `${API_BASE_URL}/payment-items/${id}/`,

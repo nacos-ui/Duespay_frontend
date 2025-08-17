@@ -125,15 +125,7 @@ export default function AdminProfileCard({ data, loading, onUpdated }) {
               {message.text}
             </StatusMessage>
           )}
-          
-          <div>
-            <label className="text-gray-400 text-sm">Username</label>
-            <input
-              className="w-full bg-[#23263A] text-white rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-purple-600"
-              value={form.username || ""}
-              onChange={e => setForm(f => ({ ...f, username: e.target.value }))}
-            />
-          </div>
+
           <div>
             <label className="text-gray-400 text-sm">Email</label>
             <input
@@ -234,16 +226,12 @@ export default function AdminProfileCard({ data, loading, onUpdated }) {
       ) : (
         <div className="space-y-3">
           <div className="flex items-center">
-            <span className="text-gray-400 text-sm w-24">Username:</span>
-            <span className="ml-2 text-white">{data?.username || "—"}</span>
+            <span className="text-gray-400 text-sm w-24">Email:</span>
+            <span className="ml-2 text-white">{data?.email || "—"}</span>
           </div>
           <div className="flex items-center">
             <span className="text-gray-400 text-sm w-24">Full Name:</span>
             <span className="ml-2 text-white">{(data?.first_name || "—") + " " + (data?.last_name || "")}</span>
-          </div>
-          <div className="flex items-center">
-            <span className="text-gray-400 text-sm w-24">Email:</span>
-            <span className="ml-2 text-white">{data?.email || "—"}</span>
           </div>
           <div className="flex items-center">
             <span className="text-gray-400 text-sm w-24">Phone:</span>
