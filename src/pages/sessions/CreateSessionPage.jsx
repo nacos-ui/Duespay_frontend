@@ -56,7 +56,13 @@ const CreateSessionPage = () => {
           navigate('/dashboard/overview');
         }, 1500);
       } else {
-        setError(result.error?.title?.[0] || result.error?.detail || 'Failed to create session');
+        console.log("API error response:", result);
+        setError(
+          result.error?.message ||
+          result.error?.errors?.title ||  // <-- notice errors not error
+          result.error?.errors?.detail ||
+          'Failed to create session'
+        );
       }
     } catch (err) {
       setError('An unexpected error occurred');
@@ -102,8 +108,8 @@ const CreateSessionPage = () => {
           <div className="bg-[#23263A] rounded-lg p-6">
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Status Messages */}
-              {error && <StatusMessage type="error" message={error} />}
-              {success && <StatusMessage type="success" message={success} />}
+              {error && <StatusMessage type="error" children={error} />}
+              {success && <StatusMessage type="success" children={success} />}
 
               {/* Session Title */}
               <div>

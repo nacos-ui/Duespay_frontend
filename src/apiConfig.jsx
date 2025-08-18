@@ -1,13 +1,13 @@
-// export const API_BASE_URL = "http://localhost:8000";
+export const API_BASE_URL = "http://localhost:8000";
 // export const API_BASE_URL = "https://duespay-backend.fly.dev";
-export const API_BASE_URL = "https://duespay.onrender.com";
+// export const API_BASE_URL = "https://duespay.onrender.com";
 // export const API_BASE_URL = "https://duespay.pythonanywhere.com";
 
 export const API_ENDPOINTS = {
   // Auth endpoints
   LOGIN: `${API_BASE_URL}/auth/login/`,
   SIGNUP: `${API_BASE_URL}/auth/register/`,
-  REFRESH_TOKEN: `${API_BASE_URL}/auth/token/refresh/`, // Add this line
+  REFRESH_TOKEN: `${API_BASE_URL}/auth/token/refresh/`,
   PASSWORD_RESET: `${API_BASE_URL}/auth/password-reset/`,
   PASSWORD_RESET_CONFIRM: `${API_BASE_URL}/auth/password-reset-confirm/`,
   GOOGLE_AUTH: `${API_BASE_URL}/auth/google/`,
