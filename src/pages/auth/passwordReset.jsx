@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Mail, CheckCircle, Loader2 } from 'lucide-react';
+import { ArrowLeft, Mail, CheckCircle } from 'lucide-react';
 import { API_ENDPOINTS } from '../../apiConfig';
 import SubmitButton from '../../components/SubmitButton';
 import { fetchWithTimeout, handleFetchError } from '../../utils/fetchUtils';
 import { usePageTitle } from '../../hooks/usePageTitle';
+import AnimatedInput from './animatedInput';
 
 const PasswordReset = ({ onBack }) => {
   const [email, setEmail] = useState('');
@@ -27,19 +28,17 @@ const PasswordReset = ({ onBack }) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ email })
-      }, 15000); // 15 second timeout for password reset
+      }, 15000);
 
       const data = await response.json();
 
       if (response.ok) {
         setSuccess(true);
       } else {
-        // Handle field-specific errors
         if (data.errors && typeof data.errors === 'object') {
           setFieldErrors(data.errors);
         }
         
-        // Handle general error message
         if (data.message || data.detail) {
           setError(data.message || data.detail);
         } else if (!data.errors) {
@@ -47,7 +46,6 @@ const PasswordReset = ({ onBack }) => {
         }
       }
     } catch (err) {
-      // Use the error handler for consistent timeout/network error messages
       const errorInfo = handleFetchError(err);
       setError(errorInfo.message);
       console.error('Password reset error:', err);
@@ -103,23 +101,16 @@ const PasswordReset = ({ onBack }) => {
           </div>
         )}
 
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">
-            Email Address
-          </label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Enter your email address"
-            className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-colors"
-            required
-            disabled={loading}
-          />
-          {fieldErrors.email && (
-            <p className="mt-1 text-sm text-red-400">{fieldErrors.email}</p>
-          )}
-        </div>
+        <AnimatedInput
+          id="email"
+          label="Email Address"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          disabled={loading}
+          required
+          error={fieldErrors.email}
+        />
 
         <SubmitButton
           loading={loading}

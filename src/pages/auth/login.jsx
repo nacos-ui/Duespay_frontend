@@ -8,6 +8,7 @@ import SubmitButton from '../../components/SubmitButton';
 import { usePageTitle } from '../../hooks/usePageTitle';
 import { fetchWithTimeout, handleFetchError } from '../../utils/fetchUtils';
 import { useSession } from '../../contexts/SessionContext';
+import AnimatedInput from './animatedInput';
 
 const loginURL = API_ENDPOINTS.LOGIN;
 
@@ -102,9 +103,9 @@ const LoginForm = ({ onToggle, onForgotPassword }) => {
   };
 
   return (
-    <div className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6">
       <div className="text-center">
-        <div className="flex items-center justify-center mb-2">
+        {/* <div className="flex items-center justify-center mb-2">
           <div className="bg-none rounded-lg">
             <img
               src="/Duespay_logo.png"
@@ -112,7 +113,7 @@ const LoginForm = ({ onToggle, onForgotPassword }) => {
               className="h-16 w-16 mx-auto mb-4 rounded-xl bg-transparent object-cover"
             />
           </div>
-        </div>
+        </div> */}
         <h2 className="text-2xl font-bold mb-2 text-white">Welcome Back</h2>
         <p className="text-gray-400">Welcome back! Please enter your details.</p>
       </div>
@@ -121,44 +122,32 @@ const LoginForm = ({ onToggle, onForgotPassword }) => {
         {error && <StatusMessage type="error">{error}</StatusMessage>}
         {success && <StatusMessage type="success">{success}</StatusMessage>}
 
-        <div>
-          <label className="block text-sm font-medium mb-2 text-gray-300">
-            Email
-          </label>
-          <input
-            type="email"
-            value={formData.email}
-            onChange={(e) => setFormData({...formData, email: e.target.value})}
-            placeholder="Enter your email"
-            className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-colors"
-            required
-            disabled={loading}
-          />
-        </div>
+        <AnimatedInput
+          id="email"
+          label="Email"
+          type="email"
+          value={formData.email}
+          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+          disabled={loading}
+          required
+        />
 
-        <div>
-          <label className="block text-sm font-medium mb-2 text-gray-300">
-            Password
-          </label>
-          <div className="relative">
-            <input
-              type={showPassword ? 'text' : 'password'}
-              value={formData.password}
-              onChange={(e) => setFormData({...formData, password: e.target.value})}
-              placeholder="Password"
-              className="w-full px-4 py-3 pr-12 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-colors"
-              required
-              disabled={loading}
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-300"
-            >
-              {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-            </button>
-          </div>
-        </div>
+        <AnimatedInput
+          id="password"
+          label="Password"
+          type={showPassword ? 'text' : 'password'}
+          value={formData.password}
+          onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+          disabled={loading}
+          required
+        >
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+          >
+            {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+          </button>
+        </AnimatedInput>
 
         <div className="flex items-center justify-between">
           <div className="flex items-center">
@@ -185,7 +174,6 @@ const LoginForm = ({ onToggle, onForgotPassword }) => {
         <SubmitButton
           loading={loading}
           loadingText="Signing In..."
-          onClick={handleSubmit}
           type="submit"
         >
           Sign In
@@ -199,14 +187,15 @@ const LoginForm = ({ onToggle, onForgotPassword }) => {
           <span className="mx-3 text-gray-400 text-sm">or</span>
           <div className="flex-grow border-t border-gray-700"></div>
         </div>
-        <GoogleLogin
-          onSuccess={handleGoogleLogin}
-          onError={() => setError("Google login failed.")}
-          width="100%"
-          theme="filled_black"
-          text="signin_with"
-          shape="pill"
-        />
+        <div className="flex justify-center w-full">
+            <GoogleLogin
+              onSuccess={handleGoogleLogin}
+              onError={() => setError("Google login failed.")}
+              theme="filled_black"
+              text="signin_with"
+              shape="pill"
+            />
+        </div>
       </div>
       
       <div className="text-center">
@@ -218,7 +207,7 @@ const LoginForm = ({ onToggle, onForgotPassword }) => {
           Sign Up
         </button>
       </div>
-    </div>
+    </form>
   );
 };
 

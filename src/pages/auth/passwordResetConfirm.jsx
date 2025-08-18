@@ -5,6 +5,7 @@ import { API_ENDPOINTS } from '../../apiConfig';
 import SubmitButton from '../../components/SubmitButton';
 import { fetchWithTimeout, handleFetchError } from '../../utils/fetchUtils';
 import { usePageTitle } from '../../hooks/usePageTitle';
+import AnimatedInput from './animatedInput';
 
 const PasswordResetConfirm = () => {
   const [searchParams] = useSearchParams();
@@ -56,7 +57,7 @@ const PasswordResetConfirm = () => {
           uid,
           password: formData.password
         })
-      }, 15000); // 15 second timeout for password reset confirm
+      }, 15000);
 
       const data = await response.json();
 
@@ -66,12 +67,10 @@ const PasswordResetConfirm = () => {
           navigate('/auth');
         }, 3000);
       } else {
-        // Handle field-specific errors
         if (data.errors && typeof data.errors === 'object') {
           setFieldErrors(data.errors);
         }
         
-        // Handle general error message
         if (data.message || data.detail) {
           setError(data.message || data.detail);
         } else if (!data.errors) {
@@ -79,7 +78,6 @@ const PasswordResetConfirm = () => {
         }
       }
     } catch (err) {
-      // Use the error handler for consistent timeout/network error messages
       const errorInfo = handleFetchError(err);
       setError(errorInfo.message);
       console.error('Password reset confirm error:', err);
@@ -163,59 +161,41 @@ const PasswordResetConfirm = () => {
               </div>
             )}
 
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                New Password
-              </label>
-              <div className="relative">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={formData.password}
-                  onChange={(e) => setFormData({...formData, password: e.target.value})}
-                  placeholder="Enter new password"
-                  className="w-full px-4 py-3 pr-12 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-colors"
-                  required
-                  disabled={loading}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-300"
-                >
-                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                </button>
-              </div>
-              {fieldErrors.password && (
-                <p className="mt-1 text-sm text-red-400">{fieldErrors.password}</p>
-              )}
-            </div>
+            <AnimatedInput
+              id="password"
+              label="New Password"
+              type={showPassword ? 'text' : 'password'}
+              value={formData.password}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              disabled={loading}
+              required
+              error={fieldErrors.password}
+            >
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+              </button>
+            </AnimatedInput>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Confirm New Password
-              </label>
-              <div className="relative">
-                <input
-                  type={showConfirmPassword ? 'text' : 'password'}
-                  value={formData.confirmPassword}
-                  onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
-                  placeholder="Confirm new password"
-                  className="w-full px-4 py-3 pr-12 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-colors"
-                  required
-                  disabled={loading}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-300"
-                >
-                  {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                </button>
-              </div>
-              {fieldErrors.confirmPassword && (
-                <p className="mt-1 text-sm text-red-400">{fieldErrors.confirmPassword}</p>
-              )}
-            </div>
+            <AnimatedInput
+              id="confirmPassword"
+              label="Confirm New Password"
+              type={showConfirmPassword ? 'text' : 'password'}
+              value={formData.confirmPassword}
+              onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+              disabled={loading}
+              required
+              error={fieldErrors.confirmPassword}
+            >
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              >
+                {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+              </button>
+            </AnimatedInput>
 
             <SubmitButton
               loading={loading}
