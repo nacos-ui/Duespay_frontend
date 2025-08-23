@@ -185,6 +185,8 @@ export default function BankInfoCard({ data, loading, onUpdated }) {
     setSaving(true);
     setMessage({ type: "", text: "" });
 
+    // console.log(form.bank_name, form.account_name, form.account_number, verificationStatus, verifiedData);
+
     // Validation
     if (!form.bank_name?.trim()) {
       setMessage({ type: "error", text: "Bank name is required." });

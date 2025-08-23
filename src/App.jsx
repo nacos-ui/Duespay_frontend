@@ -18,7 +18,6 @@ import { extractShortName } from './utils/getShortname';
 import ReceiptPage from './pages/receipt/receipt';
 import { ErrorProvider } from './contexts/ErrorContext';
 import PaymentCallback from './pages/payment/PaymentCallback';
-import PaymentSuccess from './pages/payment/PaymentSuccess';
 
 function App() {
   const pathname = window.location.pathname;
@@ -75,7 +74,6 @@ function App() {
               </Route>
               
               <Route path="/payment/callback" element={<PaymentCallback />} />
-              <Route path="/payment/success" element={<PaymentSuccess />} />
               
               {/* Catch-all 404 for unregistered routes */}
               <Route path="*" element={<NotFoundPage />} />

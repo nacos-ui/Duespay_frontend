@@ -1,8 +1,9 @@
 import React, { useState, forwardRef, useImperativeHandle } from 'react';
 import FormInput from './FormInput';
+import { UserPlus, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const phoneRegex = /^(\+234|234|0)[789]\d{9}$/; // Nigerian phone number format
+const phoneRegex = /^(\+234|234|0)[789]\d{9}$/;
 
 const RegistrationStep = forwardRef(({
   payerData,
@@ -17,11 +18,9 @@ const RegistrationStep = forwardRef(({
 
   const type = associationData?.Association_type || associationData?.association_type || "";
 
-  // Helper to trim and validate input
   const handleFieldChange = (key, value) => {
     let processedValue = value;
     
-    // Clear field error when user starts typing
     if (fieldErrors[key]) {
       setFieldErrors(prev => ({
         ...prev,
@@ -29,22 +28,19 @@ const RegistrationStep = forwardRef(({
       }));
     }
     
-    // Process specific fields
     if (key === "phoneNumber") {
-      // Allow numbers, spaces, +, and - for phone formatting
       processedValue = value.replace(/[^\d+\-\s]/g, '');
     }
     
     handleInputChange(key, processedValue);
   };
 
-  // Parse backend errors (field-specific validation errors)
   const parseBackendErrors = (error) => {
     if (typeof error === 'object' && error !== null && !error.error) {
       const errors = {};
       Object.keys(error).forEach(field => {
         if (Array.isArray(error[field]) && error[field].length > 0) {
-          errors[field] = error[field][0]; // Take first error message
+          errors[field] = error[field][0];
         }
       });
       return errors;
@@ -52,11 +48,9 @@ const RegistrationStep = forwardRef(({
     return {};
   };
 
-  // Frontend validation (only field format and required validation)
   const validateFields = () => {
     const errors = {};
     
-    // Required fields validation
     if (!payerData.firstName?.trim()) {
       errors.firstName = "First name is required.";
     }
@@ -81,7 +75,6 @@ const RegistrationStep = forwardRef(({
       errors.matricNumber = "Matric number is required.";
     }
     
-    // Conditional fields based on association type
     if (type === "hall" || type === "other") {
       if (!payerData.faculty?.trim()) {
         errors.faculty = "Faculty is required.";
@@ -98,7 +91,6 @@ const RegistrationStep = forwardRef(({
     return errors;
   };
 
-  // Expose validation to parent component
   useImperativeHandle(ref, () => ({
     validate: () => {
       const errors = validateFields();
@@ -121,13 +113,12 @@ const RegistrationStep = forwardRef(({
     }
   }));
 
-  // Define fields based on association type
   const getFieldsForType = () => {
     const baseFields = [
       { key: 'firstName', label: 'First Name', required: true },
       { key: 'lastName', label: 'Last Name', required: true },
       { key: 'matricNumber', label: 'Matric Number', required: true, type: 'text' },
-      { key: 'email', label: 'Email', required: true, type: 'email' },
+      { key: 'email', label: 'Email Address', required: true, type: 'email' },
       { key: 'phoneNumber', label: 'Phone Number', required: true, type: 'tel', placeholder: '+234 or 0' },
     ];
 
@@ -158,41 +149,53 @@ const RegistrationStep = forwardRef(({
   const fields = getFieldsForType();
 
   React.useEffect(() => {
-    // Clear frontend validation errors when data changes
     setValidationError("");
     setFieldErrors({});
   }, [payerData, type]);
 
   return (
-    <div className="space-y-6">
-      <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Payer Registration</h2>
-        <p className="text-gray-600 dark:text-slate-300">Please fill in your details to continue</p>
+    <div className="space-y-8">
+      <div className="text-center">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-4" 
+             style={{ backgroundColor: `${themeColor}20` }}>
+          <UserPlus className="w-8 h-8" style={{ color: themeColor }} />
+        </div>
+        <h2 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent mb-3">
+          Payer Registration
+        </h2>
+        <p className="text-gray-600 dark:text-slate-400">
+          Please provide your information to continue with payment
+        </p>
       </div>
 
-      {/* Frontend validation error */}
+      {/* Status Messages */}
       {validationError && (
-        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-4">
-          <div className="text-red-700 dark:text-red-300 text-sm font-medium">{validationError}</div>
+        <div className="flex items-center gap-3 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl">
+          <AlertCircle className="w-5 h-5 text-red-500 dark:text-red-400 flex-shrink-0" />
+          <div className="text-red-700 dark:text-red-300 font-medium">{validationError}</div>
         </div>
       )}
 
-      {/* Backend general error (like "Phone number already belongs to another user") */}
       {error && !validationError && (
-        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-4">
-          <div className="text-red-700 dark:text-red-300 text-sm font-medium">{error}</div>
+        <div className="flex items-center gap-3 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl">
+          <AlertCircle className="w-5 h-5 text-red-500 dark:text-red-400 flex-shrink-0" />
+          <div className="text-red-700 dark:text-red-300 font-medium">{error}</div>
         </div>
       )}
 
       {loading && (
-        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-4">
-          <div className="text-blue-700 dark:text-blue-300 text-sm font-medium">Checking details...</div>
+        <div className="flex items-center gap-3 p-4 rounded-xl" style={{ backgroundColor: `${themeColor}10` }}>
+          <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" 
+               style={{ color: themeColor }}></div>
+          <div className="font-medium" style={{ color: themeColor }}>
+            Checking your details...
+          </div>
         </div>
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {fields.map((field) => (
-          <div key={field.key} className="space-y-2">
+          <div key={field.key} className={field.key === 'email' || field.key === 'matricNumber' ? 'md:col-span-2' : ''}>
             <FormInput
               label={field.label}
               type={field.type || 'text'}
@@ -203,11 +206,6 @@ const RegistrationStep = forwardRef(({
               themeColor={themeColor}
               error={fieldErrors[field.key]}
             />
-            {fieldErrors[field.key] && (
-              <div className="text-red-500 dark:text-red-400 text-xs mt-1">
-                {fieldErrors[field.key]}
-              </div>
-            )}
           </div>
         ))}
       </div>
