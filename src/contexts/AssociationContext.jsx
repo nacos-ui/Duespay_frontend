@@ -25,8 +25,9 @@ export const AssociationProvider = ({ children }) => {
         },
       }, 10000);
 
+      const responseData = await response.json();
       if (response.ok) {
-        const data = await response.json();
+        const data = responseData.data;
         setAssociation(data);
       }
     } catch (error) {

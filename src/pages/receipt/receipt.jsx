@@ -63,8 +63,9 @@ const ReceiptPage = () => {
     fetchWithTimeout(API_ENDPOINTS.GET_RECEIPT(receipt_id), {}, 15000)
       .then(async (res) => {
         if (!res.ok) throw new Error("Network response was not ok");
-        const data = await res.json();
-        if (data.success === false || !data.receipt_id) {
+        const responseData = await res.json();
+        const data = responseData.data;
+        if (responseData.success === false || !data.receipt_id) {
           if (isMounted) setNotFound(true);
         } else {
           if (isMounted) setReceipt(data);

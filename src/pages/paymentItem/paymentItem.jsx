@@ -61,7 +61,8 @@ export default function PaymentItems() {
       }, 30000); // 30 seconds timeout
 
       if (!res.ok) throw new Error("Failed to fetch payment items");
-      const data = await res.json();
+      const responseData = await res.json();
+      const data = responseData.data;
       setPaymentItems(Array.isArray(data.results) ? data.results : (Array.isArray(data) ? data : []));
     } catch (err) {
       const { message } = handleFetchError(err);

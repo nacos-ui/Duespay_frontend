@@ -3,6 +3,7 @@ import { Edit, Eye, EyeOff } from "lucide-react";
 import { API_ENDPOINTS } from "../../../apiConfig";
 import StatusMessage from "../../../components/StatusMessage";
 import { fetchWithTimeout, handleFetchError } from "../../../utils/fetchUtils";
+import { triggerContextRefresh } from "../../../utils/refreshContext"; // Add this import
 import SettingsCardSkeleton from "./SettingsCardSkeleton";
 
 export default function AdminProfileCard({ data, loading, onUpdated }) {
@@ -67,13 +68,17 @@ export default function AdminProfileCard({ data, loading, onUpdated }) {
         body: JSON.stringify(updateData),
       }, 15000);
       
+      const responseData = await res.json();
       if (res.ok) {
-        const updated = await res.json();
+        const updated = responseData.data;
         setMessage({ type: 'success', text: 'Profile updated successfully!' });
         setSaving(false);
         setEdit(false);
         setPasswordData({ new_password: "", confirm_password: "" });
         onUpdated(updated);
+        
+        await triggerContextRefresh();
+        
       } else {
         const error = await res.json();
         setMessage({ type: 'error', text: error.message || 'Update failed' });

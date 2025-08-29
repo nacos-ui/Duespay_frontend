@@ -1,74 +1,119 @@
 import React from 'react';
 import { isColorDark } from '../utils/colorUtils'; 
 
-const Header = ({ associationData, steps, currentStep, themeColor }) => {
+const Header = ({ associationData, themeColor }) => {
+  if (!associationData) return null;
+
   const isDark = isColorDark(themeColor);
   const textColor = isDark ? '#ffffff' : '#000000';
-  const secondaryTextColor = isDark ? '#e5e7eb' : '#374151';
+  const secondaryTextColor = isDark ? 'rgba(255, 255, 255, 0.8)' : 'rgba(0, 0, 0, 0.6)';
   
   return (
     <div 
-      className="text-white p-6"
+      className="relative overflow-hidden"
       style={{
-        background: `linear-gradient(to right, ${themeColor}, ${themeColor})`,
-        color: textColor
+        background: `linear-gradient(135deg, ${themeColor}, ${themeColor}dd, ${themeColor}aa)`,
+        backgroundSize: '200% 200%',
+        animation: 'gradientShift 6s ease infinite'
       }}
     >
-      <div className="flex items-center gap-4 mb-6">
-        <div className="text-4xl">
-          <img
-              src={associationData.logo_url}
-              alt={associationData.association_name + " logo"}
-              className="w-16 h-16 min-w-16 min-h-16 flex-shrink-0 rounded-full object-cover border-2 shadow"
-              style={{ borderColor: textColor }}
-          />
-        </div>
-        <div>
-          <h1 className="text-2xl font-bold" style={{ color: textColor }}>
-            {associationData.association_name}
-          </h1>
-          <p style={{ color: secondaryTextColor }}>
-            {associationData.association_type}
-          </p>
-        </div>
-      </div>
-
-      {/* Progress Steps */}
-      <div className="flex justify-between overflow-x-scroll items-center hide-scrollbar">
-        {steps.map((step, index) => {
-          const Icon = step.icon;
-          const isActive = currentStep >= step.number;
-          const isCurrent = currentStep === step.number;
-          
-          return (
-            <div key={step.number} className="flex items-center">
+      {/* Background Pattern */}
+      <div 
+        className="absolute inset-0 opacity-10"
+        style={{
+          backgroundImage: `radial-gradient(circle at 20% 50%, rgba(255,255,255,0.2) 1px, transparent 1px),
+                           radial-gradient(circle at 80% 50%, rgba(255,255,255,0.2) 1px, transparent 1px),
+                           radial-gradient(circle at 40% 80%, rgba(255,255,255,0.1) 1px, transparent 1px)`,
+          backgroundSize: '100px 100px, 80px 80px, 120px 120px'
+        }}
+      />
+      
+      {/* Content - REDUCED PADDING HERE */}
+      <div className="relative z-10 px-4 py-4 md:px-6 md:py-6 lg:px-8">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex items-start gap-3 md:gap-4 lg:gap-6">
+            {/* Logo - SMALLER ON MOBILE */}
+            <div className="relative flex-shrink-0">
               <div 
-                className="flex items-center gap-2 px-4 py-2 rounded-full transition-all"
-                style={{
-                  backgroundColor: isActive 
-                    ? `${textColor}20` 
-                    : `${textColor}10`,
-                  color: isActive ? textColor : secondaryTextColor
+                className="absolute inset-0 rounded-full blur-md opacity-30"
+                style={{ backgroundColor: textColor }}
+              />
+              <img
+                src={associationData.logo_url}
+                alt={associationData.association_name + " logo"}
+                className="relative w-14 h-14 md:w-20 md:h-20 lg:w-24 lg:h-24 bg-white rounded-full object-cover border-2 md:border-4 shadow-2xl transform hover:scale-105 transition-transform duration-300"
+                style={{ borderColor: 'rgba(255, 255, 255, 0.3)' }}
+              />
+            </div>
+            
+            {/* Association Info - RESPONSIVE LAYOUT */}
+            <div className="flex-1 min-w-0">
+              <h1 
+                className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold mb-1 md:mb-2 break-words leading-tight"
+                style={{ 
+                  color: textColor,
+                  textShadow: '0 2px 4px rgba(0,0,0,0.1)'
                 }}
               >
-                <Icon size={20} />
-                <span className="font-medium hidden sm:inline">{step.title}</span>
-                <span className="font-medium sm:hidden">{step.number}</span>
-              </div>
-              {index < steps.length - 1 && (
-                <div 
-                  className="w-8 h-0.5 mx-2"
-                  style={{
-                    backgroundColor: isActive 
-                      ? `${textColor}40` 
-                      : `${textColor}20`
+                {associationData.association_name}
+              </h1>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span 
+                  className="inline-flex items-center px-2 py-1 md:px-3 rounded-full text-xs md:text-sm font-medium backdrop-blur-sm border"
+                  style={{ 
+                    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                    borderColor: 'rgba(255, 255, 255, 0.3)',
+                    color: textColor
                   }}
-                />
-              )}
+                >
+                  {associationData.association_short_name}
+                </span>
+                <span 
+                  className="text-xs md:text-sm lg:text-base"
+                  style={{ color: secondaryTextColor }}
+                >
+                  Payment Page
+                </span>
+              </div>
             </div>
-          );
-        })}
+            
+            {/* DuesPay Branding - SMALLER ON TABLET */}
+            <div className="hidden sm:flex flex-col items-end flex-shrink-0">
+              <span 
+                className="text-xs md:text-sm font-medium opacity-80"
+                style={{ color: textColor }}
+              >
+                Contact Us
+              </span>
+              <span 
+                className="text-lg md:text-xl font-bold"
+                style={{ 
+                  color: textColor,
+                  textShadow: '0 1px 2px rgba(0,0,0,0.1)'
+                }}
+              >
+                Here
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
+      
+      {/* Bottom Gradient Line */}
+      <div 
+        className="h-1"
+        style={{
+          background: `linear-gradient(90deg, transparent, ${textColor}40, transparent)`
+        }}
+      />
+      
+      {/* CSS for gradient animation */}
+      <style jsx>{`
+        @keyframes gradientShift {
+          0%, 100% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+        }
+      `}</style>
     </div>
   );
 };

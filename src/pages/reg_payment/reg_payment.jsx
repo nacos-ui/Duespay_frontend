@@ -1,50 +1,28 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
-import { User, CreditCard, Loader2, ArrowRight, ArrowLeft, CheckCircle, Mail, Phone, MessageCircle, Receipt, ExternalLink } from 'lucide-react';
+import { Loader2, User, CreditCard, Receipt } from 'lucide-react';
 import Header from './components/Header';
+import ProgressSteps from './components/ProgressSteps';
 import RegistrationStep from './components/RegistrationStep';
 import PaymentSelectionStep from './components/PaymentSelectionStep';
 import PaymentStatusStep from './components/PaymentStatusStep';
+import NavigationButtons from './components/NavigationButtons';
+import SidebarSummary from './components/SidebarSummary';
 import ErrorModal from '../../components/ErrorModal';
 import { fetchWithTimeout, handleFetchError } from '../../utils/fetchUtils';
 import { API_ENDPOINTS } from '../../apiConfig';
 import { usePageBranding } from "../../hooks/usePageBranding";
 import { isColorDark } from "./utils/colorUtils";
+import { pickId, generateThemeStyles, sanitizeName } from "./utils/themeUtils";
 import NotFoundPage from '../404_page';
 import { extractShortName } from '../../utils/getShortname';
 
-// Helper: returns id if object, or the value if it's already a number/string
-const pickId = (val) => {
-  if (val == null) return null;
-  return typeof val === 'object' ? (val.id ?? null) : val;
-};
-
-// Theme CSS vars with gradients
-const generateThemeStyles = (themeColor) => {
-  if (!themeColor) return {};
-  
-  // Create lighter and darker variations
-  const lightColor = `${themeColor}20`;
-  const darkColor = `${themeColor}80`;
-  
-  return { 
-    '--theme-color': themeColor,
-    '--theme-light': lightColor,
-    '--theme-dark': darkColor,
-  };
-};
-
-// Minimal sanitizer to avoid HTML special chars Korapay rejects
-const sanitizeName = (name) => {
-  if (!name) return '';
-  return String(name).replace(/[<>&"']/g, '').replace(/\s+/g, ' ').trim();
-};
 
 const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
   const { shortName: pathShortName } = useParams();
   const shortName = propShortName || extractShortName({ pathShortName });
   
-  // Get URL search params without using useSearchParams hook
+  // Get URL search params
   const urlParams = new URLSearchParams(window.location.search);
   const paymentReference = urlParams.get('reference');
   const paymentStatus = urlParams.get('status');
@@ -71,7 +49,9 @@ const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
   const [regLoading, setRegLoading] = useState(false);
 
   const [modalError, setModalError] = useState({ open: false, title: "", message: "" });
-  const [isLoading, setIsLoading] = useState(false);
+  // 🔥 KEY FIX: Start with loading = true
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
   const [payLoading, setPayLoading] = useState(false);
   const [statusLoading, setStatusLoading] = useState(false);
   const [paymentStatusData, setPaymentStatusData] = useState(null);
@@ -90,15 +70,31 @@ const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
 
   useEffect(() => {
     const fetchAssociation = async () => {
-      setIsLoading(true);
+      console.log("📡 Starting fetch for:", shortName);
+      
+      // Don't set loading again if already loading
+      // setIsLoading(true); // Remove this line
+      setLoadError(null);
+      
       try {
         const res = await fetchWithTimeout(
           API_ENDPOINTS.GET_PAYMENT_ASSOCIATION(shortName),
           {},
           20000
         );
-        if (!res.ok) throw new Error('Failed to fetch association');
-        const data = await res.json();
+        
+        if (!res.ok) {
+          if (res.status === 404) {
+            throw new Error('ASSOCIATION_NOT_FOUND');
+          }
+          throw new Error(`HTTP ${res.status}: Failed to fetch association`);
+        }
+        
+        const responseData = await res.json();
+        const data = responseData.data;
+        
+        console.log("✅ Association loaded:", data?.association_name);
+        
         setAssociationData(data);
         setPaymentItems(data.payment_items || []);
         setSelectedItems(
@@ -106,21 +102,39 @@ const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
             .filter(item => item.status === 'compulsory')
             .map(item => item.id)
         );
+        
+        setLoadError(null);
       } catch (err) {
+        console.error("❌ Association fetch error:", err);
+        
+        if (err.message === 'ASSOCIATION_NOT_FOUND') {
+          setLoadError("Association not found");
+        } else {
+          // For other errors, show modal instead of 404
+          const { message } = handleFetchError(err);
+          setModalError({
+            open: true,
+            title: "Connection Error",
+            message: message || "Unable to load association details. Please check your connection."
+          });
+        }
+        
         setAssociationData(null);
         setPaymentItems([]);
         setSelectedItems([]);
-        const { message } = handleFetchError(err);
-        setModalError({
-          open: true,
-          title: "Error",
-          message: message || "Oops! This item is unavailable. Check back later."
-        });
       } finally {
         setIsLoading(false);
       }
     };
-    if (shortName) fetchAssociation();
+
+    // Only fetch if we have a shortName
+    if (shortName) {
+      fetchAssociation();
+    } else {
+      // No shortName provided
+      setLoadError("No association specified");
+      setIsLoading(false);
+    }
   }, [shortName]);
 
   // Fetch payment status if we have a reference
@@ -135,8 +149,9 @@ const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
           {},
           15000
         );
+        const responseData = await res.json();
         if (res.ok) {
-          const data = await res.json();
+          const data = responseData.data;
           setPaymentStatusData(data);
         } else {
           throw new Error('Failed to fetch payment status');
@@ -199,9 +214,10 @@ const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
         30000
       );
       const data = await res.json();
+      // const data = responseData.data;
 
       if (!res.ok || !data?.success) {
-        if (data && typeof data === 'object' && !data.success && !data.error) {
+        if (data && typeof data === 'object' && !data.error) {
           registrationStepRef.current?.setBackendErrors?.(data);
           setRegError("Please fix the errors below.");
         } else {
@@ -280,16 +296,16 @@ const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
         30000
       );
 
-      let data;
-      try { data = await res.json(); } catch { data = null; }
+      let responseData;
+      try { responseData = await res.json(); } catch { responseData = null; }
 
-      if (!res.ok || !data?.checkout_url || !data?.reference_id) {
-        const backendMsg = data?.message || data?.detail || data?.error;
+      if (!res.ok || !responseData?.data?.checkout_url || !responseData?.data?.reference_id) {
+        const backendMsg = responseData?.message || responseData?.data?.message || responseData?.data?.detail || responseData?.data?.error;
         throw new Error(backendMsg || "Failed to initiate payment.");
       }
 
-      setReferenceId(data.reference_id);
-      window.location.href = data.checkout_url;
+      setReferenceId(responseData.data.reference_id);
+      window.location.href = responseData.data.checkout_url;
     } catch (err) {
       const { message } = handleFetchError(err);
       setModalError({
@@ -344,31 +360,77 @@ const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
     }).format(amount);
   };
 
-  const viewReceipt = () => {
-    if (referenceId) {
-      window.open(`/receipt/${referenceId}`, '_blank');
-    }
-  };
-
   const steps = [
     { number: 1, title: "Payer Information", icon: User },
     { number: 2, title: "Payment Selection", icon: CreditCard },
     { number: 3, title: "Payment Status", icon: Receipt },
   ];
 
+  // 🔥 IMPROVED LOADING STATE
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
-        <div className="text-center text-white">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" style={{ color: themeColor }} />
-          <p>Loading association details...</p>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-purple-50 to-blue-50">
+        <div className="text-center text-gray-700">
+          <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4" style={{ color: themeColor }} />
+          <h3 className="text-lg font-semibold mb-2">
+            {paymentReference ? "Loading Payment Status" : "Loading Association"}
+          </h3>
+          <p className="text-gray-500">
+            {paymentReference 
+              ? "Please wait while we fetch your payment details..." 
+              : "Setting up your payment portal..."
+            }
+          </p>
+          {paymentReference && (
+            <div className="mt-4 p-3 bg-white/80 rounded-lg shadow-sm">
+              <p className="text-xs text-gray-500 mb-1">Payment Reference</p>
+              <p className="font-mono text-sm">{paymentReference}</p>
+            </div>
+          )}
         </div>
       </div>
     );
   }
 
-  if (!associationData) {
+  // 🔥 ONLY SHOW 404 FOR CONFIRMED ERRORS
+  if (loadError === "Association not found" || (loadError === "No association specified" && !paymentReference)) {
     return <NotFoundPage message="This association does not exist or is not available." />;
+  }
+
+  // 🔥 FALLBACK FOR MISSING DATA WITH PAYMENT REFERENCE
+  if (!associationData && paymentReference) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-purple-50 to-blue-50">
+        <div className="text-center max-w-md mx-auto p-8">
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+            <div className="text-yellow-600 mb-4">
+              <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.982 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">Payment Data Loading</h3>
+            <p className="text-gray-600 mb-4">
+              We're having trouble loading the association details for your payment.
+            </p>
+            <div className="bg-gray-50 p-3 rounded mb-4">
+              <p className="text-xs text-gray-500 mb-1">Reference</p>
+              <p className="font-mono text-sm">{paymentReference}</p>
+            </div>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+            >
+              Retry Loading
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 🔥 FINAL FALLBACK - SHOULDN'T HAPPEN
+  if (!associationData) {
+    return <NotFoundPage message="Unable to load association data." />;
   }
 
   const dynamicStyles = generateThemeStyles(themeColor);
@@ -385,62 +447,14 @@ const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
         className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-blue-50 dark:from-slate-900 dark:via-purple-900 dark:to-blue-900"
         style={dynamicStyles}
       >
-        {/* Header with gradient */}
-        <div className="relative bg-gradient-to-r from-white via-purple-50 to-blue-50 dark:from-slate-800 dark:via-purple-900 dark:to-blue-900 shadow-sm border-b border-gray-200/50 dark:border-slate-700/50">
-          <div className="absolute inset-0 opacity-10" style={{
-            backgroundImage: `linear-gradient(45deg, ${themeColor}20, transparent 50%, ${themeColor}20)`
-          }}></div>
-          <div className="relative max-w-6xl mx-auto px-4 py-4 sm:py-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
-                <div className="relative flex-shrink-0">
-                  <img
-                    src={associationData.logo_url}
-                    alt={associationData.association_name + " logo"}
-                    className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover border-2 sm:border-2 shadow-sm"
-                    style={{ borderColor: themeColor }}
-                  />
-                  {/* <div className="absolute -inset-1 rounded-full opacity-20 blur-sm" 
-                       style={{ backgroundColor: themeColor }}></div> */}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 dark:text-white truncate">
-                    {associationData.association_name}
-                  </h1>
-                  <p className="text-xs sm:text-sm text-gray-600 dark:text-slate-400 capitalize truncate">
-                    {associationData.association_type} • {associationData.association_short_name || shortName}
-                  </p>
-                </div>
-              </div>
-              
-              {/* Support Links - Desktop only */}
-              <div className="hidden lg:flex items-center gap-4 flex-shrink-0">
-                <a
-                  href="mailto:support@duespay.com"
-                  className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/80 dark:bg-slate-800/80 text-sm text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white transition-all hover:shadow-md"
-                >
-                  <Mail className="w-4 h-4" />
-                  Support
-                </a>
-                <a
-                  href="tel:+2349034049655"
-                  className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/80 dark:bg-slate-800/80 text-sm text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white transition-all hover:shadow-md"
-                >
-                  <Phone className="w-4 h-4" />
-                  Contact
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-
+        <Header
+          associationData={associationData}
+          themeColor={themeColor}
+        />
         <div className="max-w-6xl mx-auto px-4 py-6 sm:py-8">
-          {/* Conditional layout: 2-column for steps 1&2, single column for step 3 */}
           <div className={`grid gap-6 sm:gap-8 ${currentStep < 3 ? 'grid-cols-1 lg:grid-cols-3' : 'grid-cols-1'}`}>
-            
             {/* Main Content */}
             <div className={`space-y-6 sm:space-y-8 ${currentStep < 3 ? 'lg:col-span-2' : 'max-w-4xl mx-auto w-full'}`}>
-              {/* Progress Steps with enhanced design */}
               <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-md border border-gray-200/50 dark:border-slate-700/50 p-4 sm:p-6 lg:p-8">
                 <div className="flex items-center justify-between mb-6 sm:mb-8">
                   <h2 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
@@ -450,72 +464,10 @@ const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
                     Step {currentStep} of {steps.length}
                   </div>
                 </div>
-                
-                <div className="flex items-center justify-between">
-                  {steps.map((step, index) => {
-                    const Icon = step.icon;
-                    const isActive = currentStep >= step.number;
-                    const isCurrent = currentStep === step.number;
-                    const isCompleted = currentStep > step.number;
-                    
-                    return (
-                      <div key={step.number} className="flex items-center flex-1">
-                        <div className="flex flex-col items-center">
-                          <div 
-                            className={`relative flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 rounded-full border-2 sm:border-3 transition-all duration-500 ${
-                              isActive 
-                                ? 'border-current text-white shadow-md' 
-                                : 'border-gray-300 dark:border-slate-600 text-gray-400 dark:text-slate-500'
-                            }`}
-                            style={isActive ? { 
-                              backgroundColor: themeColor, 
-                              borderColor: themeColor,
-                              boxShadow: `0 8px 25px ${themeColor}40`
-                            } : {}}
-                          >
-                            {isCompleted ? (
-                              <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7" />
-                            ) : (
-                              <Icon className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7" />
-                            )}
-                            {isCurrent && (
-                              <div className="absolute -inset-2 rounded-full opacity-30 animate-pulse" 
-                                   style={{ backgroundColor: themeColor }}></div>
-                            )}
-                          </div>
-                          <div className="mt-2 sm:mt-3 text-center">
-                            <p className={`text-xs sm:text-sm font-semibold ${
-                              isActive ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-slate-400'
-                            }`}>
-                              <span className="hidden sm:inline">{step.title}</span>
-                              <span className="sm:hidden">{step.title.split(' ')[0]}</span>
-                            </p>
-                          </div>
-                        </div>
-                        
-                        {index < steps.length - 1 && (
-                          <div className="flex-1 h-0.5 sm:h-1 mx-2 sm:mx-4 lg:mx-6 mt-5 sm:mt-6 lg:mt-7 rounded-full overflow-hidden bg-gray-200 dark:bg-slate-600">
-                            <div 
-                              className={`h-full transition-all duration-700 ${
-                                currentStep > step.number 
-                                  ? 'w-full' 
-                                  : 'w-0'
-                              }`}
-                              style={currentStep > step.number ? { backgroundColor: themeColor } : {}}
-                            />
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
+                <ProgressSteps steps={steps} currentStep={currentStep} themeColor={themeColor} />
               </div>
-
-              {/* Step Content with gradient background */}
               <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-md border border-gray-200/50 dark:border-slate-700/50 overflow-hidden">
-                <div className="h-2" style={{ 
-                  background: `linear-gradient(90deg, ${themeColor}, ${themeColor}80, ${themeColor})` 
-                }}></div>
+                <div className="h-2" style={{ background: `linear-gradient(90deg, ${themeColor}, ${themeColor}80, ${themeColor})` }}></div>
                 <div className="p-4 sm:p-6 lg:p-8">
                   {currentStep === 1 && (
                     <RegistrationStep
@@ -546,167 +498,34 @@ const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
                       statusData={paymentStatusData}
                       loading={statusLoading}
                       themeColor={themeColor}
-                      onViewReceipt={viewReceipt}
                     />
                   )}
                 </div>
               </div>
-
-              {/* Navigation - only show for steps 1 and 2 */}
+              {/* Navigation */}
               {currentStep < 3 && (
                 <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-md border border-gray-200/50 dark:border-slate-700/50 p-4 sm:p-6">
-                  <div className="flex items-center justify-between gap-4">
-                    {currentStep > 1 ? (
-                      <button
-                        onClick={prevStep}
-                        className="flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white transition-all hover:bg-gray-100 dark:hover:bg-slate-700 rounded-xl"
-                      >
-                        <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
-                        Previous
-                      </button>
-                    ) : (
-                      <div />
-                    )}
-
-                    <button
-                      onClick={nextStep}
-                      disabled={!canProceed() || regLoading || payLoading}
-                      className={`flex items-center gap-2 sm:gap-3 px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-semibold text-sm sm:text-base transition-all duration-300 ${
-                        canProceed() && !regLoading && !payLoading
-                          ? 'text-white shadow-xl hover:shadow-2xl transform hover:scale-105'
-                          : 'bg-gray-200 dark:bg-slate-700 text-gray-500 dark:text-slate-500 cursor-not-allowed'
-                      }`}
-                      style={
-                        canProceed() && !regLoading && !payLoading
-                          ? {
-                              background: `linear-gradient(135deg, ${themeColor}, ${themeColor}dd)`,
-                              boxShadow: `0 10px 30px ${themeColor}40`,
-                            }
-                          : {}
-                      }
-                    >
-                      {payLoading && <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />}
-                      {currentStep === 1 ? (
-                        <>
-                          {regLoading ? 'Checking...' : (
-                            <>
-                              <span className="hidden sm:inline">Continue to Payment</span>
-                              <span className="sm:hidden">Continue</span>
-                            </>
-                          )}
-                          {!regLoading && <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />}
-                        </>
-                      ) : (
-                        <>
-                          {payLoading ? 'Redirecting...' : (
-                            <>
-                              <span className="hidden sm:inline">Proceed to Payment</span>
-                              <span className="sm:hidden">Pay Now</span>
-                            </>
-                          )}
-                          {!payLoading && <ExternalLink className="w-4 h-4 sm:w-5 sm:h-5" />}
-                        </>
-                      )}
-                    </button>
-                  </div>
+                  <NavigationButtons
+                    currentStep={currentStep}
+                    canProceed={canProceed}
+                    regLoading={regLoading}
+                    payLoading={payLoading}
+                    prevStep={prevStep}
+                    nextStep={nextStep}
+                    themeColor={themeColor}
+                  />
                 </div>
               )}
             </div>
-
-            {/* Sidebar - only show for steps 1 and 2 */}
+            {/* Sidebar */}
             {currentStep < 3 && (
-              <div className="space-y-6">
-                {/* Payment Summary with gradient */}
-                <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-md border border-gray-200/50 dark:border-slate-700/50 overflow-hidden">
-                  <div className="h-1" style={{ 
-                    background: `linear-gradient(90deg, ${themeColor}, ${themeColor}60)` 
-                  }}></div>
-                  <div className="p-4 sm:p-6">
-                    <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-6 flex items-center gap-2">
-                      <CreditCard className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: themeColor }} />
-                      Payment Summary
-                    </h3>
-                    
-                    <div className="space-y-3 sm:space-y-4">
-                      {selectedItems.map(itemId => {
-                        const item = paymentItems.find(p => p.id === itemId);
-                        if (!item) return null;
-                        return (
-                          <div key={itemId} className="flex justify-between items-center p-3 sm:p-4 rounded-xl bg-gradient-to-r from-gray-50 to-white dark:from-slate-700 dark:to-slate-600 border border-gray-100 dark:border-slate-600">
-                            <div className="min-w-0 flex-1">
-                              <p className="font-semibold text-sm sm:text-base text-gray-900 dark:text-white truncate">
-                                {item.title}
-                              </p>
-                              <p className="text-xs px-2 py-1 rounded-full text-white capitalize text-center mt-1 inline-block" 
-                                 style={{ backgroundColor: item.status === 'compulsory' ? '#ef4444' : themeColor }}>
-                                {item.status}
-                              </p>
-                            </div>
-                            <p className="text-lg sm:text-xl font-bold ml-2" style={{ color: themeColor }}>
-                              ₦{item.amount.toLocaleString()}
-                            </p>
-                          </div>
-                        );
-                      })}
-                      
-                      {selectedItems.length === 0 && (
-                        <div className="text-center py-8 sm:py-12 text-gray-500 dark:text-slate-400">
-                          <CreditCard className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 opacity-30" />
-                          <p className="text-base sm:text-lg">No items selected</p>
-                          <p className="text-xs sm:text-sm">Please select payment items to continue</p>
-                        </div>
-                      )}
-                    </div>
-
-                    {selectedItems.length > 0 && (
-                      <div className="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t-2 border-dashed border-gray-200 dark:border-slate-600">
-                        <div className="flex justify-between items-center p-3 sm:p-4 rounded-xl" 
-                             style={{ backgroundColor: `${themeColor}10` }}>
-                          <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
-                            Total Amount
-                          </p>
-                          <p className="text-2xl sm:text-3xl font-bold" style={{ color: themeColor }}>
-                            {formatTotal(getTotalAmount())}
-                          </p>
-                        </div>
-                        <p className="text-xs text-gray-500 dark:text-slate-400 mt-2 sm:mt-3 text-center">
-                          * Gateway processing fees may be added at checkout
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Mobile Support Links - Show on mobile and tablet, hide on desktop */}
-                <div className="lg:hidden bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-md border border-gray-200/50 dark:border-slate-700/50 p-4 sm:p-6">
-                  <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white mb-3 sm:mb-4 flex items-center gap-2">
-                    <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: themeColor }} />
-                    Need Help?
-                  </h3>
-                  <div className="space-y-3">
-                    <a
-                      href="mailto:support@duespay.com"
-                      className="flex items-center gap-3 p-3 sm:p-4 rounded-xl bg-gradient-to-r from-blue-50 to-purple-50 dark:from-slate-700 dark:to-slate-600 hover:shadow-md transition-all"
-                    >
-                      <Mail className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" style={{ color: themeColor }} />
-                      <div className="min-w-0">
-                        <p className="font-semibold text-sm sm:text-base text-gray-900 dark:text-white">Email Support</p>
-                        <p className="text-xs sm:text-sm text-gray-500 dark:text-slate-400 truncate">support@duespay.com</p>
-                      </div>
-                    </a>
-                    <a
-                      href="tel:+2349034049655"
-                      className="flex items-center gap-3 p-3 sm:p-4 rounded-xl bg-gradient-to-r from-green-50 to-blue-50 dark:from-slate-700 dark:to-slate-600 hover:shadow-md transition-all"
-                    >
-                      <Phone className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" style={{ color: themeColor }} />
-                      <div className="min-w-0">
-                        <p className="font-semibold text-sm sm:text-base text-gray-900 dark:text-white">Phone Support</p>
-                        <p className="text-xs sm:text-sm text-gray-500 dark:text-slate-400 truncate">+234 903 404 9655</p>
-                      </div>
-                    </a>
-                  </div>
-                </div>
-              </div>
+              <SidebarSummary
+                paymentItems={paymentItems}
+                selectedItems={selectedItems}
+                themeColor={themeColor}
+                getTotalAmount={getTotalAmount}
+                formatTotal={formatTotal}
+              />
             )}
           </div>
         </div>

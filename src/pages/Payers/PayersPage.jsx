@@ -24,7 +24,7 @@ export default function PayersPage() {
   const [selectedPayers, setSelectedPayers] = useState([]);
   const [bulkActionLoading, setBulkActionLoading] = useState(false);
   const [showBulkModal, setShowBulkModal] = useState(false);
-  const [bulkActionType, setBulkActionType] = useState(''); // 'delete'
+  const [bulkActionType, setBulkActionType] = useState(''); 
 
   // Get current session from context
   const { currentSession, loading: sessionLoading } = useSession();
@@ -77,7 +77,8 @@ export default function PayersPage() {
         }
         throw new Error("Failed to fetch payers");
       }
-      const data = await res.json();
+      const responseData = await res.json();
+      const data = responseData.data;
       setPayers(data.results || []);
       setCount(data.count || 0);
     } catch (err) {

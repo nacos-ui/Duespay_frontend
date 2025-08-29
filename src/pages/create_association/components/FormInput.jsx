@@ -1,32 +1,42 @@
+import React, { useEffect, useState } from 'react';
 import { Eye, EyeOff, Upload, ShoppingCart } from 'lucide-react';
-import { useEffect, useState } from 'react'
 
-const FormInput = ({
-  label,
-  type = "text",
-  placeholder,
-  value,
-  onChange,
+const FormInput = ({ 
+  label, 
+  name, 
+  type = 'text', 
+  placeholder, 
+  value, 
+  onChange, 
   required = false,
-  name
+  error = null,
+  description = null
 }) => {
   const [showPassword, setShowPassword] = useState(false);
   const isPassword = type === 'password';
 
   return (
-    <div className="mb-6">
-      <label className="block text-gray-300 text-sm font-medium mb-2">
-        {label}
+    <div className="space-y-2 mb-6">
+      <label htmlFor={name} className="block text-sm font-semibold text-white">
+        {label} {required && <span className="text-red-400">*</span>}
       </label>
+      {description && (
+        <p className="text-sm text-gray-400">{description}</p>
+      )}
       <div className="relative">
         <input
           type={isPassword && showPassword ? 'text' : type}
+          id={name}
           name={name}
           placeholder={placeholder}
           value={value}
           onChange={onChange}
           required={required}
-          className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent transition-all duration-200"
+          className={`w-full px-4 py-4 bg-[#101828] border rounded-xl text-white placeholder-gray-400 transition-all focus:outline-none focus:ring-2 focus:ring-[#8200db] focus:border-transparent hover:bg-[#0f111f] ${
+            error 
+              ? 'border-red-400 focus:ring-red-500' 
+              : 'border-gray-700 hover:border-gray-600'
+          }`}
         />
         {isPassword && (
           <button
@@ -38,6 +48,9 @@ const FormInput = ({
           </button>
         )}
       </div>
+      {error && (
+        <p className="text-sm text-red-400 mt-1">{error}</p>
+      )}
     </div>
   );
 };

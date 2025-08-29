@@ -68,7 +68,8 @@ export default function TransactionsPage() {
         }
         throw new Error("Failed to fetch transactions");
       }
-      const data = await res.json();
+      const responseData = await res.json();
+      const data = responseData.data;
       setTransactions(data.results || []);
       setCount(data.count || 0);
     } catch (err) {

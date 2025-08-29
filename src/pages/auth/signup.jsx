@@ -54,8 +54,8 @@ const SignupForm = ({ onToggle }) => {
         })
       }, 20000);
 
-      const data = await response.json();
-
+      const responseData = await response.json();
+      const data = responseData.data;
       if (response.ok) {
         if (data.access) localStorage.setItem('access_token', data.access);
         if (data.refresh) localStorage.setItem('refresh_token', data.refresh);
@@ -91,7 +91,8 @@ const SignupForm = ({ onToggle }) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id_token })
       }, 15000);
-      const data = await response.json();
+      const responseData = await response.json();
+      const data = responseData.data;
       if (response.ok) {
         if (data.access) localStorage.setItem('access_token', data.access);
         if (data.refresh) localStorage.setItem('refresh_token', data.refresh);

@@ -8,13 +8,18 @@ const PaymentStatusStep = ({
   paymentStatus, 
   statusData: initialStatusData, 
   loading: initialLoading, 
-  themeColor, 
-  onViewReceipt 
+  themeColor
 }) => {
   const [statusData, setStatusData] = useState(initialStatusData);
   const [loading, setLoading] = useState(initialLoading);
   const [pollCount, setPollCount] = useState(0);
   const [lastChecked, setLastChecked] = useState(new Date());
+
+  const viewReceipt = () => {
+    if (referenceId) {
+      window.open(`/transactions/receipt/${statusData?.receipt_id}`, '_blank');
+    }
+  };
 
   // Auto-poll for payment status when referenceId exists and not verified
   useEffect(() => {
@@ -38,9 +43,10 @@ const PaymentStatusStep = ({
           {},
           10000
         );
-        
+
+        const responseData = await res.json();
         if (res.ok) {
-          const data = await res.json();
+          const data = responseData.data;
           setStatusData(data);
           setLastChecked(new Date());
           
@@ -170,9 +176,10 @@ const PaymentStatusStep = ({
         {},
         10000
       );
-      
+
+      const responseData = await res.json();
       if (res.ok) {
-        const data = await res.json();
+        const data = responseData.data;
         setStatusData(data);
         setLastChecked(new Date());
         setPollCount(0); // Reset poll count
@@ -261,7 +268,7 @@ const PaymentStatusStep = ({
       <div className="flex flex-col sm:flex-row gap-4 justify-center">
         {isSuccess && hasReceiptId && (
           <button
-            onClick={onViewReceipt}
+            onClick={viewReceipt}
             className="flex items-center justify-center gap-3 px-8 py-4 rounded-xl font-semibold text-white shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
             style={{
               background: `linear-gradient(135deg, ${themeColor}, ${themeColor}dd)`,

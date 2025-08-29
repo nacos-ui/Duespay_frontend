@@ -1,8 +1,12 @@
 import Sidebar from './sidebar';
 import Navbar from './navbar';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useRegisterRefresh } from '../utils/refreshContext'; // Add this import
 
 export default function MainLayout({ children }) {
+  // Register the refresh function
+  useRegisterRefresh();
+
   const [sidebarOpen, setSidebarOpen] = useState(() => {
     if (typeof window !== 'undefined') {
       return window.innerWidth >= 768;
