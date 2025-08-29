@@ -47,8 +47,9 @@ export default function Navbar({ onToggleSidebar, sidebarOpen }) {
         },
       }, 10000);
       
+      const responseData = await response.json();
       if (response.ok) {
-        const data = await response.json();
+        const data = responseData.data;
         setUnreadCount(data.unread_count);
       }
     } catch (error) {

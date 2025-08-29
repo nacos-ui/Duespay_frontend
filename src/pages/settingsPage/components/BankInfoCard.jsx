@@ -4,6 +4,7 @@ import { API_ENDPOINTS } from "../../../apiConfig";
 import StatusMessage from "../../../components/StatusMessage";
 import { fetchWithTimeout, handleFetchError } from "../../../utils/fetchUtils";
 import SettingsCardSkeleton from "./SettingsCardSkeleton";
+import { triggerContextRefresh } from "../../../utils/refreshContext"; // Add this import
 
 export default function BankInfoCard({ data, loading, onUpdated }) {
   // Handle the updated API response structure
@@ -65,8 +66,9 @@ export default function BankInfoCard({ data, loading, onUpdated }) {
             Authorization: `Bearer ${localStorage.getItem("access_token")}`,
           },
         });
+        const responseData = await res.json();
         if (res.ok) {
-          const data = await res.json();
+          const data = responseData.data;
           setBanks(data.banks || []);
           setFilteredBanks(data.banks || []);
         } else {
@@ -255,8 +257,11 @@ export default function BankInfoCard({ data, loading, onUpdated }) {
           text: "Bank information saved successfully!",
         });
         setEdit(false);
-        // Update with the new response structure
         onUpdated(updated);
+        
+        // 🔥 ADD THIS LINE - Trigger context refresh
+        await triggerContextRefresh();
+        
       } else {
         const error = await res.json();
         setMessage({

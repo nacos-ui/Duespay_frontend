@@ -87,7 +87,7 @@ export default function ProfileModal({ isOpen, onClose }) {
               {associationName}
             </h3>
             <p className="text-sm text-gray-400">
-              {shortName} • {association?.Association_type || 'Association'}
+              {shortName} • {association?.association_type || 'Association'}
             </p>
           </div>
 

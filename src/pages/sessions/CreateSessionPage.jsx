@@ -58,8 +58,8 @@ const CreateSessionPage = () => {
       } else {
         console.log("API error response:", result);
         setError(
-          result.error?.message ||
-          result.error?.errors?.title ||  // <-- notice errors not error
+          result.error ||
+          result.error?.title ||
           result.error?.errors?.detail ||
           'Failed to create session'
         );

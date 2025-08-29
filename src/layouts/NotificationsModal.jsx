@@ -36,8 +36,8 @@ const NotificationsModal = ({ isOpen, onClose, onNotificationRead }) => {
         }, 10000), // 1ms timeout for testing
         setModalError // Pass global error handler
       );
-      
-      const data = await res.json();
+      const responseData = await res.json();
+      const data = responseData.data;
       setNotifications(data.results);
       setCount(data.count);
     } catch (error) {

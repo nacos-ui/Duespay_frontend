@@ -37,8 +37,9 @@ const LoginForm = ({ onToggle, onForgotPassword }) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id_token })
       }, 15000);
-      const data = await response.json();
-      if (response.ok) {
+      const responseData = await response.json();
+      if (response.ok && responseData.success) {
+        const data = responseData.data;
         // Store tokens, refresh session, and redirect
         localStorage.setItem('access_token', data.access);
         localStorage.setItem('refresh_token', data.refresh);
@@ -52,7 +53,7 @@ const LoginForm = ({ onToggle, onForgotPassword }) => {
           }
         }, 1500);
       } else {
-        setError(data.message || data.detail || 'Google login failed.');
+        setError(responseData?.message || data?.message || data?.detail || 'Google login failed.');
       }
     } catch (err) {
       const errorInfo = handleFetchError(err);
@@ -76,9 +77,10 @@ const LoginForm = ({ onToggle, onForgotPassword }) => {
         })
       }, 15000);
 
-      const data = await response.json();
+      const responseData = await response.json();
 
       if (response.ok) {
+        const data = responseData.data;
         const accessToken = data.access;
         localStorage.setItem('access_token', accessToken);
         localStorage.setItem('refresh_token', data.refresh);

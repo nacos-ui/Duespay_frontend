@@ -16,7 +16,7 @@ const RegistrationStep = forwardRef(({
   const [fieldErrors, setFieldErrors] = useState({});
   const [validationError, setValidationError] = useState("");
 
-  const type = associationData?.Association_type || associationData?.association_type || "";
+  const type = associationData?.association_type || associationData?.association_type || "";
 
   const handleFieldChange = (key, value) => {
     let processedValue = value;

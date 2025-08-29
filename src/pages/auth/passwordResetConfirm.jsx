@@ -59,7 +59,8 @@ const PasswordResetConfirm = () => {
         })
       }, 15000);
 
-      const data = await response.json();
+      const responseData = await response.json();
+      const data = responseData.data;
 
       if (response.ok) {
         setSuccess(true);

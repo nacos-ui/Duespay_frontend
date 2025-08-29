@@ -4,6 +4,7 @@ import { API_ENDPOINTS } from "../../../apiConfig";
 import StatusMessage from "../../../components/StatusMessage";
 import SETTINGS from "../../../settings";
 import { fetchWithTimeout, handleFetchError } from "../../../utils/fetchUtils";
+import { triggerContextRefresh } from "../../../utils/refreshContext"; // Add this import
 import SettingsCardSkeleton from "./SettingsCardSkeleton";
 
 export default function AssociationInfoCard({ data, loading, onUpdated }) {
@@ -15,7 +16,7 @@ export default function AssociationInfoCard({ data, loading, onUpdated }) {
         id: assoc.id,
         association_name: assoc.association_name || "",
         association_short_name: assoc.association_short_name || "",
-        Association_type: assoc.Association_type || "",
+        association_type: assoc.association_type || "",
         theme_color: assoc.theme_color || "#9810fa",
       }
     : {};
@@ -80,7 +81,7 @@ export default function AssociationInfoCard({ data, loading, onUpdated }) {
       return;
     }
     
-    if (!form.Association_type) {
+    if (!form.association_type) {
       setMessage({ type: 'error', text: 'Association type is required.' });
       setSaving(false);
       return;
@@ -100,7 +101,7 @@ export default function AssociationInfoCard({ data, loading, onUpdated }) {
         const formData = new FormData();
         formData.append("association_name", form.association_name);
         formData.append("association_short_name", form.association_short_name);
-        formData.append("Association_type", form.Association_type);
+        formData.append("association_type", form.association_type);
         formData.append("theme_color", form.theme_color);
         formData.append("logo", logoFile);
 
@@ -115,13 +116,19 @@ export default function AssociationInfoCard({ data, loading, onUpdated }) {
 
         // Use native fetch for FormData uploads
         const res = await fetchWithTimeout(url, requestOptions);
-
+        
+        const responseData = await res.json();
         if (res.ok) {
-          const updated = await res.json();
+          const updated = responseData.data;
           setMessage({ type: 'success', text: 'Association info updated successfully!' });
+          setSaving(false);
           setEdit(false);
           setLogoFile(null);
           onUpdated({ results: [updated] });
+          
+          // 🔥 ADD THIS LINE - Trigger context refresh
+          await triggerContextRefresh();
+          
         } else {
           const error = await res.json();
           console.error('API Error:', error);
@@ -141,7 +148,7 @@ export default function AssociationInfoCard({ data, loading, onUpdated }) {
           body: JSON.stringify({
             association_name: form.association_name,
             association_short_name: form.association_short_name,
-            Association_type: form.Association_type,
+            association_type: form.association_type,
             theme_color: form.theme_color,
           }),
         };
@@ -149,8 +156,10 @@ export default function AssociationInfoCard({ data, loading, onUpdated }) {
         const res = await fetchWithTimeout(url, requestOptions, 30000);
 
         if (res.ok) {
-          const updated = await res.json();
+          const responseData = await res.json();
+          const updated = responseData.data;
           setMessage({ type: 'success', text: 'Association info updated successfully!' });
+          setSaving(false);
           setEdit(false);
           setLogoFile(null);
           onUpdated({ results: [updated] });
@@ -287,8 +296,8 @@ export default function AssociationInfoCard({ data, loading, onUpdated }) {
             <label className="text-gray-400 text-sm">Association Type</label>
             <select
               className="w-full bg-[#23263A] text-white rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-purple-600"
-              value={form.Association_type || ""}
-              onChange={e => setForm(f => ({ ...f, Association_type: e.target.value }))}
+              value={form.association_type || ""}
+              onChange={e => setForm(f => ({ ...f, association_type: e.target.value }))}
             >
               <option value="">Select Type</option>
               <option value="hall">Hall</option>
@@ -358,7 +367,7 @@ export default function AssociationInfoCard({ data, loading, onUpdated }) {
           
           <div className="flex items-center">
             <span className="text-gray-400 text-sm w-24">Type:</span>
-            <span className="ml-2 text-white">{assoc?.Association_type || "—"}</span>
+            <span className="ml-2 text-white">{assoc?.association_type || "—"}</span>
           </div>
           
           <div className="flex items-center">

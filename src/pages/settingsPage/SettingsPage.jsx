@@ -41,9 +41,9 @@ export default function SettingsPage() {
           assocResponse.ok ? assocResponse.json() : null,
         ]);
 
-        setBankInfo(bankData);
-        setAdmin(adminData);
-        setAssociation(assocData);
+        setBankInfo(bankData.data);
+        setAdmin(adminData.data);
+        setAssociation(assocData.data);
       } catch (error) {
         const errorInfo = handleFetchError(error);
         console.error('Failed to fetch settings data:', errorInfo.message);

@@ -36,8 +36,9 @@ export const SessionProvider = ({ children }) => {
         }
       }, 15000);
       
+      const responseData = await res.json();
       if (res.ok) {
-        const data = await res.json();
+        const data = responseData.data;
         console.log('SessionContext: Profile fetched successfully:', data);
         setProfile(data);
         
@@ -100,8 +101,9 @@ export const SessionProvider = ({ children }) => {
         }
       }, 15000);
       
+      const responseData = await res.json();
       if (res.ok) {
-        const data = await res.json();
+        const data = responseData.data;
         const associationData = data.results?.[0] || null;
         console.log('SessionContext: Association fetched successfully:', associationData);
         setAssociation(associationData);
@@ -131,8 +133,9 @@ export const SessionProvider = ({ children }) => {
         }
       }, 15000);
       
+      const responseData = await res.json();
       if (res.ok) {
-        const data = await res.json();
+        const data = responseData.data;
         console.log('SessionContext: Sessions fetched successfully:', data.results?.length || 0);
         const sessionsList = data.results || [];
         setSessions(sessionsList);
@@ -172,9 +175,10 @@ export const SessionProvider = ({ children }) => {
           'Content-Type': 'application/json'
         }
       }, 15000);
-      
+
+      const responseData = await res.json();
       if (res.ok) {
-        const data = await res.json();
+        const data = responseData.data;
         console.log('SessionContext: Set session response:', data);
         
         // Update current session
@@ -223,16 +227,15 @@ export const SessionProvider = ({ children }) => {
         },
         body: JSON.stringify(sessionData)
       }, 20000);
-      
-      const data = await res.json();
+      const responseData = await res.json();
       if (res.ok) {
         console.log('SessionContext: Session created successfully');
         // Refresh sessions list
         await fetchSessions();
-        return { success: true, data };
+        return { success: true, data: responseData.data };
       }
-      console.error('SessionContext: Failed to create session:', data);
-      return { success: false, error: data };
+      console.error('SessionContext: Failed to create session:', responseData);
+      return { success: false, error: responseData.message || responseData.detail || 'Failed to create session' };
     } catch (err) {
       const errorInfo = handleFetchError(err);
       console.error('SessionContext: Failed to create session:', errorInfo.message);

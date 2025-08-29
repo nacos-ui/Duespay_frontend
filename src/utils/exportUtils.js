@@ -20,7 +20,8 @@ export const exportTransactions = async (search, status, type, setExportLoading)
     }, 60000); // 60 seconds for export
     
     if (!res.ok) throw new Error("Failed to fetch transactions for export");
-    const data = await res.json();
+    const responseData = await res.json();
+    const data = responseData.data;
     const allTransactions = data.results || [];
 
     // Prepare data for Excel
@@ -96,7 +97,8 @@ export const exportPayers = async (search, faculty, department, setExportLoading
     }, 60000); // 60 seconds for export
     
     if (!res.ok) throw new Error("Failed to fetch payers for export");
-    const data = await res.json();
+    const responseData = await res.json();
+    const data = responseData.data;
     const allPayers = data.results || [];
 
     // Prepare data for Excel

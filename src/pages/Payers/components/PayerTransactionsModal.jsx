@@ -16,8 +16,9 @@ export default function PayerTransactionsModal({ matricNumber, onClose, onViewTr
           headers: { Authorization: `Bearer ${token}` }
         }, 10000); // 10 second timeout for fetching payer transactions
         
+        const responseData = await res.json();
         if (res.ok) {
-          const data = await res.json();
+          const data = responseData.data;
           setTransactions(data.results || []);
         } else {
           console.error('Failed to fetch payer transactions');

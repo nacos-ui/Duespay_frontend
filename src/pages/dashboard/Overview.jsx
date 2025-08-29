@@ -45,7 +45,8 @@ export default function Overview() {
           }
         }, 10000);
         
-        const data = await res.json();
+        const responseData = await res.json();
+        const data = responseData.data;
         console.log('Transactions fetched:', data.results?.length || 0);
         setTransactions(data.results || []);
         setMeta(data.meta || {});
