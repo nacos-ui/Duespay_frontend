@@ -94,7 +94,7 @@ const LoginForm = ({ onToggle, onForgotPassword }) => {
           }
         }, 1500);
       } else {
-        setError(data.message || data.detail || 'Login failed. Please check your credentials.');
+        setError(responseData?.message || responseData?.data?.errors[0] || 'Login failed. Please check your credentials.');
       }
     } catch (err) {
       const errorInfo = handleFetchError(err);

@@ -25,11 +25,25 @@ const processQueue = (error, token = null) => {
   failedQueue = [];
 };
 
+// 🔥 ROUTES THAT DON'T NEED TOKEN REFRESH
+const PUBLIC_ROUTES = [
+  '/auth/login/',
+  '/auth/register/', 
+  '/auth/google/',
+  '/auth/password/reset/',
+  '/auth/password/reset/confirm/',
+  // Add any other public routes
+];
+
+const isPublicRoute = (url) => {
+  return PUBLIC_ROUTES.some(route => url.includes(route));
+};
+
 // Request interceptor to add token
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('access_token');
-    if (token) {
+    if (token && !isPublicRoute(config.url)) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
@@ -42,6 +56,11 @@ axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+
+    // 🔥 DON'T REFRESH TOKENS FOR PUBLIC ROUTES
+    if (isPublicRoute(originalRequest.url)) {
+      return Promise.reject(error);
+    }
 
     if (error.response?.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
