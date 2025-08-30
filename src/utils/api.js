@@ -32,7 +32,8 @@ const PUBLIC_ROUTES = [
   '/auth/google/',
   '/auth/password/reset/',
   '/auth/password/reset/confirm/',
-  // Add any other public routes
+  '/transactions/receipt/', // This will match any receipt_id
+  // For "/:shortName", just add "/" (already present), or use a pattern if you want to restrict further
 ];
 
 const isPublicRoute = (url) => {
@@ -42,7 +43,7 @@ const isPublicRoute = (url) => {
 // Request interceptor to add token
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('access_token');
+    const token = localStorage.getItem('access_token'); 
     if (token && !isPublicRoute(config.url)) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -79,7 +80,7 @@ axiosInstance.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const refreshToken = localStorage.getItem('refresh_token');
+        const refreshToken = localStorage.getItem('refresh_token'); // ✅ Same key
         if (!refreshToken) {
           throw new Error('No refresh token available');
         }
@@ -91,7 +92,7 @@ axiosInstance.interceptors.response.use(
         });
 
         const { access } = response.data;
-        localStorage.setItem('access_token', access);
+        localStorage.setItem('access_token', access); // ✅ Same key
         
         console.log('Token refreshed successfully');
 

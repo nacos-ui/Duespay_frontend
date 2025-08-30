@@ -278,6 +278,20 @@ export const SessionProvider = ({ children }) => {
     }
   };
 
+  // Add this helper function inside SessionProvider
+  const validateTokens = () => {
+    const accessToken = localStorage.getItem('access_token');
+    const refreshToken = localStorage.getItem('refresh_token');
+    
+    console.log('SessionContext: Validating tokens:', {
+      hasAccessToken: !!accessToken,
+      hasRefreshToken: !!refreshToken,
+      accessTokenPreview: accessToken ? accessToken.substring(0, 20) + '...' : null
+    });
+    
+    return { accessToken, refreshToken, isValid: !!(accessToken && refreshToken) };
+  };
+
   // Initialize context
   useEffect(() => {
     const initializeSession = async () => {
@@ -286,10 +300,11 @@ export const SessionProvider = ({ children }) => {
       console.log('SessionContext: Initializing session context...');
       setLoading(true);
       
-      const token = localStorage.getItem("access_token");
-      if (token) {
+      const tokenCheck = validateTokens();
+      
+      if (tokenCheck.isValid) {
         try {
-          // Small delay to ensure token refresh interceptor is ready
+          // Small delay to ensure other components are ready
           await new Promise(resolve => setTimeout(resolve, 100));
           
           // Fetch all data concurrently
@@ -308,7 +323,7 @@ export const SessionProvider = ({ children }) => {
           console.error('SessionContext: Error during initialization:', error);
         }
       } else {
-        console.log('SessionContext: No access token found');
+        console.log('SessionContext: No valid tokens found during initialization');
       }
       
       setLoading(false);
@@ -322,24 +337,38 @@ export const SessionProvider = ({ children }) => {
   // Listen for storage changes (token updates)
   useEffect(() => {
     const handleStorageChange = (e) => {
+      // 🔥 FIX: Only listen for access_token changes
       if (e.key === 'access_token') {
-        console.log('SessionContext: Token changed, refreshing data...');
-        if (e.newValue && !loading) {
-          refreshData();
-        } else if (!e.newValue) {
-          // Token was removed
-          console.log('SessionContext: Token removed, clearing data');
-          setProfile(null);
-          setAssociation(null);
-          setSessions([]);
-          setCurrentSession(null);
-        }
+        console.log('SessionContext: Access token storage event:', {
+          oldValue: e.oldValue ? 'existed' : 'null',
+          newValue: e.newValue ? 'exists' : 'null',
+          loading
+        });
+        
+        // 🔥 FIX: Debounce rapid changes
+        clearTimeout(window.tokenChangeTimeout);
+        window.tokenChangeTimeout = setTimeout(() => {
+          if (e.newValue && !loading && initialized) {
+            console.log('SessionContext: New token detected, refreshing...');
+            refreshData();
+          } else if (!e.newValue && initialized) {
+            // Token was removed - only clear if we're sure
+            console.log('SessionContext: Token removed, clearing data');
+            setProfile(null);
+            setAssociation(null);
+            setSessions([]);
+            setCurrentSession(null);
+          }
+        }, 500); // 500ms debounce
       }
     };
 
     window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, [loading]);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearTimeout(window.tokenChangeTimeout);
+    };
+  }, [loading, initialized]);
 
   const value = {
     currentSession,

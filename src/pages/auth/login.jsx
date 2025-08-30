@@ -40,9 +40,12 @@ const LoginForm = ({ onToggle, onForgotPassword }) => {
       const responseData = await response.json();
       if (response.ok && responseData.success) {
         const data = responseData.data;
-        // Store tokens, refresh session, and redirect
+        
+        // 🔥 FIX: Clean up old keys first, then set new ones
+        localStorage.clear(); // Remove all old keys
         localStorage.setItem('access_token', data.access);
         localStorage.setItem('refresh_token', data.refresh);
+        
         await refreshData();
         setSuccess('Login successful!');
         setTimeout(() => {
@@ -53,7 +56,7 @@ const LoginForm = ({ onToggle, onForgotPassword }) => {
           }
         }, 1500);
       } else {
-        setError(responseData?.message || data?.message || data?.detail || 'Google login failed.');
+        setError(responseData?.message || 'Google login failed.');
       }
     } catch (err) {
       const errorInfo = handleFetchError(err);
@@ -81,20 +84,35 @@ const LoginForm = ({ onToggle, onForgotPassword }) => {
 
       if (response.ok) {
         const data = responseData.data;
-        const accessToken = data.access;
-        localStorage.setItem('access_token', accessToken);
+        
+        console.log('Login successful, setting tokens...');
+        
+        // 🔥 FIX: Set tokens atomically
+        localStorage.removeItem('accessToken'); // Remove old key
+        localStorage.removeItem('refreshToken'); // Remove old key
+        localStorage.removeItem('userData'); // Remove old key
+        
+        localStorage.setItem('access_token', data.access);
         localStorage.setItem('refresh_token', data.refresh);
-        await refreshData();
-        setSuccess('Login successful!');
-        setTimeout(() => {
-          if (data.is_first_login) {
-            navigate('/create-association');
-          } else {
-            navigate('/dashboard/overview');
-          }
-        }, 1500);
+        
+        console.log('Tokens set, refreshing session data...');
+        
+        // 🔥 FIX: Add small delay before refresh
+        setTimeout(async () => {
+          await refreshData();
+          setSuccess('Login successful!');
+          
+          setTimeout(() => {
+            if (data.is_first_login) {
+              navigate('/create-association');
+            } else {
+              navigate('/dashboard/overview');
+            }
+          }, 1000);
+        }, 200);
+        
       } else {
-        setError(responseData?.message || responseData?.data?.errors[0] || 'Login failed. Please check your credentials.');
+        setError(responseData?.message || 'Login failed. Please check your credentials.');
       }
     } catch (err) {
       const errorInfo = handleFetchError(err);
