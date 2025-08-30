@@ -29,18 +29,18 @@ export default defineConfig({
             type: "image/png"
           }
         ]
-      },
-      workbox: {
-        cleanupOutdatedCaches: true,
-      },
-    }),
+      }
+    })
   ],
+  base: '/', 
   server: {
     host: true,
     allowedHosts: [
       'c5a2096501ac.ngrok-free.app',
       'localhost',
-      '127.0.0.1'
+      '127.0.0.1',
+      'duespay.app',
+      '*.duespay.app'
     ],
   },
 })
