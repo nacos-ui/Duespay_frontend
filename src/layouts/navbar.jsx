@@ -45,7 +45,7 @@ export default function Navbar({ onToggleSidebar, sidebarOpen }) {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-      }, 10000);
+      }, 20000);
       
       const responseData = await response.json();
       if (response.ok) {

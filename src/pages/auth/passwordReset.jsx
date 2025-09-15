@@ -28,7 +28,7 @@ const PasswordReset = ({ onBack }) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ email })
-      }, 15000);
+      }, 20000);
 
       const responseData = await response.json();
       const data = responseData.data;

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Plus, Filter, Upload } from "lucide-react";
+import { Plus } from "lucide-react";
 import PaymentItemCard from "./components/PaymentItemCards";
 import PaymentItemSkeleton from "./components/PaymentItemSkeleton";
 import MainLayout from "../../layouts/mainLayout";
@@ -8,7 +8,6 @@ import StatusMessage from "../../components/StatusMessage";
 import PaymentItemForm from "./components/PaymentItemForm";
 import { usePageTitle } from "../../hooks/usePageTitle";
 import { fetchWithTimeout, handleFetchError } from "../../utils/fetchUtils";
-import ConfirmationModal from "../../components/ConfirmationModal";
 import { useSession } from "../../contexts/SessionContext";
 
 export default function PaymentItems() {
@@ -22,11 +21,6 @@ export default function PaymentItems() {
   const [formLoading, setFormLoading] = useState(false);
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
-  
-  // Delete confirmation state
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [itemToDelete, setItemToDelete] = useState(null);
-  const [deleteLoading, setDeleteLoading] = useState(false);
 
   // Get current session from context
   const { currentSession, loading: sessionLoading } = useSession();
@@ -43,7 +37,6 @@ export default function PaymentItems() {
 
     setIsLoading(true);
     try {
-      const token = localStorage.getItem("access_token");
       const params = new URLSearchParams();
       
       // Add session filter
@@ -56,7 +49,7 @@ export default function PaymentItems() {
       const res = await fetchWithTimeout(`${API_ENDPOINTS.PAYMENT_ITEMS}?${params.toString()}`, {
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
+          // "Authorization": `Bearer ${token}`,
         },
       }, 30000); // 30 seconds timeout
 
@@ -111,9 +104,7 @@ export default function PaymentItems() {
     setFormError("");
     setError("");
     setSuccess("");
-    try {
-      const token = localStorage.getItem("access_token");
-      
+    try {      
       // Include session ID in the form data
       const formWithSession = {
         ...form,
@@ -124,7 +115,6 @@ export default function PaymentItems() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
         },
         body: JSON.stringify(formWithSession),
       }, 30000); // 30 seconds timeout
@@ -158,7 +148,6 @@ export default function PaymentItems() {
     setError("");
     setSuccess("");
     try {
-      const token = localStorage.getItem("access_token");
       
       // Include session ID in the form data
       const formWithSession = {
@@ -170,7 +159,6 @@ export default function PaymentItems() {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
         },
         body: JSON.stringify(formWithSession),
       }, 30000); // 30 seconds timeout
@@ -190,40 +178,6 @@ export default function PaymentItems() {
       setFormError(message);
     } finally {
       setFormLoading(false);
-    }
-  };
-
-  // Delete Payment Item
-  const handleDeletePaymentItem = async () => {
-    if (!itemToDelete) return;
-    
-    setDeleteLoading(true);
-    setError("");
-    setSuccess("");
-    try {
-      const token = localStorage.getItem("access_token");
-      const res = await fetchWithTimeout(`${API_ENDPOINTS.PAYMENT_ITEMS}${itemToDelete.id}/`, {
-        method: "DELETE",
-        headers: {
-          "Authorization": `Bearer ${token}`,
-        },
-      }, 30000); // 30 seconds timeout
-
-      if (!res.ok) {
-        const err = await res.json();
-        setError(err.detail || "Failed to delete payment item");
-        return;
-      }
-      
-      setShowDeleteModal(false);
-      setItemToDelete(null);
-      setSuccess("Payment item deleted successfully!");
-      fetchPaymentItems();
-    } catch (err) {
-      const { message } = handleFetchError(err);
-      setError(message);
-    } finally {
-      setDeleteLoading(false);
     }
   };
 
@@ -350,7 +304,6 @@ export default function PaymentItems() {
                       setSuccess("");
                       setError("");
                     }}
-                    onDelete={() => handleDeleteClick(item)}
                   />
                 ))
               )
@@ -370,21 +323,6 @@ export default function PaymentItems() {
             error={error}
           />
         )}
-
-        {/* Delete Confirmation Modal */}
-        <ConfirmationModal
-          isOpen={showDeleteModal}
-          onClose={() => {
-            setShowDeleteModal(false);
-            setItemToDelete(null);
-          }}
-          onConfirm={handleDeletePaymentItem}
-          loading={deleteLoading}
-          title="Delete Payment Item"
-          message={`Are you sure you want to delete "${itemToDelete?.title}"? This action cannot be undone.`}
-          confirmText="Delete"
-          type="danger"
-        />
       </div>
     </MainLayout>
   );

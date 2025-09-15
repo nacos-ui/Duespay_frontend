@@ -1,4 +1,5 @@
 export default function PayersTable({ 
+  totalPayers,
   payers, 
   loading, 
   onViewDetails,
@@ -28,6 +29,7 @@ export default function PayersTable({
     <div className="bg-gray-900 rounded-xl p-6 shadow">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold text-white">Payers List</h2>
+        <h2 className="text-sm font-normal text-white/40">{payers.length} students</h2>
         {selectedPayers.length > 0 && (
           <span className="text-sm text-gray-400">
             {selectedPayers.length} selected

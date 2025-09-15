@@ -41,7 +41,7 @@ const PaymentStatusStep = ({
         const res = await fetchWithTimeout(
           API_ENDPOINTS.PAYMENT_STATUS(referenceId),
           {},
-          10000
+          20000
         );
 
         const responseData = await res.json();
@@ -102,7 +102,7 @@ const PaymentStatusStep = ({
         return {
           icon: Clock,
           title: 'Payment Under Verification',
-          message: 'Your payment has been received but is still being verified. This usually takes 5-15 minutes.',
+          message: 'Your payment was initiated but is still being verified. This usually takes ',
           color: '#f59e0b',
           bgColor: '#f59e0b10',
         };
@@ -174,7 +174,7 @@ const PaymentStatusStep = ({
       const res = await fetchWithTimeout(
         API_ENDPOINTS.PAYMENT_STATUS(referenceId),
         {},
-        10000
+        20000
       );
 
       const responseData = await res.json();
@@ -310,11 +310,10 @@ const PaymentStatusStep = ({
             <div className="text-yellow-700 dark:text-yellow-300 text-sm">
               <p className="font-semibold mb-2">Payment Under Verification</p>
               <p>
-                Your payment of ₦{parseFloat(statusData.amount_paid || 0).toLocaleString()} has been received 
-                but is still being verified by our system. This process usually takes 5-15 minutes.
+                Your payment of ₦{parseFloat(statusData.amount_paid || 0).toLocaleString()} is still being verified by our system. This process usually takes some time.
               </p>
               <p className="mt-2">
-                We're checking automatically every 5 seconds. You can also click "Check Again" to refresh manually.
+                You can also click "Check Again" to refresh manually. If your payment remains unverified after 30 minutes, please contact your <a href="tel:+2349034049657">your association</a> for assistance.
               </p>
             </div>
           </div>

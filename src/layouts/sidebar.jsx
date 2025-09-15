@@ -1,4 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
+import { API_ENDPOINTS } from '../apiConfig';
+import { fetchWithTimeout } from '../utils/fetchUtils';
 import {
   LayoutDashboard, Receipt, ArrowLeftRight, LogOut,
   Settings, User, X
@@ -15,8 +17,23 @@ export default function Sidebar({ onClose }) {
   ];
 
   const logout = () => {
-    localStorage.removeItem('access_token');
-    window.location.href = '/auth'; // Redirect to login page
+    fetchWithTimeout(API_ENDPOINTS.LOGOUT, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    })
+    .then(response => {
+      if (response.ok) {
+        localStorage.removeItem('access_token');
+        window.location.href = '/auth';
+      } else {
+        console.error('Logout failed');
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+    });
   };
 
   return (
@@ -56,7 +73,7 @@ export default function Sidebar({ onClose }) {
             <h2 className="text-[#8C8C8C] font-sans font-semibold text-[16px] leading-6 mx-.5 mb-4">Settings</h2>
             <Link
               to="/settings"
-              className={`flex items-center gap-2 px-3 py-4 rounded-3xl cursor-pointer
+              className={`flex items-center gap-2 px-3 py-4 mb-[5px] rounded-3xl cursor-pointer
                 ${location.pathname === '/settings' ? 'bg-purple-700' : 'hover:bg-[#0F111F]'}`}
               onClick={onClose}
             >

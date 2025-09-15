@@ -1,6 +1,13 @@
 import axios from 'axios';
 import { API_ENDPOINTS } from '../apiConfig';
 
+// --- Add this block at the top ---
+let setModalErrorGlobal = null;
+export function setGlobalErrorSetter(fn) {
+  setModalErrorGlobal = fn;
+}
+// --- End block ---
+
 // Create axios instance
 const axiosInstance = axios.create({
   baseURL: API_ENDPOINTS.API_BASE_URL,
@@ -8,22 +15,6 @@ const axiosInstance = axios.create({
     'Content-Type': 'application/json',
   },
 });
-
-// Flag to prevent multiple refresh attempts
-let isRefreshing = false;
-let failedQueue = [];
-
-const processQueue = (error, token = null) => {
-  failedQueue.forEach(prom => {
-    if (error) {
-      prom.reject(error);
-    } else {
-      prom.resolve(token);
-    }
-  });
-  
-  failedQueue = [];
-};
 
 // 🔥 ROUTES THAT DON'T NEED TOKEN REFRESH
 const PUBLIC_ROUTES = [
@@ -33,7 +24,7 @@ const PUBLIC_ROUTES = [
   '/auth/password/reset/',
   '/auth/password/reset/confirm/',
   '/transactions/receipt/', // This will match any receipt_id
-  // For "/:shortName", just add "/" (already present), or use a pattern if you want to restrict further
+  // '/', 
 ];
 
 const isPublicRoute = (url) => {
@@ -52,76 +43,41 @@ axiosInstance.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response interceptor to handle token refresh
+// Response interceptor to handle 401 errors
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
 
-    // 🔥 DON'T REFRESH TOKENS FOR PUBLIC ROUTES
+    // Don't handle 401s for public routes
     if (isPublicRoute(originalRequest.url)) {
       return Promise.reject(error);
     }
 
     if (error.response?.status === 401 && !originalRequest._retry) {
-      if (isRefreshing) {
-        // If already refreshing, queue this request
-        return new Promise((resolve, reject) => {
-          failedQueue.push({ resolve, reject });
-        }).then(token => {
-          originalRequest.headers.Authorization = `Bearer ${token}`;
-          return axiosInstance(originalRequest);
-        }).catch(err => {
-          return Promise.reject(err);
-        });
-      }
-
       originalRequest._retry = true;
-      isRefreshing = true;
 
-      try {
-        const refreshToken = localStorage.getItem('refresh_token'); // ✅ Same key
-        if (!refreshToken) {
-          throw new Error('No refresh token available');
-        }
+      localStorage.removeItem('access_token');
 
-        console.log('Access token expired, refreshing silently...');
-        
-        const response = await axios.post(API_ENDPOINTS.REFRESH_TOKEN, {
-          refresh: refreshToken
+      if (setModalErrorGlobal) {
+        setModalErrorGlobal({
+          open: true,
+          title: 'Session Expired',
+          message: 'Your session has expired. Please log in again to continue.',
+          buttonText: 'Login',
+          onClose: () => {
+            console.log("Close modal and redirect to /auth");
+            // First, close the modal
+            setModalErrorGlobal({ open: false, title: '', message: '' });
+            // Then, redirect after a short delay to ensure modal closes
+            setTimeout(() => {
+              window.location.assign('/auth');
+            }, 100); // 100ms delay is usually enough
+          }
         });
-
-        const { access } = response.data;
-        localStorage.setItem('access_token', access); // ✅ Same key
-        
-        console.log('Token refreshed successfully');
-
-        // Process queued requests
-        processQueue(null, access);
-        
-        // Retry original request with new token
-        originalRequest.headers.Authorization = `Bearer ${access}`;
-        return axiosInstance(originalRequest);
-
-      } catch (refreshError) {
-        console.error('Token refresh failed:', refreshError);
-        
-        // Process queued requests with error
-        processQueue(refreshError, null);
-        
-        // Clear all auth data
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
-        
-        // Only redirect if it's a refresh token error (not network error)
-        if (refreshError.response?.status === 401) {
-          window.location.href = '/auth';
-        }
-        
-        return Promise.reject(refreshError);
-      } finally {
-        isRefreshing = false;
       }
+
+      return Promise.reject(error);
     }
 
     return Promise.reject(error);

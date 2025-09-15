@@ -66,7 +66,7 @@ export default function AdminProfileCard({ data, loading, onUpdated }) {
         method: "PATCH",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify(updateData),
-      }, 15000);
+      }, 20000);
       
       const responseData = await res.json();
       if (res.ok) {

@@ -304,6 +304,7 @@ export default function PayersPage() {
         )}
 
         <PayersTable
+          totalPayers={count} 
           payers={payers}
           loading={loading}
           onViewDetails={payer => {

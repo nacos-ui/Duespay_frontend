@@ -53,7 +53,7 @@ const CreateSessionPage = () => {
       if (result.success) {
         setSuccess('Session created successfully!');
         setTimeout(() => {
-          navigate('/dashboard/overview');
+            window.location.href = '/dashboard/overview';
         }, 1500);
       } else {
         console.log("API error response:", result);

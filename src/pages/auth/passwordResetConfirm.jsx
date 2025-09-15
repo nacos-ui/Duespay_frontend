@@ -57,7 +57,7 @@ const PasswordResetConfirm = () => {
           uid,
           password: formData.password
         })
-      }, 15000);
+      }, 20000);
 
       const responseData = await response.json();
       const data = responseData.data;

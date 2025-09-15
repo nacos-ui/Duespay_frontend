@@ -34,7 +34,7 @@ export const SessionProvider = ({ children }) => {
         headers: {
           Authorization: `Bearer ${token}`
         }
-      }, 15000);
+      }, 20000);
       
       const responseData = await res.json();
       if (res.ok) {
@@ -76,7 +76,6 @@ export const SessionProvider = ({ children }) => {
         if (res.status === 401) {
           console.log('SessionContext: Unauthorized - clearing profile');
           localStorage.removeItem('access_token');
-          localStorage.removeItem('refresh_token');
         }
         setProfile(null);
       }
@@ -99,7 +98,7 @@ export const SessionProvider = ({ children }) => {
         headers: {
           Authorization: `Bearer ${token}`
         }
-      }, 15000);
+      }, 20000);
       
       const responseData = await res.json();
       if (res.ok) {
@@ -131,7 +130,7 @@ export const SessionProvider = ({ children }) => {
         headers: {
           Authorization: `Bearer ${token}`
         }
-      }, 15000);
+      }, 20000);
       
       const responseData = await res.json();
       if (res.ok) {
@@ -174,7 +173,7 @@ export const SessionProvider = ({ children }) => {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
-      }, 15000);
+      }, 20000);
 
       const responseData = await res.json();
       if (res.ok) {
@@ -281,15 +280,13 @@ export const SessionProvider = ({ children }) => {
   // Add this helper function inside SessionProvider
   const validateTokens = () => {
     const accessToken = localStorage.getItem('access_token');
-    const refreshToken = localStorage.getItem('refresh_token');
     
     console.log('SessionContext: Validating tokens:', {
       hasAccessToken: !!accessToken,
-      hasRefreshToken: !!refreshToken,
       accessTokenPreview: accessToken ? accessToken.substring(0, 20) + '...' : null
     });
     
-    return { accessToken, refreshToken, isValid: !!(accessToken && refreshToken) };
+    return { accessToken, isValid: !!accessToken };
   };
 
   // Initialize context

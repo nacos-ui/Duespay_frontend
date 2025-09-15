@@ -18,6 +18,8 @@ import { extractShortName } from './utils/getShortname';
 import ReceiptPage from './pages/receipt/receipt';
 import { ErrorProvider } from './contexts/ErrorContext';
 import PaymentCallback from './pages/payment/PaymentCallback';
+import { useGlobalError } from './contexts/ErrorContext';
+import { setGlobalErrorSetter } from './utils/api';
 
 function App() {
   const pathname = window.location.pathname;
@@ -25,6 +27,14 @@ function App() {
   const pathShortName = pathParts[0] || null;
   const host = window.location.hostname;
   const hostParts = host.split('.');
+
+  function GlobalErrorSetter() {
+    const { setModalError } = useGlobalError();
+    React.useEffect(() => {
+      setGlobalErrorSetter(setModalError);
+    }, [setModalError]);
+    return null;
+  }
 
   // Get shortname from subdomain or path
   const subdomainShortName =
@@ -54,6 +64,7 @@ function App() {
   return (
     <ErrorBoundaryWithModal>
       <ErrorProvider>
+        <GlobalErrorSetter />
         <SessionProvider>
           <Router>
             <Routes>

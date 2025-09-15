@@ -76,7 +76,7 @@ export default function SessionManagementCard() {
           start_date: editForm.start_date || null,
           end_date: editForm.end_date || null
         }),
-      }, 15000);
+      }, 20000);
 
       if (res.ok) {
         setMessage({ type: 'success', text: 'Session updated successfully!' });
@@ -86,7 +86,7 @@ export default function SessionManagementCard() {
         const error = await res.json();
         setMessage({ 
           type: 'error', 
-          text: error.title?.[0] || error.detail || 'Failed to update session.' 
+          text: error.errors?.[0] || error.message || 'Failed to update session.' 
         });
       }
     } catch (error) {

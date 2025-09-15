@@ -26,13 +26,13 @@ export default function SettingsPage() {
         const [bankResponse, adminResponse, assocResponse] = await Promise.all([
           fetchWithTimeout(API_ENDPOINTS.GET_CREATE_BANK_ACCOUNT, { 
             headers: { Authorization: `Bearer ${token}` } 
-          }, 10000), // 10 second timeout for bank info
+          }, 20000), // 10 second timeout for bank info
           fetchWithTimeout(API_ENDPOINTS.GET_ADMIN_USER, { 
             headers: { Authorization: `Bearer ${token}` } 
-          }, 10000), // 10 second timeout for admin data
+          }, 20000), // 10 second timeout for admin data
           fetchWithTimeout(API_ENDPOINTS.GET_ASSOCIATION, { 
             headers: { Authorization: `Bearer ${token}` } 
-          }, 10000), // 10 second timeout for association data
+          }, 20000), // 10 second timeout for association data
         ]);
 
         const [bankData, adminData, assocData] = await Promise.all([

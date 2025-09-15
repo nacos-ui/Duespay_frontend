@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { GoogleLogin } from '@react-oauth/google';
 import { API_ENDPOINTS } from '../../apiConfig';
 import StatusMessage from '../../components/StatusMessage';
@@ -16,7 +16,8 @@ const LoginForm = ({ onToggle, onForgotPassword }) => {
   const navigate = useNavigate();
   const { refreshData } = useSession();
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false); // For normal login
+  const [googleLoading, setGoogleLoading] = useState(false); // For Google login
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
@@ -26,25 +27,26 @@ const LoginForm = ({ onToggle, onForgotPassword }) => {
     password: ''
   });
 
-  // Google login handler
+  // Google login handler with separate loading state
   const handleGoogleLogin = async (credentialResponse) => {
     const id_token = credentialResponse.credential;
-    setLoading(true);
+    setGoogleLoading(true); // Use separate Google loading state
     setError('');
+    setSuccess('');
+    
     try {
       const response = await fetchWithTimeout(API_ENDPOINTS.GOOGLE_AUTH, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id_token })
-      }, 15000);
+      }, 20000);
+      
       const responseData = await response.json();
+      const data = responseData.data;
+      
       if (response.ok && responseData.success) {
-        const data = responseData.data;
-        
-        // 🔥 FIX: Clean up old keys first, then set new ones
-        localStorage.clear(); // Remove all old keys
+        localStorage.clear();
         localStorage.setItem('access_token', data.access);
-        localStorage.setItem('refresh_token', data.refresh);
         
         await refreshData();
         setSuccess('Login successful!');
@@ -59,17 +61,35 @@ const LoginForm = ({ onToggle, onForgotPassword }) => {
         setError(responseData?.message || 'Google login failed.');
       }
     } catch (err) {
+      console.error('Google login error:', err);
       const errorInfo = handleFetchError(err);
-      setError(errorInfo.message);
+      
+      let errorMessage = 'Unable to sign in with Google. Please try again.';
+      
+      if (errorInfo && typeof errorInfo === 'object') {
+        errorMessage = errorInfo.message || errorInfo.detail || errorMessage;
+      } else if (typeof errorInfo === 'string') {
+        errorMessage = errorInfo;
+      }
+      
+      if (err.name === 'TypeError' || err.message?.includes('Failed to fetch')) {
+        errorMessage = 'Network connection error. Please check your internet connection and try again.';
+      } else if (err.message?.includes('timeout')) {
+        errorMessage = 'Request timed out. Please check your connection and try again.';
+      }
+      
+      setError(errorMessage);
     } finally {
-      setLoading(false);
+      setGoogleLoading(false); // Reset Google loading state
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    setLoading(true); // Normal login loading
     setError('');
+    setSuccess('');
+    
     try {
       const response = await fetchWithTimeout(loginURL, {
         method: 'POST',
@@ -78,26 +98,21 @@ const LoginForm = ({ onToggle, onForgotPassword }) => {
           email: formData.email,
           password: formData.password
         })
-      }, 15000);
+      }, 20000);
 
       const responseData = await response.json();
+      const data = responseData.data;
 
       if (response.ok) {
-        const data = responseData.data;
-        
         console.log('Login successful, setting tokens...');
         
-        // 🔥 FIX: Set tokens atomically
-        localStorage.removeItem('accessToken'); // Remove old key
-        localStorage.removeItem('refreshToken'); // Remove old key
-        localStorage.removeItem('userData'); // Remove old key
-        
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('userData');
         localStorage.setItem('access_token', data.access);
-        localStorage.setItem('refresh_token', data.refresh);
         
         console.log('Tokens set, refreshing session data...');
         
-        // 🔥 FIX: Add small delay before refresh
         setTimeout(async () => {
           await refreshData();
           setSuccess('Login successful!');
@@ -115,25 +130,35 @@ const LoginForm = ({ onToggle, onForgotPassword }) => {
         setError(responseData?.message || 'Login failed. Please check your credentials.');
       }
     } catch (err) {
+      console.error('Login error:', err);
       const errorInfo = handleFetchError(err);
-      setError(errorInfo.message);
+      
+      let errorMessage = 'Login failed. Please try again.';
+      
+      if (errorInfo && typeof errorInfo === 'object') {
+        errorMessage = errorInfo.message || errorInfo.detail || errorMessage;
+      } else if (typeof errorInfo === 'string') {
+        errorMessage = errorInfo;
+      }
+      
+      if (err.name === 'TypeError' || err.message?.includes('Failed to fetch')) {
+        errorMessage = 'Network connection error. Please check your internet connection and try again.';
+      } else if (err.message?.includes('timeout')) {
+        errorMessage = 'Request timed out. Please check your connection and try again.';
+      }
+      
+      setError(errorMessage);
     } finally {
-      setLoading(false);
+      setLoading(false); // Reset normal login loading
     }
   };
+
+  // Check if any loading state is active
+  const isAnyLoading = loading || googleLoading;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="text-center">
-        {/* <div className="flex items-center justify-center mb-2">
-          <div className="bg-none rounded-lg">
-            <img
-              src="/Duespay_logo.png"
-              alt="DuesPay Logo"
-              className="h-16 w-16 mx-auto mb-4 rounded-xl bg-transparent object-cover"
-            />
-          </div>
-        </div> */}
         <h2 className="text-2xl font-bold mb-2 text-white">Welcome Back</h2>
         <p className="text-gray-400">Welcome back! Please enter your details.</p>
       </div>
@@ -148,7 +173,7 @@ const LoginForm = ({ onToggle, onForgotPassword }) => {
           type="email"
           value={formData.email}
           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-          disabled={loading}
+          disabled={isAnyLoading}
           required
         />
 
@@ -158,12 +183,13 @@ const LoginForm = ({ onToggle, onForgotPassword }) => {
           type={showPassword ? 'text' : 'password'}
           value={formData.password}
           onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-          disabled={loading}
+          disabled={isAnyLoading}
           required
         >
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
+            disabled={isAnyLoading}
           >
             {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
           </button>
@@ -175,32 +201,34 @@ const LoginForm = ({ onToggle, onForgotPassword }) => {
               id="remember-me"
               name="remember-me"
               type="checkbox"
-              className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-600 bg-gray-700 rounded"
+              disabled={isAnyLoading}
+              className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-600 bg-gray-700 rounded disabled:opacity-50"
             />
-            <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-300">
+            <label htmlFor="remember-me" className={`ml-2 block text-sm text-gray-300 ${isAnyLoading ? 'opacity-50' : ''}`}>
               Remember me
             </label>
           </div>
           <button
             type="button"
             onClick={onForgotPassword}
-            className="text-sm text-purple-400 hover:text-purple-300 transition-colors"
+            disabled={isAnyLoading}
+            className={`text-sm text-purple-400 hover:text-purple-300 transition-colors ${isAnyLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             Forgot password?
           </button>
         </div>
 
-
         <SubmitButton
           loading={loading}
           loadingText="Signing In..."
           type="submit"
+          disabled={isAnyLoading}
         >
           Sign In
         </SubmitButton>
       </div>
 
-        {/* Google Login Button */}
+      {/* Google Login Button with separate loading state */}
       <div className="flex flex-col items-center space-y-2">
         <div className="w-full flex items-center">
           <div className="flex-grow border-t border-gray-700"></div>
@@ -208,21 +236,32 @@ const LoginForm = ({ onToggle, onForgotPassword }) => {
           <div className="flex-grow border-t border-gray-700"></div>
         </div>
         <div className="flex justify-center w-full">
-            <GoogleLogin
-              onSuccess={handleGoogleLogin}
-              onError={() => setError("Google login failed.")}
-              theme="filled_black"
-              text="signin_with"
-              shape="pill"
-            />
+          {googleLoading ? (
+            <div className="flex items-center justify-center w-full max-w-xs h-[40px] bg-gray-800 rounded-full border border-gray-600">
+              <Loader2 className="w-5 h-5 animate-spin text-white mr-2" />
+              <span className="text-white text-sm">Signing in with Google...</span>
+            </div>
+          ) : (
+            <div className={`${isAnyLoading ? 'opacity-50 pointer-events-none' : ''}`}>
+              <GoogleLogin
+                onSuccess={handleGoogleLogin}
+                onError={() => setError("Google login failed. Please try again.")}
+                theme="filled_black"
+                text="signin_with"
+                shape="pill"
+                disabled={isAnyLoading}
+              />
+            </div>
+          )}
         </div>
       </div>
       
       <div className="text-center">
-        <span className="text-gray-400">Don't have an account? </span>
+        <span className={`text-gray-400 ${isAnyLoading ? 'opacity-50' : ''}`}>Don't have an account? </span>
         <button
           onClick={onToggle}
-          className="text-purple-400 hover:text-purple-300 font-medium transition-colors"
+          disabled={isAnyLoading}
+          className={`text-purple-400 hover:text-purple-300 font-medium transition-colors ${isAnyLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
           Sign Up
         </button>

@@ -14,7 +14,7 @@ export default function PayerTransactionsModal({ matricNumber, onClose, onViewTr
         const token = localStorage.getItem("access_token");
         const res = await fetchWithTimeout(`${API_ENDPOINTS.GET_TRANSACTIONS}?search=${matricNumber}`, {
           headers: { Authorization: `Bearer ${token}` }
-        }, 10000); // 10 second timeout for fetching payer transactions
+        }, 20000); // 10 second timeout for fetching payer transactions
         
         const responseData = await res.json();
         if (res.ok) {

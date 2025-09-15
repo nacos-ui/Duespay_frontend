@@ -64,8 +64,9 @@ const SidebarSummary = ({
         )}
       </div>
     </div>
-    {/* Support Links */}
-    <div className="lg:hidden bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-md border border-gray-200/50 dark:border-slate-700/50 p-4 sm:p-6">
+    
+    {/* Support Links - Only show on desktop in sidebar */}
+    <div className="hidden lg:block bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-md border border-gray-200/50 dark:border-slate-700/50 p-4 sm:p-6">
       <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white mb-3 sm:mb-4 flex items-center gap-2">
         <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: themeColor }} />
         Need Help?

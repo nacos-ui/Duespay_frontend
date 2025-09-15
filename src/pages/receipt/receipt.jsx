@@ -42,9 +42,9 @@ const ReceiptPage = () => {
 
     if (num === 0) return "zero";
     let result = "";
-    let billion = Math.floor(num / 1000000000);
-    let million = Math.floor((num % 1000000000) / 1000000);
-    let thousand = Math.floor((num % 1000000) / 1000);
+    let billion = Math.floor(num / 2000000000);
+    let million = Math.floor((num % 2000000000) / 2000000);
+    let thousand = Math.floor((num % 2000000) / 1000);
     let remainder = num % 1000;
 
     if (billion > 0) result += convertHundreds(billion) + "billion ";
@@ -60,7 +60,7 @@ const ReceiptPage = () => {
     setLoading(true);
     setNotFound(false);
     setError(null);
-    fetchWithTimeout(API_ENDPOINTS.GET_RECEIPT(receipt_id), {}, 15000)
+    fetchWithTimeout(API_ENDPOINTS.GET_RECEIPT(receipt_id), {}, 20000)
       .then(async (res) => {
         if (!res.ok) throw new Error("Network response was not ok");
         const responseData = await res.json();
@@ -391,6 +391,39 @@ const ReceiptPage = () => {
                 </div>
               </div>
 
+              {/* level */}
+              <div style={{ 
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+                flexWrap: "wrap"
+              }}>
+                <div style={{ 
+                  fontSize: "11px", 
+                  fontWeight: "600", 
+                  color: "#6b7280",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.5px",
+                  width: "140px",
+                  textAlign: "left",
+                  flexShrink: 0,
+                }}>
+                  LEVEL:
+                </div>
+                <div style={{ 
+                  fontSize: "15px", 
+                  fontWeight: "700", 
+                  color: "#111827",
+                  flex: "1",
+                  minWidth: "200px",
+                  marginLeft: "0",
+                  wordWrap: "break-word",
+                  overflowWrap: "break-word"
+                }}>
+                  {receipt.payer_level} Level
+                </div>
+              </div>
+
               {/* Items Paid */}
               <div style={{ 
                 display: "flex",
@@ -492,7 +525,7 @@ const ReceiptPage = () => {
             {/* Signature Section */}
             <div style={{
               position: "absolute",
-              bottom: "20px",
+              bottom: "5px",
               right: "24px",
               textAlign: "right"
             }}>

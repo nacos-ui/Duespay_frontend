@@ -114,7 +114,7 @@ export default function BankInfoCard({ data, loading, onUpdated }) {
             account_number: form.account_number,
             bank_code: form.bank_code,
           }),
-        }, 15000);
+        }, 20000);
         
         const responseData = await res.json();
         
@@ -247,7 +247,7 @@ export default function BankInfoCard({ data, loading, onUpdated }) {
           },
           body: JSON.stringify(saveData),
         },
-        15000
+        20000
       );
 
       if (res.ok) {

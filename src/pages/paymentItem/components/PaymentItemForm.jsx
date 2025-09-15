@@ -1,141 +1,227 @@
-import { X } from "lucide-react";
-import { useEffect, useState } from "react";
-import StatusMessage from "../../../components/StatusMessage";
-import SubmitButton from "../../../components/SubmitButton";
+import React, { useState, useEffect } from "react";
+import { X, Save, Loader2 } from "lucide-react";
 
-const PaymentItemForm = ({ initial, onClose, onSubmit, loading, success, error }) => {
-  const [form, setForm] = useState(
-    initial || {
-      title: "",
-      amount: "",
-      status: "compulsory",
-      is_active: true,
-    }
-  );
-  const [localError, setLocalError] = useState("");
+const LEVEL_OPTIONS = [
+  { value: "100", label: "100 Level" },
+  { value: "200", label: "200 Level" },
+  { value: "300", label: "300 Level" },
+  { value: "400", label: "400 Level" },
+  { value: "500", label: "500 Level" },
+  { value: "600", label: "600 Level" },
+  { value: "All Levels", label: "All Levels" },
+];
+
+export default function PaymentItemForm({ initial, onClose, onSubmit, loading }) {
+  const [form, setForm] = useState({
+    title: "",
+    amount: "",
+    status: "compulsory",
+    is_active: true,
+    compulsory_for: []
+  });
+  const [formError, setFormError] = useState("");
 
   useEffect(() => {
-    setForm(
-      initial || {
-        title: "",
-        amount: "",
-        status: "compulsory",
-        is_active: true,
+    if (initial) {
+      setForm({
+        title: initial.title || "",
+        amount: initial.amount || "",
+        status: initial.status || "compulsory",
+        is_active: initial.is_active !== undefined ? initial.is_active : true,
+        compulsory_for: initial.compulsory_for || []
+      });
+    }
+  }, [initial]);
+
+  const handleChange = (key, value) => {
+    setForm(prev => {
+      // Clear compulsory_for when changing to optional
+      if (key === "status" && value === "optional") {
+        return { ...prev, [key]: value, compulsory_for: [] };
       }
-    );
-    setLocalError("");
-  }, [initial, loading]);
-
-  useEffect(() => {
-    if (localError || success || error) {
-      const timer = setTimeout(() => {
-        setLocalError("");
-        if (typeof onClose === "function" && (success || error)) {
-          onClose();
-        }
-      }, 2000);
-      return () => clearTimeout(timer);
-    }
-  }, [localError, success, error, onClose]);
-
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
+      return { ...prev, [key]: value };
+    });
+    if (formError) setFormError("");
   };
 
-  const handleSubmit = async (e) => {
+  // Handle level checkbox changes
+  const handleLevelChange = (levelValue, isChecked) => {
+    setForm(prev => {
+      let newCompulsoryFor = [...prev.compulsory_for];
+      
+      if (levelValue === "All Levels") {
+        // If "All Levels" is checked, select only "All Levels"
+        if (isChecked) {
+          newCompulsoryFor = ["All Levels"];
+        } else {
+          newCompulsoryFor = [];
+        }
+      } else {
+        // If any specific level is checked/unchecked
+        if (isChecked) {
+          // Remove "All Levels" if present and add the specific level
+          newCompulsoryFor = newCompulsoryFor.filter(level => level !== "All Levels");
+          if (!newCompulsoryFor.includes(levelValue)) {
+            newCompulsoryFor.push(levelValue);
+          }
+        } else {
+          // Remove the specific level
+          newCompulsoryFor = newCompulsoryFor.filter(level => level !== levelValue);
+        }
+      }
+      
+      return { ...prev, compulsory_for: newCompulsoryFor };
+    });
+  };
+
+  const validate = () => {
+    if (!form.title.trim()) return "Title is required";
+    if (!form.amount || isNaN(Number(form.amount)) || Number(form.amount) <= 0) {
+      return "Valid amount is required";
+    }
+    if (form.status === "compulsory" && form.compulsory_for.length === 0) {
+      return "Please select which levels this item is compulsory for";
+    }
+    return null;
+  };
+
+  const handleSubmit = (e) => {
     e.preventDefault();
-    setLocalError("");
-    if (!form.title || !form.amount) {
-      setLocalError("Title and amount are required.");
+    const error = validate();
+    if (error) {
+      setFormError(error);
       return;
     }
-    if (isNaN(Number(form.amount))) {
-      setLocalError("Amount must be a number.");
-      return;
-    }
-    await onSubmit(form, setLocalError);
+    onSubmit(form, setFormError);
   };
 
   return (
-    <div className="fixed inset-0 bg-[#0f111fbe] z-50 flex items-center justify-center backdrop-blur-lg">
-      <div className="bg-[#181B2A] border border-[#23263A] rounded-2xl shadow-2xl w-full max-w-md p-8 relative">
-        <button
-          className="absolute right-4 top-4 text-gray-400 hover:text-gray-200"
-          onClick={onClose}
-          type="button"
-        >
-          <X />
-        </button>
-        <h2 className="text-xl font-bold text-white mb-6">
-          {initial ? "Edit Payment Item" : "Add Payment Item"}
-        </h2>
-        {localError && <StatusMessage type="error">{localError}</StatusMessage>}
-        {error && <StatusMessage type="error">{error}</StatusMessage>}
-        {success && <StatusMessage type="success">{success}</StatusMessage>}
-        <form onSubmit={handleSubmit} className="space-y-5">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-gray-900 rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between p-6 border-b border-gray-700">
+          <h2 className="text-xl font-bold text-white">
+            {initial ? "Edit Payment Item" : "Add Payment Item"}
+          </h2>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-white transition-colors"
+          >
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          {formError && (
+            <div className="bg-red-900/20 border border-red-500 text-red-400 px-4 py-3 rounded">
+              {formError}
+            </div>
+          )}
+
           <div>
-            <label className="block text-gray-300 text-sm mb-2">Title</label>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Title *
+            </label>
             <input
-              name="title"
+              type="text"
               value={form.title}
-              onChange={handleChange}
-              className="w-full px-4 py-3 bg-[#23263A] border border-[#23263A] rounded text-white placeholder-gray-400 focus:outline-none focus:border-purple-500"
-              placeholder="Payment item title"
-              required
-              disabled={loading}
+              onChange={(e) => handleChange("title", e.target.value)}
+              className="w-full bg-[#23263A] border border-gray-600 text-white px-3 py-2 rounded focus:outline-none focus:border-purple-500"
+              placeholder="Enter payment item title"
             />
           </div>
+
           <div>
-            <label className="block text-gray-300 text-sm mb-2">Amount</label>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Amount (₦) *
+            </label>
             <input
-              name="amount"
+              type="number"
+              min="0"
+              step="0.01"
               value={form.amount}
-              onChange={handleChange}
-              className="w-full px-4 py-3 bg-[#23263A] border border-[#23263A] rounded text-white placeholder-gray-400 focus:outline-none focus:border-purple-500"
-              placeholder="Amount"
-              required
-              disabled={loading}
+              onChange={(e) => handleChange("amount", e.target.value)}
+              className="w-full bg-[#23263A] border border-gray-600 text-white px-3 py-2 rounded focus:outline-none focus:border-purple-500"
+              placeholder="0.00"
             />
           </div>
+
           <div>
-            <label className="block text-gray-300 text-sm mb-2">Status</label>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Type
+            </label>
             <select
-              name="status"
               value={form.status}
-              onChange={handleChange}
-              className="w-full px-4 py-3 bg-[#23263A] border border-[#23263A] rounded text-white focus:outline-none focus:border-purple-500"
-              required
-              disabled={loading}
+              onChange={(e) => handleChange("status", e.target.value)}
+              className="w-full bg-[#23263A] border border-gray-600 text-white px-3 py-2 rounded focus:outline-none focus:border-purple-500"
             >
               <option value="compulsory">Compulsory</option>
               <option value="optional">Optional</option>
             </select>
           </div>
-          <div className="flex items-center gap-2">
+
+          {/* Show compulsory_for field only if status is compulsory */}
+          {form.status === "compulsory" && (
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-3">
+                Compulsory For *
+              </label>
+              <div className="space-y-2 max-h-32 overflow-y-auto">
+                {LEVEL_OPTIONS.map((option) => (
+                  <label key={option.value} className="flex items-center space-x-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={form.compulsory_for.includes(option.value)}
+                      onChange={(e) => handleLevelChange(option.value, e.target.checked)}
+                      className="w-4 h-4 text-purple-600 bg-[#23263A] border-gray-600 rounded focus:ring-purple-500 focus:ring-2"
+                    />
+                    <span className="text-gray-300 text-sm">{option.label}</span>
+                  </label>
+                ))}
+              </div>
+              <p className="text-xs text-gray-500 mt-2">
+                Select "All Levels" or choose specific levels. Selecting "All Levels" will override individual selections.
+              </p>
+            </div>
+          )}
+
+          <div className="flex items-center space-x-3">
             <input
               type="checkbox"
-              name="is_active"
               checked={form.is_active}
-              onChange={handleChange}
-              id="is_active"
-              className="accent-purple-600"
-              disabled={loading}
+              onChange={(e) => handleChange("is_active", e.target.checked)}
+              className="w-4 h-4 text-purple-600 bg-[#23263A] border-gray-600 rounded focus:ring-purple-500 focus:ring-2"
             />
-            <label htmlFor="is_active" className="text-gray-300 text-sm">
-              Active
-            </label>
+            <label className="text-sm text-gray-300">Active</label>
           </div>
-          <SubmitButton loading={loading} loadingText={initial ? "Updating..." : "Adding..."}>
-            {initial ? "Update Item" : "Add Item"}
-          </SubmitButton>
+
+          <div className="flex gap-3 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded transition-colors disabled:opacity-50"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4" />
+                  {initial ? "Update" : "Create"}
+                </>
+              )}
+            </button>
+          </div>
         </form>
       </div>
     </div>
   );
-};
-
-export default PaymentItemForm;
+}

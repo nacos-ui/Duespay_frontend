@@ -3,7 +3,7 @@ function Pagination({ count, page, setPage, pageSize }) {
   if (totalPages <= 1) return null;
 
   return (
-    <div className="flex justify-end mt-4">
+    <div className="flex mt-4">
       <nav className="flex items-center gap-1 w-1/3 overflow-x-auto hide-scrollbar">
         <button
           className="px-3 py-1 rounded bg-gray-800 text-gray-300 hover:bg-purple-700 flex-shrink-0"

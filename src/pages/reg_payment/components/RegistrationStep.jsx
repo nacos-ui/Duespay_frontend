@@ -75,6 +75,11 @@ const RegistrationStep = forwardRef(({
       errors.matricNumber = "Matric number is required.";
     }
     
+    // Add level validation
+    if (!payerData.level?.trim()) {
+      errors.level = "Level is required.";
+    }
+    
     if (type === "hall" || type === "other") {
       if (!payerData.faculty?.trim()) {
         errors.faculty = "Faculty is required.";
@@ -118,6 +123,7 @@ const RegistrationStep = forwardRef(({
       { key: 'firstName', label: 'First Name', required: true },
       { key: 'lastName', label: 'Last Name', required: true },
       { key: 'matricNumber', label: 'Matric Number', required: true, type: 'text' },
+      { key: 'level', label: 'Level', required: true, type: 'select', options: ['100', '200', '300', '400', '500', '600'] },
       { key: 'email', label: 'Email Address', required: true, type: 'email' },
       { key: 'phoneNumber', label: 'Phone Number', required: true, type: 'tel', placeholder: '+234 or 0' },
     ];
@@ -195,7 +201,7 @@ const RegistrationStep = forwardRef(({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {fields.map((field) => (
-          <div key={field.key} className={field.key === 'email' || field.key === 'matricNumber' ? 'md:col-span-2' : ''}>
+          <div key={field.key} className="">
             <FormInput
               label={field.label}
               type={field.type || 'text'}
@@ -205,6 +211,7 @@ const RegistrationStep = forwardRef(({
               required={field.required}
               themeColor={themeColor}
               error={fieldErrors[field.key]}
+              options={field.options}
             />
           </div>
         ))}

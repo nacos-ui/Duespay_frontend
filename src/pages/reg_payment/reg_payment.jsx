@@ -17,6 +17,25 @@ import { pickId, generateThemeStyles, sanitizeName } from "./utils/themeUtils";
 import NotFoundPage from '../404_page';
 import { extractShortName } from '../../utils/getShortname';
 
+// Add this function before the component definition
+const filterAndProcessPaymentItems = (paymentItems, payerLevel) => {
+  if (!paymentItems || !payerLevel) return paymentItems || [];
+  
+  return paymentItems
+    .filter(item => item.is_active) // Only show active items
+    .map(item => {
+      // Check if this item is compulsory for the payer's level
+      const isCompulsoryForPayer = item.status === 'compulsory' && 
+        item.compulsory_for && 
+        (item.compulsory_for.includes(payerLevel) || item.compulsory_for.includes('All Levels'));
+      
+      return {
+        ...item,
+        // Override status based on payer's level
+        status: isCompulsoryForPayer ? 'compulsory' : 'optional'
+      };
+    });
+};
 
 const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
   const { shortName: pathShortName } = useParams();
@@ -32,6 +51,7 @@ const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
     firstName: '',
     lastName: '',
     email: '',
+    level: '',
     phoneNumber: '',
     matricNumber: '',
     faculty: '',
@@ -72,8 +92,6 @@ const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
     const fetchAssociation = async () => {
       console.log("📡 Starting fetch for:", shortName);
       
-      // Don't set loading again if already loading
-      // setIsLoading(true); // Remove this line
       setLoadError(null);
       
       try {
@@ -96,12 +114,8 @@ const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
         console.log("✅ Association loaded:", data?.association_name);
         
         setAssociationData(data);
+        // Store original payment items
         setPaymentItems(data.payment_items || []);
-        setSelectedItems(
-          (data.payment_items || [])
-            .filter(item => item.status === 'compulsory')
-            .map(item => item.id)
-        );
         
         setLoadError(null);
       } catch (err) {
@@ -110,7 +124,6 @@ const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
         if (err.message === 'ASSOCIATION_NOT_FOUND') {
           setLoadError("Association not found");
         } else {
-          // For other errors, show modal instead of 404
           const { message } = handleFetchError(err);
           setModalError({
             open: true,
@@ -127,11 +140,9 @@ const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
       }
     };
 
-    // Only fetch if we have a shortName
     if (shortName) {
       fetchAssociation();
     } else {
-      // No shortName provided
       setLoadError("No association specified");
       setIsLoading(false);
     }
@@ -147,7 +158,7 @@ const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
         const res = await fetchWithTimeout(
           API_ENDPOINTS.PAYMENT_STATUS(referenceId),
           {},
-          15000
+          20000
         );
         const responseData = await res.json();
         if (res.ok) {
@@ -173,17 +184,38 @@ const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
     }
   }, [referenceId, currentStep]);
 
+  // Add new useEffect to update selectedItems when payer level changes
+  useEffect(() => {
+    if (paymentItems.length > 0 && payerData.level) {
+      const processedItems = filterAndProcessPaymentItems(paymentItems, payerData.level);
+      
+      // Auto-select compulsory items for this payer's level
+      const compulsoryItems = processedItems
+        .filter(item => item.status === 'compulsory')
+        .map(item => item.id);
+      
+      setSelectedItems(compulsoryItems);
+    }
+  }, [paymentItems, payerData.level]);
+
   const handleItemSelection = (itemId) => {
-    const item = paymentItems.find(i => i.id === itemId);
+    const processedItems = filterAndProcessPaymentItems(paymentItems, payerData.level);
+    const item = processedItems.find(i => i.id === itemId);
+    
+    // Prevent deselecting compulsory items
     if (item && item.status === 'compulsory') return;
+    
     setSelectedItems(prev =>
       prev.includes(itemId) ? prev.filter(id => id !== itemId) : [...prev, itemId]
     );
   };
 
+  // Update getTotalAmount to use processed items
   const getTotalAmount = () => {
+    const processedItems = filterAndProcessPaymentItems(paymentItems, payerData.level);
+    
     return selectedItems.reduce((total, itemId) => {
-      const item = paymentItems.find(p => p.id === itemId);
+      const item = processedItems.find(p => p.id === itemId);
       return total + (item ? Number(item.amount) : 0);
     }, 0);
   };
@@ -204,6 +236,7 @@ const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
             association_short_name: associationData?.association_short_name || shortName,
             matric_number: payerData.matricNumber,
             email: payerData.email,
+            level: payerData.level,
             phone_number: payerData.phoneNumber,
             first_name: sanitizeName(payerData.firstName),
             last_name: sanitizeName(payerData.lastName),
@@ -213,10 +246,10 @@ const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
         },
         30000
       );
-      const data = await res.json();
-      // const data = responseData.data;
+      const responseData = await res.json();
+      const data = responseData.data;
 
-      if (!res.ok || !data?.success) {
+      if (!res.ok || !responseData?.success) {
         if (data && typeof data === 'object' && !data.error) {
           registrationStepRef.current?.setBackendErrors?.(data);
           setRegError("Please fix the errors below.");
@@ -227,8 +260,8 @@ const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
         return false;
       }
 
-      if (data?.payer_id) setPayerId(data.payer_id);
-      if (!data?.payer_id && data?.data?.payer_id) setPayerId(data.data.payer_id);
+      if (responseData?.payer_id) setPayerId(responseData.payer_id);
+      if (!responseData?.payer_id && responseData?.data?.payer_id) setPayerId(responseData.data.payer_id);
 
       setRegError("");
       setRegLoading(false);
@@ -342,6 +375,7 @@ const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
           payerData.firstName &&
           payerData.lastName &&
           payerData.email &&
+          payerData.level &&
           payerData.matricNumber &&
           payerData.phoneNumber
         );
@@ -482,7 +516,7 @@ const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
                   )}
                   {currentStep === 2 && (
                     <PaymentSelectionStep
-                      paymentItems={paymentItems}
+                      paymentItems={filterAndProcessPaymentItems(paymentItems, payerData.level)}
                       selectedItems={selectedItems}
                       handleItemSelection={handleItemSelection}
                       associationData={associationData}
@@ -502,6 +536,20 @@ const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
                   )}
                 </div>
               </div>
+              
+              {/* Mobile Summary - Show between main content and navigation on mobile */}
+              {currentStep < 3 && (
+                <div className="lg:hidden">
+                  <SidebarSummary
+                    paymentItems={filterAndProcessPaymentItems(paymentItems, payerData.level)}
+                    selectedItems={selectedItems}
+                    themeColor={themeColor}
+                    getTotalAmount={getTotalAmount}
+                    formatTotal={formatTotal}
+                  />
+                </div>
+              )}
+              
               {/* Navigation */}
               {currentStep < 3 && (
                 <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-md border border-gray-200/50 dark:border-slate-700/50 p-4 sm:p-6">
@@ -517,15 +565,18 @@ const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
                 </div>
               )}
             </div>
-            {/* Sidebar */}
+            
+            {/* Desktop Sidebar - Only show on large screens */}
             {currentStep < 3 && (
-              <SidebarSummary
-                paymentItems={paymentItems}
-                selectedItems={selectedItems}
-                themeColor={themeColor}
-                getTotalAmount={getTotalAmount}
-                formatTotal={formatTotal}
-              />
+              <div className="hidden lg:block">
+                <SidebarSummary
+                  paymentItems={filterAndProcessPaymentItems(paymentItems, payerData.level)}
+                  selectedItems={selectedItems}
+                  themeColor={themeColor}
+                  getTotalAmount={getTotalAmount}
+                  formatTotal={formatTotal}
+                />
+              </div>
             )}
           </div>
         </div>

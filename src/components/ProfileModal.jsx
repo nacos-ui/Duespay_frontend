@@ -21,10 +21,10 @@ export default function ProfileModal({ isOpen, onClose }) {
     if (success) {
       // Brief delay to show success, then close modal
       setTimeout(() => {
-        onClose();
+        // onClose();
         // Force page reload to refresh all data
         window.location.reload();
-      }, 500);
+      }, 200);
     }
   };
 

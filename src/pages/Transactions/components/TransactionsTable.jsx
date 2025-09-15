@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 export default function TransactionsTable({ 
+  totalCount,
   transactions, 
   loading, 
   onViewDetails,
@@ -30,6 +31,7 @@ export default function TransactionsTable({
     <div className="bg-gray-900 rounded-xl p-6 shadow">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold text-white">Transactions List</h2>
+        <h2 className="text-sm font-normal text-white/40">{totalCount || 0} transactions</h2>
         {selectedTransactions.length > 0 && (
           <span className="text-sm text-gray-400">
             {selectedTransactions.length} selected

@@ -15,7 +15,9 @@ export const ErrorProvider = ({ children }) => {
   const [modalError, setModalError] = useState({
     open: false,
     title: '',
-    message: ''
+    message: '',
+    buttonText: 'OK',
+    onClose: null,
   });
 
   return (
@@ -23,9 +25,14 @@ export const ErrorProvider = ({ children }) => {
       {children}
       <ErrorModal
         open={modalError.open}
-        onClose={() => setModalError({ ...modalError, open: false })}
+        onClose={
+          modalError.onClose
+            ? modalError.onClose
+            : () => setModalError({ ...modalError, open: false })
+        }
         title={modalError.title}
         message={modalError.message}
+        buttonText={modalError.buttonText}
       />
     </ErrorContext.Provider>
   );

@@ -18,12 +18,8 @@ export const AssociationProvider = ({ children }) => {
 
   const fetchAssociation = async () => {
     try {
-      const token = localStorage.getItem('access_token');
       const response = await fetchWithTimeout(API_ENDPOINTS.CREATE_ASSOCIATION, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      }, 10000);
+      }, 20000);
 
       const responseData = await response.json();
       if (response.ok) {

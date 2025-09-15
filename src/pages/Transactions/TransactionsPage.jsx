@@ -340,6 +340,7 @@ export default function TransactionsPage() {
         )}
 
         <TransactionsTable
+          totalCount={count}
           transactions={transactions}
           loading={loading}
           onViewDetails={setSelected}

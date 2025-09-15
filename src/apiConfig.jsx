@@ -7,10 +7,10 @@ export const API_ENDPOINTS = {
   // Auth endpoints
   LOGIN: `${API_BASE_URL}/api/auth/login/`,
   SIGNUP: `${API_BASE_URL}/api/auth/register/`,
-  REFRESH_TOKEN: `${API_BASE_URL}/api/auth/token/refresh/`,
   PASSWORD_RESET: `${API_BASE_URL}/api/auth/password-reset/`,
   PASSWORD_RESET_CONFIRM: `${API_BASE_URL}/api/auth/password-reset-confirm/`,
   GOOGLE_AUTH: `${API_BASE_URL}/api/auth/google/`,
+  LOGOUT: `${API_BASE_URL}/api/auth/logout/`,
 
   // Transactions endpoints
   VERIFY_AND_CREATE_TRANSACTION: `${API_BASE_URL}/api/transactions/verify-and-create/`,

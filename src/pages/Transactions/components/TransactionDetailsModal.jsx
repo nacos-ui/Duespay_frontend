@@ -23,7 +23,7 @@ export default function TransactionDetailsModal({ transaction, onClose, onStatus
         body: JSON.stringify({
           is_verified: !transaction.is_verified,
         }),
-      }, 15000); // 15 second timeout for transaction verification toggle
+      }, 20000); // 15 second timeout for transaction verification toggle
       
       if (!res.ok) throw new Error("Failed to update status");
       if (onStatusChange) onStatusChange();
@@ -107,7 +107,7 @@ export default function TransactionDetailsModal({ transaction, onClose, onStatus
             </div>
             {error && <div className="text-red-400 mt-2">{error}</div>}
           </div>
-          <div>
+          {/* <div>
             <span className="text-gray-400 text-sm">Proof of Payment</span>
             <div className="mt-2 bg-gray-800 rounded-lg p-2 flex items-center justify-center min-h-[180px]">
               {transaction.proof_of_payment?.match(/\.(jpg|jpeg|png|gif)$/i) ? (
@@ -139,7 +139,7 @@ export default function TransactionDetailsModal({ transaction, onClose, onStatus
                 </a>
               </div>
             )}
-          </div>
+          </div> */}
         </div>
       </div>
     </div>

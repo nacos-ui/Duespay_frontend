@@ -17,25 +17,23 @@ function isTokenExpired(token) {
 
 function ProtectedRoute() {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    // Initialize state immediately based on refresh token
-    const refreshToken = localStorage.getItem('refresh_token');
-    return refreshToken && !isTokenExpired(refreshToken);
+    // Initialize state immediately based on access token
+    const accessToken = localStorage.getItem('access_token');
+    return accessToken && !isTokenExpired(accessToken);
   });
 
   useEffect(() => {
     const checkAuth = () => {
-      const refreshToken = localStorage.getItem('refresh_token');
+      const accessToken = localStorage.getItem('access_token');
 
-      if (!refreshToken || isTokenExpired(refreshToken)) {
-        // Refresh token is expired or missing
+      if (!accessToken || isTokenExpired(accessToken)) {
+        // Access token is expired or missing
         localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
         setIsAuthenticated(false);
         return;
       }
 
-      // Valid refresh token = authenticated
-      // Don't check access token here - let axios interceptor handle it
+      // Valid access token = authenticated
       setIsAuthenticated(true);
     };
 
@@ -43,7 +41,7 @@ function ProtectedRoute() {
 
     // Listen for storage changes (logout from another tab)
     const handleStorageChange = (e) => {
-      if (e.key === 'refresh_token' || e.key === 'access_token') {
+      if (e.key === 'access_token') {
         checkAuth();
       }
     };
@@ -52,7 +50,7 @@ function ProtectedRoute() {
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
-  // No loading screen - immediate decision based on refresh token
+  // No loading screen - immediate decision based on access token
   return isAuthenticated ? <Outlet /> : <Navigate to="/auth" replace />;
 }
 

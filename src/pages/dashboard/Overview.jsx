@@ -67,21 +67,17 @@ export default function Overview() {
       setDashboardError(null);
 
       try {
-        const token = localStorage.getItem("access_token");
+        // const token = localStorage.getItem("access_token");
         
-        if (!token) {
-          throw new Error('No authentication token');
-        }
+        // if (!token) {
+        //   throw new Error('No authentication token');
+        // }
 
         const url = new URL(API_ENDPOINTS.GET_TRANSACTIONS);
         url.searchParams.append('session_id', currentSession.id);
-        
-        const res = await fetchWithTimeout(url.toString(), {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }, 15000); // Increased timeout to 15 seconds
-        
+
+        const res = await fetchWithTimeout(url.toString(), {}, 20000); // Increased timeout to 20 seconds
+
         if (!res.ok) {
           throw new Error(`API error: ${res.status} ${res.statusText}`);
         }
@@ -250,7 +246,7 @@ export default function Overview() {
     );
   }
 
-  // 🔥 MAIN DASHBOARD VIEW - Only show when everything is loaded
+  // MAIN DASHBOARD VIEW - Only show when everything is loaded
   return (
     <MainLayout>
       <div className="bg-[#0F111F] min-h-screen pt-16 sm:px-4">

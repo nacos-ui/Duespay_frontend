@@ -33,7 +33,7 @@ const NotificationsModal = ({ isOpen, onClose, onNotificationRead }) => {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
-        }, 10000), // 1ms timeout for testing
+        }, 20000), // 1ms timeout for testing
         setModalError // Pass global error handler
       );
       const responseData = await res.json();
@@ -89,7 +89,7 @@ const NotificationsModal = ({ isOpen, onClose, onNotificationRead }) => {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
-        }, 10000),
+        }, 20000),
         setModalError
       );
       
