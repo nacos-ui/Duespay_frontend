@@ -5,6 +5,7 @@ import Header from './components/Header';
 import ProgressSteps from './components/ProgressSteps';
 import RegistrationStep from './components/RegistrationStep';
 import PaymentSelectionStep from './components/PaymentSelectionStep';
+import VirtualAccountPayment from './components/VirtualAccountPayment';
 import PaymentStatusStep from './components/PaymentStatusStep';
 import NavigationButtons from './components/NavigationButtons';
 import SidebarSummary from './components/SidebarSummary';
@@ -46,7 +47,7 @@ const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
   const paymentReference = urlParams.get('reference');
   const paymentStatus = urlParams.get('status');
 
-  const [currentStep, setCurrentStep] = useState(paymentReference ? 3 : 1);
+  const [currentStep, setCurrentStep] = useState(paymentReference ? 4 : 1);
   const [payerData, setPayerData] = useState({
     firstName: '',
     lastName: '',
@@ -69,12 +70,15 @@ const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
   const [regLoading, setRegLoading] = useState(false);
 
   const [modalError, setModalError] = useState({ open: false, title: "", message: "" });
-  // 🔥 KEY FIX: Start with loading = true
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
   const [payLoading, setPayLoading] = useState(false);
   const [statusLoading, setStatusLoading] = useState(false);
   const [paymentStatusData, setPaymentStatusData] = useState(null);
+  
+  // 🔥 NEW: Virtual account data
+  const [virtualAccountData, setVirtualAccountData] = useState(null);
+  const [pollingInterval, setPollingInterval] = useState(null);
 
   const themeColor = associationData?.theme_color || '#9810fa';
   const isDarkTheme = isColorDark(themeColor);
@@ -83,10 +87,13 @@ const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
   usePageBranding({
     title: currentStep === 1 ? "Registration" : 
            currentStep === 2 ? "Payment Selection" : 
+           currentStep === 3 ? "Payment Process" :
            "Payment Status",
     faviconUrl: associationData?.logo_url,
     associationName: associationData?.association_name
   });
+
+  // ... existing useEffect for fetchAssociation remains the same ...
 
   useEffect(() => {
     const fetchAssociation = async () => {
@@ -114,7 +121,6 @@ const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
         console.log("✅ Association loaded:", data?.association_name);
         
         setAssociationData(data);
-        // Store original payment items
         setPaymentItems(data.payment_items || []);
         
         setLoadError(null);
@@ -148,7 +154,58 @@ const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
     }
   }, [shortName]);
 
-  // Fetch payment status if we have a reference
+  // 🔥 NEW: Payment status polling
+  const pollPaymentStatus = async () => {
+    if (!referenceId) return;
+    
+    try {
+      const res = await fetchWithTimeout(
+        API_ENDPOINTS.PAYMENT_STATUS(referenceId),
+        {},
+        10000
+      );
+      const responseData = await res.json();
+      
+      if (res.ok && responseData.data) {
+        const data = responseData.data;
+        setPaymentStatusData(data);
+        
+        // If payment is verified, stop polling and move to final step
+        if (data.is_verified || data.status === 'verified' || data.payment_status === 'verified') {
+          if (pollingInterval) {
+            clearInterval(pollingInterval);
+            setPollingInterval(null);
+          }
+          setCurrentStep(4);
+        }
+      }
+    } catch (err) {
+      console.error('Polling error:', err);
+      // Don't show error modal for polling failures
+    }
+  };
+
+  // 🔥 NEW: Start polling when on virtual account step
+  useEffect(() => {
+    if (currentStep === 3 && referenceId && !pollingInterval) {
+      // Poll immediately
+      pollPaymentStatus();
+      
+      // Then poll every 10 seconds
+      const interval = setInterval(pollPaymentStatus, 10000);
+      setPollingInterval(interval);
+    }
+
+    // Cleanup polling when leaving step or component unmounts
+    return () => {
+      if (pollingInterval) {
+        clearInterval(pollingInterval);
+        setPollingInterval(null);
+      }
+    };
+  }, [currentStep, referenceId]);
+
+  // Fetch payment status if we have a reference on step 4
   useEffect(() => {
     const fetchPaymentStatus = async () => {
       if (!referenceId) return;
@@ -179,7 +236,7 @@ const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
       }
     };
 
-    if (currentStep === 3) {
+    if (currentStep === 4) {
       fetchPaymentStatus();
     }
   }, [referenceId, currentStep]);
@@ -274,7 +331,7 @@ const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
     }
   };
 
-  // STEP 2: Initiate payment → redirect to checkout_url
+  // 🔥 UPDATED: STEP 2: Initiate payment → get virtual account data
   const initiatePayment = async () => {
     try {
       setPayLoading(true);
@@ -330,16 +387,43 @@ const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
       );
 
       let responseData;
-      try { responseData = await res.json(); } catch { responseData = null; }
+      try { 
+        responseData = await res.json(); 
+      } catch { 
+        responseData = null; 
+      }
 
-      if (!res.ok || !responseData?.data?.checkout_url || !responseData?.data?.reference_id) {
+      console.log("Payment Initiate Response:", responseData); // Debug log
+
+      // 🔥 FIX: Check for success field instead of just res.ok
+      if (!res.ok || !responseData?.success) {
         const backendMsg = responseData?.message || responseData?.data?.message || responseData?.data?.detail || responseData?.data?.error;
         throw new Error(backendMsg || "Failed to initiate payment.");
       }
 
-      setReferenceId(responseData.data.reference_id);
-      window.location.href = responseData.data.checkout_url;
+      const data = responseData.data;
+      
+      // 🔥 NEW: Handle virtual account response
+      if (data.accountNumber && data.paymentReference) {
+        console.log("Virtual account data received:", data); // Debug log
+        setVirtualAccountData(data);
+        setReferenceId(data.paymentReference);
+        setCurrentStep(3); // Go to virtual account step
+        setPayLoading(false);
+        return;
+      }
+
+      // 🔥 FALLBACK: Handle old checkout URL format
+      if (data.checkout_url && data.reference_id) {
+        setReferenceId(data.reference_id);
+        window.location.href = data.checkout_url;
+        return;
+      }
+
+      throw new Error("Invalid payment response format.");
+
     } catch (err) {
+      console.error("Payment initiation error:", err); // Debug log
       const { message } = handleFetchError(err);
       setModalError({
         open: true,
@@ -348,6 +432,13 @@ const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
       });
       setPayLoading(false);
     }
+  };
+
+  // 🔥 NEW: Handle manual payment verification check
+  const handleCheckPayment = async () => {
+    setStatusLoading(true);
+    await pollPaymentStatus();
+    setStatusLoading(false);
   };
 
   const nextStep = async () => {
@@ -397,7 +488,8 @@ const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
   const steps = [
     { number: 1, title: "Payer Information", icon: User },
     { number: 2, title: "Payment Selection", icon: CreditCard },
-    { number: 3, title: "Payment Status", icon: Receipt },
+    { number: 3, title: "Payment Process", icon: CreditCard },
+    { number: 4, title: "Payment Status", icon: Receipt },
   ];
 
   // 🔥 IMPROVED LOADING STATE
@@ -525,7 +617,17 @@ const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
                       hideBankDetails
                     />
                   )}
-                  {currentStep === 3 && (
+                  {/* 🔥 NEW: Virtual Account Payment Step */}
+                  {currentStep === 3 && virtualAccountData && (
+                    <VirtualAccountPayment
+                      accountData={virtualAccountData}
+                      onPaymentVerified={() => setCurrentStep(4)}
+                      onCheckPayment={handleCheckPayment}
+                      themeColor={themeColor}
+                      referenceId={referenceId}
+                    />
+                  )}
+                  {currentStep === 4 && (
                     <PaymentStatusStep
                       referenceId={referenceId}
                       paymentStatus={paymentStatus}
