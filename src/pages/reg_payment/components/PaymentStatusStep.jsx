@@ -241,12 +241,12 @@ const PaymentStatusStep = ({
               </div>
             </div>
             
-            {statusData.receipt_id && (
-              <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-slate-400">Receipt ID</p>
-                <p className="text-lg font-mono text-gray-900 dark:text-white">{statusData.receipt_id}</p>
-              </div>
-            )}
+            <div>
+              <p className="text-sm font-medium text-gray-600 dark:text-slate-400">Receipt</p>
+              <p className="text-lg font-mono text-gray-900 dark:text-white">
+                {statusData.receipt_id ? "Available" : "Unavailable"}
+              </p>
+            </div>
             
             <div className="md:col-span-2">
               <p className="text-sm font-medium text-gray-600 dark:text-slate-400">Last Checked</p>
