@@ -13,7 +13,7 @@ const VirtualAccountPayment = ({
   const [isExpired, setIsExpired] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
 
-  // Calculate initial time left using accountDurationSeconds
+  // Calculate initial time left using accountDurationSeconds or expiresOn
   useEffect(() => {
     console.log('Account Data:', accountData); // Debug log
     
@@ -188,11 +188,18 @@ const VirtualAccountPayment = ({
             <div className="text-center">
               <p className="text-sm text-green-700 dark:text-green-400 mb-1">Amount to Pay</p>
               <p className="text-3xl font-bold text-green-800 dark:text-green-300">
-                ₦{Number(accountData.total_payable_with_fee || accountData.totalPayable).toLocaleString()}
+                ₦{Number(accountData.total_payable_with_fee || accountData.totalPayable || accountData.amount_expected).toLocaleString()}
               </p>
               <p className="text-xs text-green-600 dark:text-green-400 mt-1">
-                (Including processing fee)
+                (Including processing fee{accountData.vat ? ' and VAT' : ''})
               </p>
+              {accountData.fee && (
+                <div className="mt-2 text-xs text-green-600 dark:text-green-400">
+                  <p>Base Amount: ₦{Number(accountData.amount).toLocaleString()}</p>
+                  <p>Fee: ₦{Number(accountData.fee).toLocaleString()}</p>
+                  {accountData.vat && <p>VAT: ₦{Number(accountData.vat).toLocaleString()}</p>}
+                </div>
+              )}
             </div>
           </div>
 
@@ -264,15 +271,10 @@ const VirtualAccountPayment = ({
             </p>
           </div>
 
-          {/* Powered by Monnify */}
+          {/* Secured by Korapay */}
           <div className="flex items-center justify-center mt-4">
             <span className="text-xs text-gray-500 mr-2">Secured by</span>
-            <img
-              src="/monnifyLogo.png"
-              alt="Monnify"
-              style={{ height: 24 }}
-              className="inline-block"
-            />
+            <span className="text-sm font-semibold text-blue-600">Korapay</span>
           </div>
         </>
       )}

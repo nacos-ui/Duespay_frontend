@@ -295,7 +295,7 @@ const PaymentStatusStep = ({
         </button>
         
         <button
-          onClick={() => window.location.href = '/'}
+          onClick={() => window.location.reload()}
           className="flex items-center justify-center gap-3 px-8 py-4 rounded-xl font-semibold bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-slate-300 hover:bg-gray-300 dark:hover:bg-slate-600 transition-all duration-300"
         >
           Back to Home

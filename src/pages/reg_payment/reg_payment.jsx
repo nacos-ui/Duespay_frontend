@@ -403,7 +403,37 @@ const DuesPayPaymentFlow = ({ shortName: propShortName }) => {
 
       const data = responseData.data;
       
-      // 🔥 NEW: Handle virtual account response
+      // 🔥 NEW: Handle Korapay bank transfer response
+      if (data.bank_account && data.reference_id) {
+        console.log("Bank transfer data received:", data); // Debug log
+        
+        // Transform the response to match VirtualAccountPayment component expectations
+        const transformedData = {
+          accountNumber: data.bank_account.account_number,
+          accountName: data.bank_account.account_name,
+          bankName: data.bank_account.bank_name,
+          bankCode: data.bank_account.bank_code,
+          amount: parseFloat(data.amount),
+          totalPayable: parseFloat(data.total_payable),
+          total_payable_with_fee: data.total_payable,
+          paymentReference: data.reference_id,
+          expiresOn: data.bank_account.expiry_date_in_utc,
+          accountDurationSeconds: data.bank_account.expiry_seconds,
+          customer: data.customer,
+          narration: data.narration,
+          fee: data.fee || 0,
+          vat: data.vat || 0,
+          amount_expected: data.amount_expected
+        };
+        
+        setVirtualAccountData(transformedData);
+        setReferenceId(data.reference_id);
+        setCurrentStep(3); // Go to virtual account step
+        setPayLoading(false);
+        return;
+      }
+
+      // 🔥 FALLBACK: Handle old Monnify virtual account format
       if (data.accountNumber && data.paymentReference) {
         console.log("Virtual account data received:", data); // Debug log
         setVirtualAccountData(data);
