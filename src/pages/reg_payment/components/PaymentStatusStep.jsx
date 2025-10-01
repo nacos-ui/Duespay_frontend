@@ -241,12 +241,12 @@ const PaymentStatusStep = ({
               </div>
             </div>
             
-            {statusData.receipt_id && (
-              <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-slate-400">Receipt ID</p>
-                <p className="text-lg font-mono text-gray-900 dark:text-white">{statusData.receipt_id}</p>
-              </div>
-            )}
+            <div>
+              <p className="text-sm font-medium text-gray-600 dark:text-slate-400">Receipt</p>
+              <p className="text-lg font-mono text-gray-900 dark:text-white">
+                {statusData.receipt_id ? "Available" : "Unavailable"}
+              </p>
+            </div>
             
             <div className="md:col-span-2">
               <p className="text-sm font-medium text-gray-600 dark:text-slate-400">Last Checked</p>
@@ -295,7 +295,7 @@ const PaymentStatusStep = ({
         </button>
         
         <button
-          onClick={() => window.location.href = '/'}
+          onClick={() => window.location.reload()}
           className="flex items-center justify-center gap-3 px-8 py-4 rounded-xl font-semibold bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-slate-300 hover:bg-gray-300 dark:hover:bg-slate-600 transition-all duration-300"
         >
           Back to Home
