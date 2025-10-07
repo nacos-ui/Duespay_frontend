@@ -1,6 +1,6 @@
-export const API_BASE_URL = "http://localhost:8000";
+// export const API_BASE_URL = "http://localhost:8000";
 // export const API_BASE_URL = "https://duespay-backend.fly.dev";
-// export const API_BASE_URL = "https://duespay.onrender.com";
+export const API_BASE_URL = "https://duespay-backend.onrender.com";
 // export const API_BASE_URL = "https://duespay.pythonanywhere.com";
 
 export const API_ENDPOINTS = {
@@ -20,14 +20,17 @@ export const API_ENDPOINTS = {
   VERIFY_EDIT_TRANSACTION: (id) => `${API_BASE_URL}/api/transactions/${id}/`,
   // initiate payment
   PAYMENT_INITIATE: `${API_BASE_URL}/api/transactions/payment/initiate/`,
-  PAYMENT_STATUS: (reference_id) => `${API_BASE_URL}/api/transactions/payment/status/${reference_id}/`,
-  GET_RECEIPT: (receipt_id) => `${API_BASE_URL}/api/transactions/receipts/${receipt_id}/`,
+  PAYMENT_STATUS: (reference_id) =>
+    `${API_BASE_URL}/api/transactions/payment/status/${reference_id}/`,
+  GET_RECEIPT: (receipt_id) =>
+    `${API_BASE_URL}/api/transactions/receipts/${receipt_id}/`,
 
   // Association Endpoints
   CREATE_ASSOCIATION: `${API_BASE_URL}/api/association/profiles/`,
   UPDATE_ASSOCIATION: (id) => `${API_BASE_URL}/api/association/profiles/${id}/`,
   GET_ASSOCIATION: `${API_BASE_URL}/api/association/profiles/`,
-  GET_PAYMENT_ASSOCIATION: (shortName) => `${API_BASE_URL}/api/association/get-association/${shortName?.toLowerCase()}/`,
+  GET_PAYMENT_ASSOCIATION: (shortName) =>
+    `${API_BASE_URL}/api/association/get-association/${shortName?.toLowerCase()}/`,
   GET_PROFILE: `${API_BASE_URL}/api/association/get-profile/`,
 
   // Notifications endpoints
@@ -41,12 +44,14 @@ export const API_ENDPOINTS = {
   PAYER_CHECK: `${API_BASE_URL}/api/payers/check/`,
 
   // Payment items endpoints
-  PAYMENT_ITEM_DETAILS: (id) => `${API_BASE_URL}/api/payments/payment-items/${id}/`,
+  PAYMENT_ITEM_DETAILS: (id) =>
+    `${API_BASE_URL}/api/payments/payment-items/${id}/`,
   PAYMENT_ITEMS: `${API_BASE_URL}/api/payments/payment-items/`,
 
   // Bank account endpoints
   GET_CREATE_BANK_ACCOUNT: `${API_BASE_URL}/api/payments/bank-account/`,
-  UPDATE_DETAIL_BANK_ACCOUNT: (id) => `${API_BASE_URL}/api/payments/bank-account/${id}/`,
+  UPDATE_DETAIL_BANK_ACCOUNT: (id) =>
+    `${API_BASE_URL}/api/payments/bank-account/${id}/`,
   GET_BANKS: `${API_BASE_URL}/api/payments/bank-account/all-banks/`,
   VERIFY_BANK: `${API_BASE_URL}/api/payments/bank-account/verify/`,
 
@@ -58,6 +63,7 @@ export const API_ENDPOINTS = {
   GET_SESSIONS: `${API_BASE_URL}/api/association/sessions/`,
   CREATE_SESSION: `${API_BASE_URL}/api/association/sessions/`,
   UPDATE_SESSION: (id) => `${API_BASE_URL}/api/association/sessions/${id}/`,
-  SET_CURRENT_SESSION: (id) => `${API_BASE_URL}/api/association/sessions/${id}/set_current/`,
+  SET_CURRENT_SESSION: (id) =>
+    `${API_BASE_URL}/api/association/sessions/${id}/set_current/`,
   GET_CURRENT_SESSION: `${API_BASE_URL}/api/association/sessions/current/`,
 };
