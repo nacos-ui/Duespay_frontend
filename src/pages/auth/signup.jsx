@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Loader2, CheckCircle, ArrowRight } from 'lucide-react';
-import { GoogleLogin } from '@react-oauth/google';
+import { GoogleLogin } from '@react-oauth/google';  
 import { API_ENDPOINTS } from '../../apiConfig';
 import StatusMessage from '../../components/StatusMessage';
 import SubmitButton from '../../components/SubmitButton';
